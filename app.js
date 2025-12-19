@@ -10,7 +10,13 @@ const SEARCH_ENGINES = {
 };
 
 const state = {
-    settings: { defaultEngine: 'google', theme: 'dark', showQuickLinks: true, newTabResults: false },
+    settings: {
+        defaultEngine: 'google',
+        style: 'brutal',  // 'brutal' or 'subtle'
+        theme: 'dark',    // 'dark' or 'light'
+        showQuickLinks: true,
+        newTabResults: false
+    },
     quickLinks: []
 };
 
@@ -19,7 +25,7 @@ document.addEventListener('DOMContentLoaded', () => {
     loadQuickLinks();
     initTimeWidget();
     initEventListeners();
-    applyTheme();
+    applyStyles();
 });
 
 function loadSettings() {
@@ -35,14 +41,27 @@ function loadSettings() {
     const engineRadio = document.querySelector(`input[name="engine"][value="${state.settings.defaultEngine}"]`);
     if (engineRadio) engineRadio.checked = true;
 
+    // Update style buttons
+    document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.style === state.settings.style);
+    });
+
+    // Update theme buttons
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.theme === state.settings.theme);
     });
+
     document.getElementById('quickLinks').style.display = state.settings.showQuickLinks ? 'block' : 'none';
 }
 
-function saveSettings() { localStorage.setItem('intents-settings', JSON.stringify(state.settings)); }
-function applyTheme() { document.documentElement.setAttribute('data-theme', state.settings.theme); }
+function saveSettings() {
+    localStorage.setItem('intents-settings', JSON.stringify(state.settings));
+}
+
+function applyStyles() {
+    document.documentElement.setAttribute('data-style', state.settings.style);
+    document.documentElement.setAttribute('data-theme', state.settings.theme);
+}
 
 function loadQuickLinks() {
     const saved = localStorage.getItem('intents-quicklinks');
@@ -148,12 +167,22 @@ function initEventListeners() {
         saveSettings();
     });
 
-    // Theme buttons
+    // Style buttons (Brutal / Subtle)
+    document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.settings.style = btn.dataset.style;
+            saveSettings();
+            applyStyles();
+            document.querySelectorAll('.style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === state.settings.style));
+        });
+    });
+
+    // Theme buttons (Dark / Light)
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             state.settings.theme = btn.dataset.theme;
             saveSettings();
-            applyTheme();
+            applyStyles();
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === state.settings.theme));
         });
     });

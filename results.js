@@ -50,6 +50,7 @@ function loadTheme() {
     if (saved) {
         try {
             const settings = JSON.parse(saved);
+            document.documentElement.setAttribute('data-style', settings.style || 'brutal');
             document.documentElement.setAttribute('data-theme', settings.theme || 'dark');
         } catch (e) { }
     }
