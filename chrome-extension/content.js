@@ -119,6 +119,76 @@
             }
         });
     }
+    function showFriendlyPing(thought) {
+        if (document.getElementById('htt-friendly-ping')) return;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'htt-friendly-overlay';
+        overlay.id = 'htt-friendly-ping-overlay';
+
+        const container = document.createElement('div');
+        container.className = 'htt-friendly-ping';
+        container.id = 'htt-friendly-ping';
+        container.innerHTML = `
+            <div class="htt-fp-icon">🌥️</div>
+            <div class="htt-fp-header">Thinking of you</div>
+            <div class="htt-fp-text">"${escapeHtml(thought.text)}"</div>
+            <div class="htt-fp-actions">
+                <button class="htt-fp-btn secondary" id="httFpSnooze">Snooze (5m)</button>
+                <button class="htt-fp-btn primary" id="httFpAck">Got it, thanks!</button>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(container);
+
+        // Gentle ding sound
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+
+            // Soft sine wave
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(523.25, ctx.currentTime); // C5
+            osc.frequency.exponentialRampToValueAtTime(1046.5, ctx.currentTime + 0.1); // C6
+
+            gain.gain.setValueAtTime(0.05, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+
+            osc.start();
+            osc.stop(ctx.currentTime + 0.6);
+        } catch (e) { }
+
+        const close = () => {
+            container.style.transition = 'all 0.3s ease';
+            overlay.style.transition = 'all 0.3s ease';
+
+            container.style.opacity = '0';
+            container.style.transform = 'translate(-50%, -45%) scale(0.95)';
+            overlay.style.opacity = '0';
+
+            setTimeout(() => {
+                container.remove();
+                overlay.remove();
+            }, 300);
+        };
+
+        container.querySelector('#httFpAck').addEventListener('click', close);
+
+        container.querySelector('#httFpSnooze').addEventListener('click', () => {
+            chrome.runtime.sendMessage({
+                action: 'createPing',
+                thought: { ...thought },
+                minutes: 5 // Snooze time
+            }, () => {
+                close();
+                showNotification('Snoozed for 5m 💤');
+            });
+        });
+    }
 
     // Color options
     const COLORS = [

@@ -214,18 +214,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name.startsWith('ping_')) {
         const thoughtId = alarm.name.replace('ping_', '');
+
         getThoughts().then(thoughts => {
             const thought = thoughts.find(t => t.id === thoughtId);
-            const msg = thought ? thought.text : 'You asked me to ping you!';
+            if (thought) {
+                // 1. Delete the thought (it's done)
+                deleteThought(thoughtId);
 
-            chrome.notifications.create({
-                type: 'basic',
-                iconUrl: 'icons/icon128.png',
-                title: 'Hey! Friendly Ping 👋',
-                message: `You asked me to ping you about: ${msg}`,
-                priority: 2,
-                buttons: [{ title: 'Open Thoughts' }]
-            });
+                // 2. Trigger Custom Friendly UI on active tab
+                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                    if (tabs && tabs[0]) {
+                        sendMessageOrInject(tabs[0], {
+                            action: 'triggerPingNotification',
+                            thought: thought
+                        }, ['thought-popup.css'], ['content.js']);
+                    }
+                });
+            }
         });
     }
 });
