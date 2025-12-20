@@ -764,18 +764,27 @@ if (window.__INTENT_MODE_LOADED__) {
     /**
      * Handle text selection
      */
-    function handleTextSelection() {
+    function handleTextSelection(e) {
+        // Ignore if reader not active
         if (!readerActive) return;
+
+        // Ignore clicks inside the tooltip or panel
+        if (e && e.target && (e.target.closest('.intent-htt-tooltip') || e.target.closest('.intent-htt-panel'))) {
+            return;
+        }
 
         const selection = window.getSelection();
         const text = selection.toString().trim();
 
-        if (text.length > 10) { // Minimum selection length
+        if (text.length > 2) { // Minimum selection length lowered to 2 for easier testing
             currentSelection = text;
             const range = selection.getRangeAt(0);
             selectionRect = range.getBoundingClientRect();
             showSelectionTooltip();
         } else {
+            // Only hide if we aren't interacting with the tooltip
+            // Note: The mousedown handler handles closing on outside clicks, 
+            // but we double check here to handle empty selections
             hideSelectionTooltip();
         }
     }
@@ -817,11 +826,25 @@ if (window.__INTENT_MODE_LOADED__) {
         const savedSelection = currentSelection;
 
         // Attach click handler
-        document.getElementById('httTooltipBtn').addEventListener('click', (e) => {
+        // Attach click handler
+        const btn = document.getElementById('httTooltipBtn');
+
+        // Prevent default on mousedown to stop focus stealing/selection clearing
+        btn.addEventListener('mousedown', (e) => {
             e.preventDefault();
             e.stopPropagation();
-            // Restore the saved selection since clicking clears the browser selection
-            currentSelection = savedSelection;
+        });
+
+        // Handle the actual action on click
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Re-verify selection is available, or use saved one
+            if (!currentSelection && savedSelection) {
+                currentSelection = savedSelection;
+            }
+
             hideSelectionTooltip();
             showHttPanel();
         });
