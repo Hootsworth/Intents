@@ -34,6 +34,19 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+/* Ensure text visibility */
+.intent-mode-container * {
+    border-color: var(--intent-border);
+}
+
+.intent-mode-container p,
+.intent-mode-container li,
+.intent-mode-container span,
+.intent-mode-container time,
+.intent-mode-container div {
+    color: inherit;
+}
+
 /* ==================== Progress Bar ==================== */
 .intent-progress {
     position: fixed;
@@ -582,12 +595,26 @@
     --intent-bg: #08080a;
 }
 
-[data-intent="reflect"] .intent-topbar {
-    opacity: 0.6;
-}
-
 [data-intent="reflect"] .intent-topbar:hover {
     opacity: 1;
+}
+
+/* Reflect mode - Link behavior (Blur non-essential links) */
+[data-intent="reflect"] .intent-content a {
+    filter: blur(3px);
+    transition: all 0.3s ease;
+    opacity: 0.7;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0 4px;
+    border-radius: 4px;
+}
+
+[data-intent="reflect"] .intent-content a:hover {
+    filter: blur(0);
+    opacity: 1;
+    background: var(--intent-accent-soft);
+    color: var(--intent-accent);
 }
 
 /* ==================== Scrollbar ==================== */
