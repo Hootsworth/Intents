@@ -26,7 +26,98 @@
                 showNotification('Select some text first!');
             }
         }
+
+        if (request.action === 'showPingBar') {
+            createPingBar();
+        }
     });
+
+    // ... (rest of code) ...
+
+    function createPingBar() {
+        if (document.getElementById('htt-ping-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'htt-ping-overlay';
+        overlay.className = 'htt-ping-overlay';
+
+        overlay.innerHTML = `
+            <div class="htt-ping-bar">
+                <input type="text" class="htt-ping-input" id="httPingInput" placeholder="Remind me to..." autocomplete="off">
+                <div class="htt-ping-actions">
+                    <button type="button" class="htt-ping-btn" data-time="15">15m</button>
+                    <button type="button" class="htt-ping-btn" data-time="60">1h</button>
+                    <button type="button" class="htt-ping-btn" data-time="180">3h</button>
+                    <button type="button" class="htt-ping-btn" data-time="tomorrow">Tmrw</button>
+                    <label class="htt-ping-toggle">
+                        <input type="checkbox" id="httPingLink"> Link page
+                    </label>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const input = overlay.querySelector('#httPingInput');
+        requestAnimationFrame(() => input.focus());
+
+        let selectedMinutes = null;
+        const timeBtns = overlay.querySelectorAll('.htt-ping-btn');
+
+        timeBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const wasActive = btn.classList.contains('active');
+                timeBtns.forEach(b => b.classList.remove('active'));
+
+                if (!wasActive) {
+                    btn.classList.add('active');
+                    if (btn.dataset.time === 'tomorrow') {
+                        selectedMinutes = 24 * 60;
+                    } else {
+                        selectedMinutes = parseInt(btn.dataset.time);
+                    }
+                } else {
+                    selectedMinutes = null;
+                }
+                input.focus();
+            });
+        });
+
+        const close = () => {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 200);
+        };
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) close();
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') close();
+            if (e.key === 'Enter' && input.value.trim()) {
+                const link = overlay.querySelector('#httPingLink').checked;
+                const text = input.value.trim();
+
+                chrome.runtime.sendMessage({
+                    action: 'createPing',
+                    thought: {
+                        text: text,
+                        context: link ? document.title : '',
+                        pageUrl: link ? window.location.href : '',
+                        tag: '⏰ Reminder',
+                        importance: 'medium',
+                        color: '#7c7cf8'
+                    },
+                    minutes: selectedMinutes
+                }, (res) => {
+                    close();
+                    if (res && res.success) {
+                        showNotification(selectedMinutes ? 'Ping set for later! ⏰' : 'Note saved! 💭');
+                    }
+                });
+            }
+        });
+    }
 
     // Color options
     const COLORS = [

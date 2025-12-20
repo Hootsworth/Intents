@@ -289,6 +289,186 @@
     color: #555;
 }
 
+/* Ping Bar (Spotlight Style) */
+.htt-ping-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(4px);
+    z-index: 2147483647;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding-top: 20vh;
+    animation: httFadeIn 0.2s ease;
+}
+
+.htt-ping-bar {
+    width: 600px;
+    max-width: 90vw;
+    background: #202023;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
+    padding: 16px;
+    animation: httSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+@keyframes httSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.htt-ping-input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    font-size: 24px;
+    font-family: inherit;
+    width: 100%;
+    outline: none;
+    padding: 8px 4px;
+}
+
+.htt-ping-input::placeholder {
+    color: #555;
+    font-weight: 300;
+}
+
+.htt-ping-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding-top: 12px;
+}
+
+.htt-ping-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    border-radius: 8px;
+    color: #999;
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+.htt-ping-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+
+.htt-ping-btn.active {
+    background: #7c7cf8;
+    color: #fff;
+}
+
+.htt-ping-toggle {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #999;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.htt-ping-toggle input {
+    accent-color: #7c7cf8;
+}
+
+.htt-ping-submit {
+    display: none;
+    /* Implicit submit via Enter usually, but we can have it */
+}
+
+/* In-Page Notification Toast */
+.htt-toast {
+    position: fixed;
+    top: 24px;
+    right: 24px;
+    width: 320px;
+    background: #202023;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    z-index: 2147483647;
+    animation: httToastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+@keyframes httToastIn {
+    from {
+        opacity: 0;
+        transform: translateX(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.htt-toast-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #7c7cf8;
+}
+
+.htt-toast-body {
+    color: #e1e1e6;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+.htt-toast-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.htt-toast-btn {
+    flex: 1;
+    padding: 8px;
+    border-radius: 6px;
+    border: none;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    transition: background 0.1s;
+}
+
+.htt-toast-btn.primary {
+    background: #7c7cf8;
+}
+
+.htt-toast-btn:hover {
+    filter: brightness(1.1);
+}
+
 /* Footer */
 .htt-footer {
     display: flex;

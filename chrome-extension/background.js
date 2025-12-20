@@ -40,6 +40,13 @@ function createContextMenus() {
             });
         });
 
+        // Isolate Mode
+        chrome.contextMenus.create({
+            id: 'isolate-text',
+            title: '🔍 Isolate this section',
+            contexts: ['selection']
+        });
+
         console.log('Context menus created successfully');
     });
 }
@@ -105,80 +112,58 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         return;
     }
 
+    // Handle Isolate
+    if (info.menuItemId === 'isolate-text') {
+        sendMessageOrInject(tab, { action: 'triggerIsolate' }, ['intent-mode.css'], ['intent-mode.js']);
+        return;
+    }
+
     // Handle Intent Mode
     const intentItem = INTENTS.find(i => i.id === info.menuItemId);
     if (intentItem) {
-        try {
-            // Try to send message first
-            await chrome.tabs.sendMessage(tab.id, {
-                action: 'activateIntentMode',
-                intent: intentItem.intent
-            });
-        } catch (error) {
-            // Intent Mode script not injected - inject it now
-            try {
-                await chrome.scripting.insertCSS({
-                    target: { tabId: tab.id },
-                    files: ['intent-mode.css']
-                });
-                await chrome.scripting.executeScript({
-                    target: { tabId: tab.id },
-                    files: ['intent-mode.js']
-                });
-                // Wait a bit for script to load, then send message
-                setTimeout(async () => {
-                    try {
-                        await chrome.tabs.sendMessage(tab.id, {
-                            action: 'activateIntentMode',
-                            intent: intentItem.intent
-                        });
-                    } catch (e) {
-                        console.log('Failed to activate Intent Mode after injection:', e);
-                    }
-                }, 150);
-            } catch (injectError) {
-                console.log('Cannot inject Intent Mode into this page:', injectError);
-            }
-        }
+        sendMessageOrInject(tab, {
+            action: 'activateIntentMode',
+            intent: intentItem.intent
+        }, ['intent-mode.css'], ['intent-mode.js']);
     }
 });
 
+// Helper for injection
+async function sendMessageOrInject(tab, message, cssFiles, jsFiles) {
+    try {
+        await chrome.tabs.sendMessage(tab.id, message);
+    } catch (error) {
+        try {
+            if (cssFiles && cssFiles.length) {
+                await chrome.scripting.insertCSS({ target: { tabId: tab.id }, files: cssFiles });
+            }
+            if (jsFiles && jsFiles.length) {
+                await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: jsFiles });
+            }
+            setTimeout(async () => {
+                try {
+                    await chrome.tabs.sendMessage(tab.id, message);
+                } catch (e) {
+                    console.log('Failed after injection:', e);
+                }
+            }, 150);
+        } catch (injectError) {
+            console.log('Injection failed:', injectError);
+        }
+    }
+}
+
 // Handle keyboard shortcut
 chrome.commands.onCommand.addListener(async (command) => {
-    if (command === 'hold-that-thought') {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
-            return;
-        }
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
 
-        try {
-            await chrome.tabs.sendMessage(tab.id, {
-                action: 'triggerHoldThought'
-            });
-        } catch (error) {
-            // Inject content script first
-            try {
-                await chrome.scripting.insertCSS({
-                    target: { tabId: tab.id },
-                    files: ['thought-popup.css']
-                });
-                await chrome.scripting.executeScript({
-                    target: { tabId: tab.id },
-                    files: ['content.js']
-                });
-                setTimeout(async () => {
-                    try {
-                        await chrome.tabs.sendMessage(tab.id, {
-                            action: 'triggerHoldThought'
-                        });
-                    } catch (e) {
-                        console.log('Failed after injection:', e);
-                    }
-                }, 100);
-            } catch (injectError) {
-                console.log('Cannot inject into this page:', injectError);
-            }
-        }
+    if (command === 'hold-that-thought') {
+        sendMessageOrInject(tab, { action: 'triggerHoldThought' }, ['thought-popup.css'], ['content.js']);
+    }
+
+    if (command === 'ping-me') {
+        sendMessageOrInject(tab, { action: 'showPingBar' }, ['thought-popup.css'], ['content.js']);
     }
 });
 
@@ -207,6 +192,16 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 
+    if (request.action === 'createPing') {
+        saveThought({ ...request.thought, isPing: true }).then((savedThought) => {
+            if (request.minutes) {
+                chrome.alarms.create(`ping_${savedThought.id}`, { delayInMinutes: parseFloat(request.minutes) });
+            }
+            sendResponse({ success: true });
+        });
+        return true;
+    }
+
     if (request.action === 'mergeThoughts') {
         mergeThoughts(request.thoughtIds).then((result) => {
             sendResponse(result);
@@ -215,17 +210,43 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
+// Alarm handler
+chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name.startsWith('ping_')) {
+        const thoughtId = alarm.name.replace('ping_', '');
+        getThoughts().then(thoughts => {
+            const thought = thoughts.find(t => t.id === thoughtId);
+            const msg = thought ? thought.text : 'You asked me to ping you!';
+
+            chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'icons/icon128.png',
+                title: 'Hey! Friendly Ping 👋',
+                message: `You asked me to ping you about: ${msg}`,
+                priority: 2,
+                buttons: [{ title: 'Open Thoughts' }]
+            });
+        });
+    }
+});
+
+chrome.notifications.onButtonClicked.addListener(() => {
+    chrome.tabs.create({ url: 'index.html' });
+});
+
 // Save thought to storage
 async function saveThought(thought) {
     const result = await chrome.storage.local.get(['thoughts']);
     const thoughts = result.thoughts || [];
-    thoughts.unshift({
+    const newThought = {
         ...thought,
         id: Date.now().toString(),
         timestamp: new Date().toISOString()
-    });
+    };
+    thoughts.unshift(newThought);
     // Keep only last 100 thoughts
     await chrome.storage.local.set({ thoughts: thoughts.slice(0, 100) });
+    return newThought;
 }
 
 // Get all thoughts

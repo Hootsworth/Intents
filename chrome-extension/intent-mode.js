@@ -11,6 +11,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
         sendResponse({ success: true });
     }
+
+    if (request.action === 'triggerIsolate') {
+        const selection = window.getSelection();
+        if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
+            const div = document.createElement('div');
+            div.appendChild(selection.getRangeAt(0).cloneContents());
+            if (typeof window.__intentModeActivate__ === 'function') {
+                window.__intentModeActivate__('read', div.innerHTML);
+            }
+        } else {
+            alert('Please select some text to isolate.');
+        }
+    }
     return true;
 });
 
@@ -100,9 +113,9 @@ if (window.__INTENT_MODE_LOADED__) {
     /**
      * Main activation function
      */
-    function activateIntentMode(intent) {
+    function activateIntentMode(intent, contentOverride = null) {
         if (readerActive) {
-            // Update intent if already active
+            // Update intent if already active (ignoring contentOverride in update for simplicity)
             const oldIntent = currentIntent;
             currentIntent = INTENTS[intent] || INTENTS.read;
 
@@ -126,19 +139,31 @@ if (window.__INTENT_MODE_LOADED__) {
 
         currentIntent = INTENTS[intent] || INTENTS.read;
 
-        // Extract main content
-        const extracted = extractContent();
+        // Extract main content or use override
+        let extracted;
+        if (contentOverride) {
+            extracted = {
+                title: 'Isolated Selection',
+                content: contentOverride,
+                byline: 'Selected Text',
+                url: window.location.href
+            };
+        } else {
+            extracted = extractContent();
+        }
 
         if (!extracted || !extracted.content || extracted.content.trim().length < 50) {
-            showNotification('Could not extract content from this page.');
-            return;
+            if (!contentOverride) showNotification('Could not extract content from this page.');
+            // For isolate, we might persist even if short?
+            // If it's override, we respect it.
+            if (contentOverride) { /* allow */ } else { return; }
         }
 
         // Hide original page content (non-destructive)
         hideOriginalContent();
 
         // Build and inject reader view
-        buildReaderView(extracted);
+        buildReaderView(extracted, !!contentOverride);
         readerActive = true;
     }
 
@@ -482,7 +507,7 @@ if (window.__INTENT_MODE_LOADED__) {
     /**
      * Build the reader view
      */
-    function buildReaderView(extracted) {
+    function buildReaderView(extracted, isIsolate = false) {
         const intent = currentIntent;
         const baseFontSize = parseInt(intent.fontSize);
         const adjustedFontSize = baseFontSize + fontSizeOffset;
@@ -540,7 +565,7 @@ if (window.__INTENT_MODE_LOADED__) {
                     ${intent.name === 'Reflect' ? '<button type="button" class="intent-btn" id="intentToggleLinks" title="Show/Blur Links">👁️</button>' : ''}
                     <button type="button" class="intent-btn" id="intentFontDecrease" title="Decrease font size">A−</button>
                     <button type="button" class="intent-btn" id="intentFontIncrease" title="Increase font size">A+</button>
-                    <button type="button" class="intent-btn intent-btn-close" id="intentClose" title="Exit Intent Mode (Esc)">✕</button>
+                    <button type="button" class="intent-btn intent-btn-close" id="intentClose" title="${isIsolate ? 'Exit Isolation' : 'Exit Intent Mode (Esc)'}">${isIsolate ? 'Exit' : '✕'}</button>
                 </div>
             </div>
             
@@ -558,6 +583,14 @@ if (window.__INTENT_MODE_LOADED__) {
                         ${extracted.content}
                     </div>
                     
+                    ${isIsolate ? `
+                    <div style="margin-top: 48px; padding-top: 32px; border-top: 1px solid var(--intent-border); text-align: center;">
+                        <button type="button" class="intent-btn intent-btn-close" id="intentExitIso" style="padding: 12px 24px; font-size: 15px;">
+                            Exit Isolation & Show Website
+                        </button>
+                    </div>
+                    ` : ''}
+
                     <footer class="intent-footer">
                         <div class="intent-source">
                             <span>Source:</span>
