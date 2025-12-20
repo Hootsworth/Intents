@@ -98,6 +98,19 @@
                 const link = overlay.querySelector('#httPingLink').checked;
                 const text = input.value.trim();
 
+                // Smart Time Parsing
+                let minutes = selectedMinutes;
+                if (!minutes) {
+                    const match = text.match(/\b(\d+(?:\.\d+)?)\s*(m|min|mins|h|hr|hrs|d|day|days)\b/i);
+                    if (match) {
+                        const val = parseFloat(match[1]);
+                        const unit = match[2].toLowerCase()[0];
+                        if (unit === 'm') minutes = val;
+                        else if (unit === 'h') minutes = val * 60;
+                        else if (unit === 'd') minutes = val * 1440;
+                    }
+                }
+
                 chrome.runtime.sendMessage({
                     action: 'createPing',
                     thought: {
@@ -109,11 +122,11 @@
                         importance: 'medium',
                         color: '#7c7cf8'
                     },
-                    minutes: selectedMinutes
+                    minutes: minutes
                 }, (res) => {
                     close();
                     if (res && res.success) {
-                        showNotification(selectedMinutes ? 'Ping set for later! ⏰' : 'Note saved! 💭');
+                        showNotification(minutes ? 'Ping set for later! ⏰' : 'Note saved! 💭');
                     }
                 });
             }
