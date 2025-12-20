@@ -472,6 +472,7 @@ function renderThoughts(thoughts) {
         const date = new Date(thought.timestamp);
         const timeAgo = getTimeAgo(date);
         const importanceClass = thought.importance === 'high' ? 'high' : (thought.importance === 'medium' ? 'medium' : '');
+        const deepLink = getFragmentUrl(thought.pageUrl, thought.text);
 
         return `
             <div class="thought-card ${importanceClass}" style="border-left-color: ${thought.color}" data-id="${thought.id}">
@@ -482,7 +483,7 @@ function renderThoughts(thoughts) {
                 <p class="thought-text">${escapeHtml(thought.text)}</p>
                 ${thought.context ? `<p class="thought-context">${escapeHtml(thought.context)}</p>` : ''}
                 <div class="thought-meta">
-                    <a href="${thought.pageUrl}" target="_blank" class="thought-source">${escapeHtml(truncate(thought.pageTitle, 40))}</a>
+                    <a href="${deepLink}" target="_blank" class="thought-source">${escapeHtml(truncate(thought.pageTitle, 40))}</a>
                     <span class="thought-time">${timeAgo}</span>
                 </div>
             </div>
@@ -496,6 +497,32 @@ function renderThoughts(thoughts) {
             deleteThought(btn.dataset.id);
         });
     });
+}
+
+function getFragmentUrl(url, text) {
+    if (!text) return url;
+
+    // Clean text: remove newlines and extra spaces
+    const cleanText = text.replace(/\s+/g, ' ').trim();
+    if (!cleanText) return url;
+
+    // Create text fragment
+    // If text is long (> 300 chars), use start,end syntax
+    let fragment = '';
+    if (cleanText.length > 300) {
+        const words = cleanText.split(' ');
+        if (words.length > 10) {
+            const start = words.slice(0, 5).join(' ');
+            const end = words.slice(-5).join(' ');
+            fragment = `#:~:text=${encodeURIComponent(start)},${encodeURIComponent(end)}`;
+        } else {
+            fragment = `#:~:text=${encodeURIComponent(cleanText)}`;
+        }
+    } else {
+        fragment = `#:~:text=${encodeURIComponent(cleanText)}`;
+    }
+
+    return url + fragment;
 }
 
 function deleteThought(id) {
