@@ -423,6 +423,71 @@ select {
     font-size: 0.875rem;
 }
 
+/* AI Taskbar */
+.ai-taskbar {
+    margin-top: var(--space-2xl);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+.ai-taskbar-label {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--text-muted);
+}
+
+.ai-links {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.ai-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+    background: var(--bg-secondary);
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--border-radius);
+    transition: all var(--transition-normal);
+    min-width: 80px;
+    text-decoration: none;
+    color: var(--text-primary);
+}
+
+.ai-link:hover {
+    background: var(--accent-primary);
+    color: #000000;
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-brutal);
+}
+
+.ai-logo {
+    width: 28px;
+    height: 28px;
+    margin-bottom: var(--space-xs);
+    transition: transform var(--transition-normal);
+}
+
+.ai-link:hover .ai-logo {
+    transform: scale(1.1);
+}
+
+.ai-name {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
 /* ===== MODAL STYLES ===== */
 .modal {
     display: none;

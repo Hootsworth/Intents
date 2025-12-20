@@ -15,7 +15,8 @@ const state = {
         style: 'brutal',  // 'brutal' or 'subtle'
         theme: 'dark',    // 'dark' or 'light'
         showQuickLinks: true,
-        newTabResults: false
+        newTabResults: false,
+        showAITaskbar: true
     },
     quickLinks: []
 };
@@ -36,6 +37,12 @@ function loadSettings() {
     document.getElementById('defaultEngine').value = state.settings.defaultEngine;
     document.getElementById('showQuickLinks').checked = state.settings.showQuickLinks;
     document.getElementById('newTabResults').checked = state.settings.newTabResults;
+
+    // AI Taskbar
+    const aiTaskbarCheckbox = document.getElementById('showAITaskbar');
+    if (aiTaskbarCheckbox) aiTaskbarCheckbox.checked = state.settings.showAITaskbar;
+    const aiTaskbar = document.getElementById('aiTaskbar');
+    if (aiTaskbar) aiTaskbar.style.display = state.settings.showAITaskbar ? 'flex' : 'none';
 
     // Set default engine radio
     const engineRadio = document.querySelector(`input[name="engine"][value="${state.settings.defaultEngine}"]`);
@@ -165,6 +172,14 @@ function initEventListeners() {
     document.getElementById('newTabResults')?.addEventListener('change', (e) => {
         state.settings.newTabResults = e.target.checked;
         saveSettings();
+    });
+
+    // AI Taskbar toggle
+    document.getElementById('showAITaskbar')?.addEventListener('change', (e) => {
+        state.settings.showAITaskbar = e.target.checked;
+        saveSettings();
+        const aiTaskbar = document.getElementById('aiTaskbar');
+        if (aiTaskbar) aiTaskbar.style.display = e.target.checked ? 'flex' : 'none';
     });
 
     // Style buttons (Brutal / Subtle)

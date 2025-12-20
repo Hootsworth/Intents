@@ -164,9 +164,15 @@ async function fetchInstantAnswer() {
         const data = await response.json();
 
         if (data.Abstract || data.Answer) {
+            // Fix image URL - DuckDuckGo returns relative paths
+            let imageUrl = data.Image;
+            if (imageUrl && !imageUrl.startsWith('http')) {
+                imageUrl = 'https://duckduckgo.com' + imageUrl;
+            }
+
             showSection('instantSection', `
                 <div class="instant-card">
-                    ${data.Image ? `<img src="${data.Image}" alt="" class="instant-image">` : ''}
+                    ${imageUrl ? `<img src="${imageUrl}" alt="" class="instant-image" onerror="this.style.display='none'">` : ''}
                     <div class="instant-text">
                         <h3>${data.Heading || currentQuery}</h3>
                         <p>${data.Abstract || data.Answer}</p>
