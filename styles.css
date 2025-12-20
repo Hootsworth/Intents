@@ -1695,3 +1695,445 @@ select {
         padding: var(--space-md);
     }
 }
+
+/* ===== SUBTLE MODE - RESULTS PAGE (Google-like Design) ===== */
+[data-style="subtle"] .results-page {
+    background: var(--bg-primary);
+}
+
+[data-style="subtle"] .results-header {
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-md) var(--space-xl);
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1);
+}
+
+[data-style="subtle"] .header-logo {
+    font-family: var(--font-sans);
+    font-weight: 800;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+[data-style="subtle"] .header-search-wrapper {
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    box-shadow: none;
+    overflow: hidden;
+    transition: all var(--transition-normal);
+}
+
+[data-style="subtle"] .header-search-wrapper:focus-within {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+[data-style="subtle"] .header-search-input {
+    padding: var(--space-sm) var(--space-lg);
+    font-size: 1rem;
+}
+
+[data-style="subtle"] .header-search-btn {
+    background: transparent;
+    color: var(--text-secondary);
+    border-left: none;
+    padding: var(--space-sm) var(--space-md);
+}
+
+[data-style="subtle"] .header-search-btn:hover {
+    color: var(--accent-primary);
+}
+
+[data-style="subtle"] .intent-quick {
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: transparent;
+    opacity: 0.7;
+    transition: all var(--transition-normal);
+}
+
+[data-style="subtle"] .intent-quick:hover {
+    background: var(--bg-tertiary);
+    opacity: 1;
+    transform: none;
+    box-shadow: none;
+}
+
+[data-style="subtle"] .intent-quick.active {
+    background: rgba(99, 102, 241, 0.15);
+    opacity: 1;
+    transform: none;
+    box-shadow: none;
+    border-color: var(--accent-primary);
+}
+
+[data-style="subtle"] .home-btn {
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: transparent;
+    opacity: 0.7;
+}
+
+[data-style="subtle"] .home-btn:hover {
+    background: var(--bg-tertiary);
+    color: var(--accent-primary);
+    opacity: 1;
+}
+
+/* Subtle Results Main */
+[data-style="subtle"] .results-main {
+    max-width: 800px;
+    padding: var(--space-xl);
+}
+
+[data-style="subtle"] .query-bar {
+    background: transparent;
+    border: none;
+    padding: var(--space-sm) 0;
+    margin-bottom: var(--space-md);
+    border-bottom: 1px solid var(--border-color);
+}
+
+[data-style="subtle"] .query-text {
+    font-family: var(--font-sans);
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+[data-style="subtle"] .query-text strong {
+    color: var(--text-primary);
+}
+
+[data-style="subtle"] .intent-badge {
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--accent-primary);
+    border: none;
+    border-radius: 16px;
+    font-family: var(--font-sans);
+    font-weight: 500;
+    font-size: 0.75rem;
+    padding: 4px 12px;
+}
+
+/* Subtle Results Grid - Single Column like Google */
+[data-style="subtle"] .results-grid {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-xl);
+}
+
+[data-style="subtle"] .result-section {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+}
+
+[data-style="subtle"] .section-title {
+    background: transparent;
+    border-bottom: none;
+    padding: 0 0 var(--space-md) 0;
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+[data-style="subtle"] .section-icon {
+    opacity: 0.8;
+}
+
+[data-style="subtle"] .section-content {
+    padding: 0;
+    min-height: auto;
+}
+
+[data-style="subtle"] .section-source {
+    display: none;
+}
+
+/* Subtle Result Items - Google-like cards */
+[data-style="subtle"] .result-item {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: var(--space-lg);
+    margin-bottom: var(--space-md);
+    transition: all var(--transition-normal);
+}
+
+[data-style="subtle"] .result-item:hover {
+    transform: none;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    border-color: rgba(99, 102, 241, 0.3);
+}
+
+[data-style="subtle"] .result-item h4 {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: var(--space-xs);
+}
+
+[data-style="subtle"] .result-item h4 a {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+[data-style="subtle"] .result-item h4 a:hover {
+    text-decoration: underline;
+}
+
+[data-style="subtle"] .result-item p {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+[data-style="subtle"] .result-meta {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+[data-style="subtle"] .result-link {
+    font-family: var(--font-sans);
+    color: var(--accent-secondary);
+    font-size: 0.85rem;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
+}
+
+/* Subtle Instant Answer - Featured Snippet Style */
+[data-style="subtle"] .instant-section {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: var(--space-lg);
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.08);
+}
+
+[data-style="subtle"] .instant-section .section-title {
+    padding-bottom: var(--space-sm);
+    font-size: 0.75rem;
+    color: var(--accent-primary);
+}
+
+[data-style="subtle"] .instant-section .section-content {
+    padding: var(--space-md) 0 0 0;
+}
+
+[data-style="subtle"] .instant-card {
+    gap: var(--space-xl);
+}
+
+[data-style="subtle"] .instant-image {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-style="subtle"] .instant-text h3 {
+    font-family: var(--font-sans);
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+    color: var(--text-primary);
+}
+
+[data-style="subtle"] .instant-text p {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+
+/* Subtle Wikipedia Card */
+[data-style="subtle"] .wiki-card {
+    gap: var(--space-lg);
+}
+
+[data-style="subtle"] .wiki-thumb {
+    border-radius: 12px;
+    border: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+[data-style="subtle"] .wiki-content h3 {
+    font-family: var(--font-sans);
+    font-weight: 600;
+}
+
+[data-style="subtle"] .wiki-content h3 a {
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+[data-style="subtle"] .wiki-content h3 a:hover {
+    text-decoration: underline;
+}
+
+/* Subtle StackOverflow Styles */
+[data-style="subtle"] .so-item {
+    border-left: 3px solid transparent;
+    transition: border-color var(--transition-normal);
+}
+
+[data-style="subtle"] .so-item:hover {
+    border-left-color: var(--accent-primary);
+}
+
+[data-style="subtle"] .so-item .so-meta {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    gap: var(--space-lg);
+}
+
+[data-style="subtle"] .so-answers.answered {
+    color: #22c55e;
+}
+
+[data-style="subtle"] .tag {
+    background: rgba(99, 102, 241, 0.1);
+    border: none;
+    border-radius: 4px;
+    color: var(--accent-primary);
+    font-family: var(--font-sans);
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: none;
+}
+
+/* Subtle GitHub Styles */
+[data-style="subtle"] .gh-item {
+    border-left: 3px solid transparent;
+}
+
+[data-style="subtle"] .gh-item:hover {
+    border-left-color: #6366f1;
+}
+
+[data-style="subtle"] .gh-item .gh-meta {
+    font-family: var(--font-sans);
+}
+
+[data-style="subtle"] .gh-stars {
+    color: #eab308;
+}
+
+/* Subtle Loading Skeleton */
+[data-style="subtle"] .loading-skeleton {
+    border-radius: 8px;
+    border: none;
+    background: linear-gradient(90deg, var(--bg-tertiary) 25%, rgba(255, 255, 255, 0.05) 50%, var(--bg-tertiary) 75%);
+}
+
+/* Subtle Fallback Search */
+[data-style="subtle"] .fallback-search {
+    background: transparent;
+    border: none;
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--space-xl);
+    margin-top: var(--space-2xl);
+}
+
+[data-style="subtle"] .fallback-search p {
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+}
+
+[data-style="subtle"] .fallback-btn {
+    border-radius: 20px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    font-family: var(--font-sans);
+    font-weight: 500;
+    text-transform: none;
+    font-size: 0.85rem;
+    padding: var(--space-sm) var(--space-lg);
+}
+
+[data-style="subtle"] .fallback-btn:hover {
+    background: var(--accent-primary);
+    border-color: var(--accent-primary);
+    transform: none;
+    box-shadow: none;
+}
+
+/* Subtle Results Footer */
+[data-style="subtle"] .results-footer {
+    background: transparent;
+    border-top: 1px solid var(--border-color);
+}
+
+[data-style="subtle"] .results-footer .footer-content {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+/* Subtle Related Items */
+[data-style="subtle"] .related-item {
+    background: var(--bg-tertiary);
+    border-radius: 8px;
+    border: 1px solid transparent;
+    margin-bottom: var(--space-sm);
+}
+
+[data-style="subtle"] .related-item:hover {
+    border-color: var(--accent-primary);
+    transform: none;
+    box-shadow: none;
+}
+
+[data-style="subtle"] .related-item a {
+    font-family: var(--font-sans);
+    font-weight: 500;
+}
+
+/* Subtle arXiv Items */
+[data-style="subtle"] .arxiv-item {
+    border-left: 3px solid transparent;
+}
+
+[data-style="subtle"] .arxiv-item:hover {
+    border-left-color: #8b5cf6;
+}
+
+/* URL preview for links - QoL improvement */
+[data-style="subtle"] .result-item h4 a::after {
+    content: attr(href);
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--text-muted);
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 400px;
+    text-decoration: none !important;
+}
+
+/* Responsive Subtle Mode */
+@media (max-width: 768px) {
+    [data-style="subtle"] .results-main {
+        padding: var(--space-md);
+    }
+
+    [data-style="subtle"] .result-item h4 a::after {
+        max-width: 250px;
+    }
+
+    [data-style="subtle"] .instant-section {
+        padding: var(--space-md);
+    }
+}

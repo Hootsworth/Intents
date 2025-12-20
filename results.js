@@ -107,6 +107,14 @@ function setupEventListeners() {
     });
 }
 
+// Track which sections have results
+const sectionResults = {
+    instant: false,
+    primary: false,
+    secondary: false,
+    tertiary: false
+};
+
 // Helper to hide a section
 function hideSection(sectionId) {
     const section = document.getElementById(sectionId);
@@ -120,6 +128,58 @@ function showSection(sectionId, content) {
     if (contentEl) {
         contentEl.innerHTML = content;
         section.style.display = 'block';
+
+        // Track that this section has results
+        if (sectionId === 'instantSection') sectionResults.instant = true;
+        else if (sectionId === 'primarySection') sectionResults.primary = true;
+        else if (sectionId === 'secondarySection') sectionResults.secondary = true;
+        else if (sectionId === 'tertiarySection') sectionResults.tertiary = true;
+    }
+}
+
+// Get default search engine URL
+function getDefaultSearchUrl(query) {
+    const saved = localStorage.getItem('intents-settings');
+    let engine = 'google';
+    if (saved) {
+        try {
+            const settings = JSON.parse(saved);
+            engine = settings.defaultEngine || 'google';
+        } catch (e) { }
+    }
+
+    const engines = {
+        google: 'https://www.google.com/search?q=',
+        duckduckgo: 'https://duckduckgo.com/?q=',
+        bing: 'https://www.bing.com/search?q=',
+        brave: 'https://search.brave.com/search?q='
+    };
+
+    return engines[engine] + encodeURIComponent(query);
+}
+
+// Check if all sections are empty and redirect if needed
+function checkEmptyAndRedirect() {
+    const hasAnyResults = Object.values(sectionResults).some(v => v);
+
+    if (!hasAnyResults) {
+        // Show a brief message then redirect
+        const main = document.querySelector('.results-main');
+        if (main) {
+            main.innerHTML = `
+                <div style="text-align: center; padding: 3rem;">
+                    <p style="font-size: 1rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                        No curated results found. Redirecting to your default search engine...
+                    </p>
+                    <div class="loading-skeleton" style="width: 200px; margin: 0 auto;"></div>
+                </div>
+            `;
+        }
+
+        // Redirect after a short delay
+        setTimeout(() => {
+            window.location.href = getDefaultSearchUrl(currentQuery);
+        }, 1500);
     }
 }
 
@@ -128,6 +188,12 @@ async function performSearch() {
         window.location.href = 'index.html';
         return;
     }
+
+    // Reset results tracking
+    sectionResults.instant = false;
+    sectionResults.primary = false;
+    sectionResults.secondary = false;
+    sectionResults.tertiary = false;
 
     // Fetch instant answer first
     fetchInstantAnswer();
@@ -155,6 +221,9 @@ async function performSearch() {
             fetchRelatedTopics();
             break;
     }
+
+    // Check for empty results after giving APIs time to respond
+    setTimeout(checkEmptyAndRedirect, 5000);
 }
 
 // DuckDuckGo Instant Answer API
