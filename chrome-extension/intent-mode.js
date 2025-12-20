@@ -3,9 +3,20 @@
  * Transform any webpage into the best possible version for thinking
  */
 
-// Prevent multiple injections
+// Listen for messages from background script - ALWAYS register this
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'activateIntentMode') {
+        if (typeof window.__intentModeActivate__ === 'function') {
+            window.__intentModeActivate__(request.intent);
+        }
+        sendResponse({ success: true });
+    }
+    return true;
+});
+
+// Prevent multiple injections of the main code
 if (window.__INTENT_MODE_LOADED__) {
-    // Already loaded, just listen for messages
+    // Already loaded, nothing to do
 } else {
     window.__INTENT_MODE_LOADED__ = true;
 
@@ -82,15 +93,6 @@ if (window.__INTENT_MODE_LOADED__) {
     ];
 
     const HTT_TAGS = ['📚 Read Later', '💡 Idea', '📝 Note', '⭐ Important', '🔗 Reference', '❓ Question'];
-
-    // Listen for messages from background script
-    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-        if (request.action === 'activateIntentMode') {
-            activateIntentMode(request.intent);
-            sendResponse({ success: true });
-        }
-        return true;
-    });
 
     /**
      * Main activation function
@@ -920,5 +922,8 @@ if (window.__INTENT_MODE_LOADED__) {
             }
         });
     }
+
+    // Expose activateIntentMode globally so the message listener can call it
+    window.__intentModeActivate__ = activateIntentMode;
 
 } // End of guard block
