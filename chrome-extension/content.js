@@ -99,8 +99,14 @@
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') close();
             if (e.key === 'Enter' && input.value.trim()) {
+                e.preventDefault();
+                e.stopPropagation(); // Stop bubbling to prevent double-trigger
+
                 const link = overlay.querySelector('#httPingLink').checked;
                 const text = input.value.trim();
+
+                // Immediately disable to prevent double-submit
+                input.disabled = true;
 
                 // Smart Time Parsing
                 let minutes = selectedMinutes;
@@ -278,23 +284,43 @@
         overlay.id = 'htt-ai-overlay';
         overlay.className = 'htt-ping-overlay';
 
-        // Context: Minimal, muted
-        const contextHtml = context ? `<div style="font-size: 0.85em; opacity: 0.6; margin-bottom: 12px; font-style: italic; border-left: 2px solid rgba(255,255,255,0.2); padding-left: 10px; max-height: 60px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${escapeHtml(context)}</div>` : '';
+        // Context: Minimal, muted (Hidden during morph usually, but we keep structure)
+        const contextHtml = context ? `<div id="httAIContext" style="font-size: 0.85em; opacity: 0.6; margin-bottom: 12px; font-style: italic; border-left: 2px solid rgba(255,255,255,0.2); padding-left: 10px; max-height: 60px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; transition: opacity 0.3s ease;">${escapeHtml(context)}</div>` : '';
 
         // UI: Minimal, Dark, Intentional
-        // No emoji, just clean typography
+        // The container that will morph
         overlay.innerHTML = `
-            <div class="htt-ping-bar" style="border: 1px solid rgba(255,255,255,0.1); background: #1e1e1e; box-shadow: 0 10px 40px rgba(0,0,0,0.5); padding: 15px 20px;">
+            <div id="httAIContainer" class="htt-ping-bar" style="
+                border: 1px solid rgba(255,255,255,0.1); 
+                background: #1e1e1e; 
+                box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
+                padding: 15px 20px;
+                width: 400px;
+                min-height: 60px;
+                transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); /* Smooth expansion */
+                overflow: hidden;
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+            ">
                 ${contextHtml}
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <input type="text" class="htt-ping-input" id="httAIInput" placeholder="Ask..." autocomplete="off" style="font-size: 1.1em; letter-spacing: 0.02em;">
+                <div id="httAIInputWrapper" style="display: flex; align-items: center; gap: 10px; width: 100%; transition: opacity 0.3s ease;">
+                    <input type="text" class="htt-ping-input" id="httAIInput" placeholder="Ask..." autocomplete="off" style="font-size: 1.1em; letter-spacing: 0.02em; width: 100%;">
+                </div>
+                <div id="httAIResponseContent" style="display: none; opacity: 0; transition: opacity 0.5s ease 0.2s;">
+                    <!-- Response injected here -->
                 </div>
             </div>
         `;
 
         document.body.appendChild(overlay);
 
+        const container = overlay.querySelector('#httAIContainer');
         const input = overlay.querySelector('#httAIInput');
+        const contextEl = overlay.querySelector('#httAIContext');
+        const wrapper = overlay.querySelector('#httAIInputWrapper');
+        const responseContent = overlay.querySelector('#httAIResponseContent');
+
         requestAnimationFrame(() => input.focus());
 
         const close = () => {
@@ -309,129 +335,117 @@
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') close();
             if (e.key === 'Enter' && input.value.trim()) {
+                e.preventDefault();
+                e.stopPropagation();
+
                 const prompt = input.value.trim();
 
-                // Loading state: minimalistic
+                // 1. Thinking State
                 input.disabled = true;
                 input.style.opacity = '0.5';
                 input.value = 'Thinking...';
+
+                // 2. Prepare for Morph
+                // We don't shrink yet, just wait for text
 
                 chrome.runtime.sendMessage({
                     action: 'askAI',
                     prompt: prompt,
                     context: context
                 }, (response) => {
-                    close();
                     if (response && response.answer) {
-                        showAIResponse(response.answer);
-                    } else if (response && response.error) {
-                        showNotification(response.error);
+                        morphToAnswer(response.answer);
+                    } else {
+                        input.value = response?.error || 'Error. Try again.';
+                        setTimeout(close, 2000);
                     }
                 });
             }
         });
-    }
 
-    function showAIResponse(text) {
-        if (document.getElementById('htt-ai-response')) return;
+        function morphToAnswer(text) {
+            // Hide Input & Context
+            wrapper.style.opacity = '0';
+            if (contextEl) contextEl.style.opacity = '0';
 
-        const overlay = document.createElement('div');
-        overlay.className = 'htt-friendly-overlay';
-
-        const container = document.createElement('div');
-        container.className = 'htt-friendly-ping';
-        container.id = 'htt-ai-response';
-        // Minimal, Clean styling - Intentional
-        container.style.border = '1px solid rgba(255,255,255,0.1)';
-        container.style.background = '#1a1a1a';
-        container.style.boxShadow = '0 20px 50px rgba(0,0,0,0.4)';
-        container.style.borderRadius = '12px';
-        container.style.padding = '20px';
-        container.style.maxWidth = '400px';
-        container.style.width = '100%';
-
-        // Prepare HTML (Bold Logic)
-        const formatted = escapeHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-        container.innerHTML = `
-            <div class="htt-fp-header" style="text-align: left; padding-left: 0; color: #10a37f; margin-bottom: 12px; font-size: 0.8em; letter-spacing: 0.1em; text-transform: uppercase; font-family: monospace;">Answer</div>
-            <div class="htt-fp-text" id="htt-typewriter" style="font-size: 1.05em; line-height: 1.7; text-align: left; padding: 0; margin-bottom: 20px; min-height: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"></div>
-            <div class="htt-fp-actions" style="justify-content: flex-end; padding-right: 0; gap: 0;">
-                <button class="htt-fp-btn" id="httAIAck" style="
-                    background: transparent; 
-                    border: 1px solid rgba(255,255,255,0.1); 
-                    color: rgba(255,255,255,0.7); 
-                    border-radius: 6px; 
-                    padding: 8px 16px; 
-                    font-size: 0.8em; 
-                    cursor: pointer; 
-                    transition: all 0.2s ease;
-                    outline: none;
-                ">Close</button>
-            </div>
-        `;
-
-        document.body.appendChild(overlay);
-        document.body.appendChild(container);
-
-        // Hover Effect specific to this button
-        const btn = container.querySelector('#httAIAck');
-        btn.addEventListener('mouseenter', () => {
-            btn.style.borderColor = 'rgba(255,255,255,0.4)';
-            btn.style.color = '#fff';
-            btn.style.background = 'rgba(255,255,255,0.05)';
-        });
-        btn.addEventListener('mouseleave', () => {
-            btn.style.borderColor = 'rgba(255,255,255,0.1)';
-            btn.style.color = 'rgba(255,255,255,0.7)';
-            btn.style.background = 'transparent';
-        });
-
-        // Typewriter Effect
-        const target = container.querySelector('#htt-typewriter');
-        const tokens = formatted.split(/(<[^>]+>)/g);
-        let tokenIndex = 0;
-        let charIndex = 0;
-
-        function type() {
-            if (tokenIndex >= tokens.length) return;
-
-            const token = tokens[tokenIndex];
-
-            if (token.startsWith('<')) {
-                // HTML Tag - Append instantly
-                target.innerHTML += token;
-                tokenIndex++;
-                requestAnimationFrame(type);
-            } else {
-                // Text - Type chars
-                if (charIndex < token.length) {
-                    target.innerHTML += token[charIndex];
-                    charIndex++;
-                    setTimeout(type, 10); // Typing speed
-                } else {
-                    tokenIndex++;
-                    charIndex = 0;
-                    requestAnimationFrame(type);
-                }
-            }
-        }
-
-        // Start typing
-        type();
-
-        const close = () => {
-            container.style.opacity = '0';
-            container.style.transform = 'translate(-50%, -45%) scale(0.95)';
-            overlay.style.opacity = '0';
             setTimeout(() => {
-                container.remove();
-                overlay.remove();
-            }, 300);
-        };
+                wrapper.style.display = 'none';
+                if (contextEl) contextEl.style.display = 'none';
 
-        btn.addEventListener('click', close);
-        overlay.addEventListener('click', close);
+                // Prepare Content
+                const formatted = escapeHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                responseContent.innerHTML = `
+                    <div class="htt-fp-header" style="text-align: left; padding-left: 0; color: #10a37f; margin-bottom: 12px; font-size: 0.8em; letter-spacing: 0.1em; text-transform: uppercase; font-family: monospace;">Answer</div>
+                    <div class="htt-fp-text" id="htt-typewriter" style="font-size: 1.05em; line-height: 1.7; text-align: left; padding: 0; margin-bottom: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"></div>
+                    <div style="text-align: right;">
+                        <button id="httAIClose" style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); border-radius: 6px; padding: 6px 12px; font-size: 0.8em; cursor: pointer; transition: all 0.2s;">Close</button>
+                    </div>
+                `;
+                responseContent.style.display = 'block';
+
+                // Calculate natural height for expansion
+                // Clone node to measure? Or just set max-height large?
+                // Let's set min-height to something significant or just let it flow?
+                // If we want smooth expansion, we need explicit height transition.
+                // Or just standard flow: 'auto' height transition doesn't animate well in CSS without max-height hacks or JS.
+                // We'll use JS to set height.
+
+                /* Hack for auto height transition: */
+                const currentHeight = container.offsetHeight;
+                container.style.height = currentHeight + 'px';
+
+                // Show content (hidden) to measure
+                // Actually, typewriter will fill it slowly...
+                // Siri style: "The thinking... bar should extend AND text should appear".
+                // So let's expand to a comfortable reading size immediately, or based on text length.
+                // Estimate: 200px + ~20px per line.
+                // Let's expand to 'auto' via max-height trick?
+
+                // container.style.height = 'auto'; // Snaps.
+
+                // Let's animate to a fixed guess first contextually? No.
+                // Let's animate to a specific height based on text length approx.
+                const approxHeight = Math.min(600, 150 + (text.length / 2));
+                container.style.height = approxHeight + 'px';
+
+                requestAnimationFrame(() => {
+                    responseContent.style.opacity = '1';
+
+                    // Typewriter
+                    const target = responseContent.querySelector('#htt-typewriter');
+                    const tokens = formatted.split(/(<[^>]+>)/g);
+                    let tokenIndex = 0;
+                    let charIndex = 0;
+
+                    function type() {
+                        if (tokenIndex >= tokens.length) {
+                            // Finished typing. Release height to auto in case we guessed wrong.
+                            container.style.height = 'auto';
+                            return;
+                        }
+                        const token = tokens[tokenIndex];
+                        if (token.startsWith('<')) {
+                            target.innerHTML += token;
+                            tokenIndex++;
+                            requestAnimationFrame(type);
+                        } else {
+                            if (charIndex < token.length) {
+                                target.innerHTML += token[charIndex];
+                                charIndex++;
+                                setTimeout(type, 10);
+                            } else {
+                                tokenIndex++;
+                                charIndex = 0;
+                                requestAnimationFrame(type);
+                            }
+                        }
+                    }
+                    type();
+                });
+
+                responseContent.querySelector('#httAIClose').addEventListener('click', close);
+            }, 300);
+        }
     }
 
     // Color options

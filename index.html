@@ -4,9 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intents - Search</title>
+    <title>Intents (New Tab)</title>
     <meta name="description" content="Intents - A minimal search engine. No ads. No tracking. Just search.">
-    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="styles.css?v=4.0.2">
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -295,7 +296,28 @@
         </div>
     </div>
 
-    <script src="app.js"></script>
+    <!-- Add Link Modal -->
+    <div class="modal" id="addLinkModal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Add Quick Link</h2>
+                <button class="modal-close" id="closeAddLink">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label class="setting-label">Name</label>
+                    <input type="text" class="setting-input" id="linkName" placeholder="e.g., GitHub">
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">URL</label>
+                    <input type="url" class="setting-input" id="linkUrl" placeholder="https://github.com">
+                </div>
+                <button class="save-link-btn" id="saveLink">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js?v=4.0.2"></script>
 </body>
 
 </html>
