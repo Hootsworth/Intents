@@ -635,6 +635,7 @@ if (window.__INTENT_MODE_LOADED__) {
     function attachReaderListeners() {
         // Close button
         document.getElementById('intentClose')?.addEventListener('click', deactivateIntentMode);
+        document.getElementById('intentExitIso')?.addEventListener('click', deactivateIntentMode);
 
         // Reflect Link Toggle
         document.getElementById('intentToggleLinks')?.addEventListener('click', () => {

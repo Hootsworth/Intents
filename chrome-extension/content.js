@@ -104,6 +104,7 @@
                         text: text,
                         context: link ? document.title : '',
                         pageUrl: link ? window.location.href : '',
+                        pageTitle: document.title,
                         tag: '⏰ Reminder',
                         importance: 'medium',
                         color: '#7c7cf8'

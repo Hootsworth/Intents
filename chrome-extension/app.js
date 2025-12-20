@@ -520,7 +520,7 @@ function renderThoughtCard(thought) {
     const date = new Date(thought.timestamp);
     const timeAgo = getTimeAgo(date);
     const importanceClass = thought.importance === 'high' ? 'high' : (thought.importance === 'medium' ? 'medium' : '');
-    const deepLink = getFragmentUrl(thought.pageUrl, thought.text);
+    const deepLink = thought.pageUrl ? getFragmentUrl(thought.pageUrl, thought.text) : '';
 
     return `
         <div class="thought-card ${importanceClass}" style="border-left-color: ${thought.color}" data-id="${thought.id}">
@@ -531,7 +531,10 @@ function renderThoughtCard(thought) {
             <p class="thought-text">${escapeHtml(thought.text)}</p>
             ${thought.context ? `<p class="thought-context">${escapeHtml(thought.context)}</p>` : ''}
             <div class="thought-meta">
-                <a href="${deepLink}" target="_blank" class="thought-source">${escapeHtml(truncate(thought.pageTitle, 40))}</a>
+                ${thought.pageUrl
+            ? `<a href="${deepLink}" target="_blank" class="thought-source">${escapeHtml(truncate(thought.pageTitle || 'Note', 40))}</a>`
+            : `<span class="thought-source" style="color: inherit; opacity: 0.7;">${escapeHtml(truncate(thought.pageTitle || 'Note', 40))}</span>`
+        }
                 <span class="thought-time">${timeAgo}</span>
             </div>
         </div>
@@ -631,6 +634,7 @@ function getTimeAgo(date) {
 }
 
 function truncate(str, len) {
+    if (!str) return '';
     return str.length > len ? str.substring(0, len) + '...' : str;
 }
 
