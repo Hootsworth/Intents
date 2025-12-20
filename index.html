@@ -167,12 +167,7 @@
                 <button class="modal-close" id="closeSettings">&times;</button>
             </div>
             <div class="modal-body">
-                <div class="setting-group">
-                    <label class="setting-label">OpenAI API Key (for Quick AI)</label>
-                    <input type="password" class="setting-input" id="openaiKey" placeholder="sk-..." spellcheck="false"
-                        autocomplete="off" style="font-family: monospace; letter-spacing: 1px;">
-                    <div style="font-size: 11px; color: #666; margin-top: 6px;">Stored locally on your device.</div>
-                </div>
+
                 <div class="setting-group">
                     <label class="setting-label">Design Style</label>
                     <div class="style-options">
@@ -216,6 +211,13 @@
                         <input type="checkbox" id="showAITaskbar" checked>
                         <span class="toggle-slider"></span>
                     </label>
+                </div>
+                <div class="setting-group" style="border-top: 1px solid #333; padding-top: 20px; margin-top: 20px;">
+                    <label class="setting-label" style="color: #10a37f;">OpenAI API Key (for Quick AI)</label>
+                    <input type="password" class="setting-input" id="openaiKey" placeholder="sk-..." spellcheck="false"
+                        autocomplete="off" style="font-family: monospace; letter-spacing: 1px; border-color: #10a37f;">
+                    <div style="font-size: 11px; color: #666; margin-top: 6px;">Stored locally. Required for
+                        <kbd>Alt+Q</kbd>.</div>
                 </div>
             </div>
         </div>

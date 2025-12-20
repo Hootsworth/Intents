@@ -54,6 +54,7 @@ function loadSettings() {
 
     // OpenAI Key
     const keyInput = document.getElementById('openaiKey');
+    console.log('Intents Debug: Finding #openaiKey:', keyInput);
     if (keyInput) {
         // Load from storage if available, fallback to state
         if (chrome && chrome.storage && chrome.storage.local) {
