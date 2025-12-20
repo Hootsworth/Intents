@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     loadQuickLinks();
     initTimeWidget();
+    initGreeting();
+    initRecentSearches();
     initEventListeners();
     applyStyles();
 });
@@ -128,6 +130,127 @@ function updateTime() {
     if (dateEl) dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 }
 
+// Time-based greeting
+function initGreeting() {
+    const greetingEl = document.getElementById('greeting');
+    if (!greetingEl) return;
+
+    const hour = new Date().getHours();
+    let greeting = '';
+
+    if (hour >= 5 && hour < 12) {
+        greeting = 'Good morning';
+    } else if (hour >= 12 && hour < 17) {
+        greeting = 'Good afternoon';
+    } else if (hour >= 17 && hour < 21) {
+        greeting = 'Good evening';
+    } else {
+        greeting = 'Good night';
+    }
+
+    greetingEl.textContent = greeting;
+}
+
+// Recent searches functionality
+let recentSearches = [];
+
+function initRecentSearches() {
+    const saved = localStorage.getItem('intents-recent-searches');
+    if (saved) {
+        try { recentSearches = JSON.parse(saved); } catch (e) { recentSearches = []; }
+    }
+
+    const searchInput = document.getElementById('searchInput');
+    const recentDropdown = document.getElementById('recentSearches');
+
+    if (!searchInput || !recentDropdown) return;
+
+    // Show recent searches on focus if empty
+    searchInput.addEventListener('focus', () => {
+        if (searchInput.value === '' && recentSearches.length > 0) {
+            renderRecentSearches();
+            recentDropdown.style.display = 'block';
+        }
+    });
+
+    // Filter as you type
+    searchInput.addEventListener('input', () => {
+        const query = searchInput.value.toLowerCase();
+        if (query === '' && recentSearches.length > 0) {
+            renderRecentSearches();
+            recentDropdown.style.display = 'block';
+        } else if (recentSearches.some(s => s.toLowerCase().includes(query))) {
+            renderRecentSearches(query);
+            recentDropdown.style.display = 'block';
+        } else {
+            recentDropdown.style.display = 'none';
+        }
+    });
+
+    // Hide on blur (with delay to allow click)
+    searchInput.addEventListener('blur', () => {
+        setTimeout(() => { recentDropdown.style.display = 'none'; }, 200);
+    });
+}
+
+function renderRecentSearches(filter = '') {
+    const recentDropdown = document.getElementById('recentSearches');
+    if (!recentDropdown) return;
+
+    const filtered = filter
+        ? recentSearches.filter(s => s.toLowerCase().includes(filter.toLowerCase()))
+        : recentSearches;
+
+    if (filtered.length === 0) {
+        recentDropdown.style.display = 'none';
+        return;
+    }
+
+    recentDropdown.innerHTML = `
+        <div class="recent-header">
+            <span>Recent searches</span>
+            <button class="clear-recent" id="clearRecent">Clear</button>
+        </div>
+        ${filtered.slice(0, 5).map(search => `
+            <button class="recent-item" data-search="${search}">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polyline points="12 6 12 12 16 14"></polyline>
+                </svg>
+                ${search}
+            </button>
+        `).join('')}
+    `;
+
+    // Click handlers
+    recentDropdown.querySelectorAll('.recent-item').forEach(item => {
+        item.addEventListener('click', () => {
+            document.getElementById('searchInput').value = item.dataset.search;
+            document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+        });
+    });
+
+    document.getElementById('clearRecent')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        recentSearches = [];
+        localStorage.removeItem('intents-recent-searches');
+        recentDropdown.style.display = 'none';
+    });
+}
+
+function saveRecentSearch(query) {
+    if (!query || query.length < 2) return;
+
+    // Remove if exists, add to front
+    recentSearches = recentSearches.filter(s => s.toLowerCase() !== query.toLowerCase());
+    recentSearches.unshift(query);
+
+    // Keep only last 10
+    recentSearches = recentSearches.slice(0, 10);
+
+    localStorage.setItem('intents-recent-searches', JSON.stringify(recentSearches));
+}
+
 function initEventListeners() {
     // Main search form
     document.getElementById('searchForm')?.addEventListener('submit', handleSearch);
@@ -218,11 +341,31 @@ function initEventListeners() {
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
+        // Focus search with /
         if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
             e.preventDefault();
             document.getElementById('searchInput')?.focus();
         }
-        if (e.key === 'Escape') document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+        // Close modals with Escape
+        if (e.key === 'Escape') {
+            document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+            document.getElementById('recentSearches').style.display = 'none';
+        }
+        // Intent shortcuts (1-4) when not in input
+        if (document.activeElement.tagName !== 'INPUT' && !e.ctrlKey && !e.metaKey) {
+            const intents = ['learn', 'fix', 'build', 'chill'];
+            if (['1', '2', '3', '4'].includes(e.key)) {
+                e.preventDefault();
+                const index = parseInt(e.key) - 1;
+                const intentRadio = document.querySelector(`input[name="intent"][value="${intents[index]}"]`);
+                if (intentRadio) {
+                    intentRadio.checked = true;
+                    intentRadio.dispatchEvent(new Event('change'));
+                    // Open details if closed
+                    document.querySelector('.intent-details')?.setAttribute('open', '');
+                }
+            }
+        }
     });
 }
 
@@ -232,6 +375,9 @@ function handleSearch(e) {
 
     const query = document.getElementById('searchInput').value.trim();
     if (!query) return;
+
+    // Save to recent searches
+    saveRecentSearch(query);
 
     // Check if using intent-based search
     const intentRadio = document.querySelector('input[name="intent"]:checked');
