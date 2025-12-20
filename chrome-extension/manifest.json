@@ -27,10 +27,12 @@
         "<all_urls>"
       ],
       "js": [
-        "content.js"
+        "content.js",
+        "intent-mode.js"
       ],
       "css": [
-        "thought-popup.css"
+        "thought-popup.css",
+        "intent-mode.css"
       ]
     }
   ],
