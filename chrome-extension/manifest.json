@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Intents New Tab",
-  "version": "3.0.0",
-  "description": "Replace your new tab page with Intents - a minimal, distraction-free search experience with Hold That Thought feature",
+  "version": "4.0.0",
+  "description": "Replace your new tab page with Intents - a minimal, distraction-free search experience with Hold That Thought and Intent Mode for focused reading",
   "permissions": [
     "contextMenus",
     "storage",
