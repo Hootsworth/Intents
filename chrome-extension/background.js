@@ -23,11 +23,11 @@ function createContextMenus() {
             contexts: ['selection']
         });
 
-        // Intent Mode parent menu (for page context)
+        // Intent Mode parent        // Create parent
         chrome.contextMenus.create({
             id: 'intent-mode',
-            title: '🎯 Intent Mode',
-            contexts: ['page']
+            title: '🧠 Intent Mode',
+            contexts: ['page', 'selection']
         });
 
         // Intent Mode sub-menus

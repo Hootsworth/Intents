@@ -142,11 +142,21 @@ if (window.__INTENT_MODE_LOADED__) {
         // Extract main content or use override
         let extracted;
         if (contentOverride) {
+            // Create temp container to analyze content
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = contentOverride;
+            const wCount = countWords(tempDiv);
+
             extracted = {
                 title: 'Isolated Selection',
                 content: contentOverride,
                 byline: 'Selected Text',
-                url: window.location.href
+                url: window.location.href,
+                wordCount: wCount,
+                readingTime: Math.ceil(wCount / 200),
+                headings: extractHeadings(tempDiv),
+                siteName: document.domain,
+                publishDate: new Date().toLocaleDateString()
             };
         } else {
             extracted = extractContent();
