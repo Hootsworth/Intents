@@ -1,9 +1,17 @@
 {
   "manifest_version": 3,
   "name": "Intents New Tab",
-  "version": "2.0.0",
-  "description": "Replace your new tab page with Intents - a minimal, distraction-free search experience hosted on GitHub Pages",
+  "version": "2.1.0",
+  "description": "Replace your new tab page with Intents - a minimal, distraction-free search experience",
   "permissions": [],
+  "host_permissions": [
+    "https://api.duckduckgo.com/*",
+    "https://duckduckgo.com/*",
+    "https://en.wikipedia.org/*",
+    "https://export.arxiv.org/*",
+    "https://api.stackexchange.com/*",
+    "https://api.github.com/*"
+  ],
   "chrome_url_overrides": {
     "newtab": "index.html"
   },

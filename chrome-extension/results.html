@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - Intents</title>
+    <meta name="description" content="Intent-driven search results">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;700;900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="results-page">
+    <header class="results-header">
+        <a href="index.html" class="header-logo">INTENTS</a>
+        <form class="header-search-form" id="headerSearchForm">
+            <div class="header-search-wrapper">
+                <input type="text" name="q" class="header-search-input" id="headerSearchInput" autocomplete="off">
+                <button type="submit" class="header-search-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
+        <div class="header-intents">
+            <button class="intent-quick" data-intent="learn" title="Learn">📚</button>
+            <button class="intent-quick" data-intent="fix" title="Fix">🔧</button>
+            <button class="intent-quick" data-intent="build" title="Build">🛠️</button>
+            <button class="intent-quick" data-intent="chill" title="Chill">☕</button>
+        </div>
+        <a href="index.html" class="home-btn" title="Go Home">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9,22 9,12 15,12 15,22"></polyline>
+            </svg>
+        </a>
+    </header>
+
+    <main class="results-main">
+        <!-- Query Info -->
+        <div class="query-bar">
+            <div class="query-info">
+                <span class="query-text">Searching: <strong id="queryDisplay"></strong></span>
+                <span class="intent-badge" id="intentBadge">📚 Learn</span>
+            </div>
+        </div>
+
+        <!-- Results Container -->
+        <div class="results-grid">
+            <!-- Instant Answer (DuckDuckGo) -->
+            <section class="result-section instant-section" id="instantSection">
+                <h2 class="section-title">
+                    <span class="section-icon">⚡</span> Instant Answer
+                </h2>
+                <div class="section-content" id="instantContent">
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="section-source">Powered by DuckDuckGo</div>
+            </section>
+
+            <!-- Primary Results -->
+            <section class="result-section primary-section" id="primarySection">
+                <h2 class="section-title">
+                    <span class="section-icon" id="primaryIcon">📖</span>
+                    <span id="primaryTitle">Wikipedia</span>
+                </h2>
+                <div class="section-content" id="primaryContent">
+                    <div class="loading-skeleton"></div>
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="section-source" id="primarySource">wikipedia.org</div>
+            </section>
+
+            <!-- Secondary Results -->
+            <section class="result-section secondary-section" id="secondarySection">
+                <h2 class="section-title">
+                    <span class="section-icon" id="secondaryIcon">🔬</span>
+                    <span id="secondaryTitle">arXiv Papers</span>
+                </h2>
+                <div class="section-content" id="secondaryContent">
+                    <div class="loading-skeleton"></div>
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="section-source" id="secondarySource">arxiv.org</div>
+            </section>
+
+            <!-- Tertiary Results -->
+            <section class="result-section tertiary-section" id="tertiarySection">
+                <h2 class="section-title">
+                    <span class="section-icon" id="tertiaryIcon">💡</span>
+                    <span id="tertiaryTitle">More Resources</span>
+                </h2>
+                <div class="section-content" id="tertiaryContent">
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="section-source" id="tertiarySource">Various</div>
+            </section>
+        </div>
+
+        <!-- Fallback Link -->
+        <div class="fallback-search">
+            <p>Not finding what you need?</p>
+            <div class="fallback-buttons">
+                <a href="#" id="googleFallback" class="fallback-btn" target="_blank">Try Google</a>
+                <a href="#" id="ddgFallback" class="fallback-btn" target="_blank">Try DuckDuckGo</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="results-footer">
+        <div class="footer-content">
+            <span>Intents Search</span>
+            <span class="separator">•</span>
+            <span>Results from open APIs with ❤️</span>
+            <span class="separator">•</span>
+            <a href="index.html">Home</a>
+        </div>
+    </footer>
+
+    <script src="results.js"></script>
+</body>
+
+</html>

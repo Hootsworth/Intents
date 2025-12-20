@@ -1,0 +1,258 @@
+/**
+ * Intents Search - Home Page JavaScript
+ */
+
+const SEARCH_ENGINES = {
+    google: { name: 'Google', url: 'https://www.google.com/search?q=' },
+    duckduckgo: { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=' },
+    bing: { name: 'Bing', url: 'https://www.bing.com/search?q=' },
+    brave: { name: 'Brave', url: 'https://search.brave.com/search?q=' }
+};
+
+const state = {
+    settings: {
+        defaultEngine: 'google',
+        style: 'brutal',  // 'brutal' or 'subtle'
+        theme: 'dark',    // 'dark' or 'light'
+        showQuickLinks: true,
+        newTabResults: false,
+        showAITaskbar: true
+    },
+    quickLinks: []
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+    loadQuickLinks();
+    initTimeWidget();
+    initEventListeners();
+    applyStyles();
+});
+
+function loadSettings() {
+    const saved = localStorage.getItem('intents-settings');
+    if (saved) {
+        try { state.settings = { ...state.settings, ...JSON.parse(saved) }; } catch (e) { }
+    }
+    document.getElementById('defaultEngine').value = state.settings.defaultEngine;
+    document.getElementById('showQuickLinks').checked = state.settings.showQuickLinks;
+    document.getElementById('newTabResults').checked = state.settings.newTabResults;
+
+    // AI Taskbar
+    const aiTaskbarCheckbox = document.getElementById('showAITaskbar');
+    if (aiTaskbarCheckbox) aiTaskbarCheckbox.checked = state.settings.showAITaskbar;
+    const aiTaskbar = document.getElementById('aiTaskbar');
+    if (aiTaskbar) aiTaskbar.style.display = state.settings.showAITaskbar ? 'flex' : 'none';
+
+    // Set default engine radio
+    const engineRadio = document.querySelector(`input[name="engine"][value="${state.settings.defaultEngine}"]`);
+    if (engineRadio) engineRadio.checked = true;
+
+    // Update style buttons
+    document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.style === state.settings.style);
+    });
+
+    // Update theme buttons
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.theme === state.settings.theme);
+    });
+
+    document.getElementById('quickLinks').style.display = state.settings.showQuickLinks ? 'block' : 'none';
+}
+
+function saveSettings() {
+    localStorage.setItem('intents-settings', JSON.stringify(state.settings));
+}
+
+function applyStyles() {
+    document.documentElement.setAttribute('data-style', state.settings.style);
+    document.documentElement.setAttribute('data-theme', state.settings.theme);
+}
+
+function loadQuickLinks() {
+    const saved = localStorage.getItem('intents-quicklinks');
+    if (saved) { try { state.quickLinks = JSON.parse(saved); } catch (e) { state.quickLinks = []; } }
+    if (state.quickLinks.length === 0) {
+        state.quickLinks = [
+            { name: 'GitHub', url: 'https://github.com' },
+            { name: 'Wikipedia', url: 'https://wikipedia.org' },
+            { name: 'Stack', url: 'https://stackoverflow.com' },
+            { name: 'MDN', url: 'https://developer.mozilla.org' }
+        ];
+        saveQuickLinks();
+    }
+    renderQuickLinks();
+}
+
+function saveQuickLinks() { localStorage.setItem('intents-quicklinks', JSON.stringify(state.quickLinks)); }
+
+function renderQuickLinks() {
+    const grid = document.getElementById('linksGrid');
+    grid.innerHTML = '';
+    state.quickLinks.forEach((link, i) => {
+        const el = document.createElement('a');
+        el.href = link.url;
+        el.className = 'quick-link';
+        el.target = '_blank';
+        el.innerHTML = `<span class="quick-link-name">${link.name}</span><button class="quick-link-delete" data-index="${i}">&times;</button>`;
+        grid.appendChild(el);
+    });
+    grid.querySelectorAll('.quick-link-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            state.quickLinks.splice(parseInt(btn.dataset.index), 1);
+            saveQuickLinks();
+            renderQuickLinks();
+        });
+    });
+}
+
+function addQuickLink(name, url) {
+    if (!name || !url) return false;
+    if (!url.startsWith('http')) url = 'https://' + url;
+    state.quickLinks.push({ name, url });
+    saveQuickLinks();
+    renderQuickLinks();
+    return true;
+}
+
+function initTimeWidget() { updateTime(); setInterval(updateTime, 1000); }
+
+function updateTime() {
+    const now = new Date();
+    const timeEl = document.getElementById('currentTime');
+    const dateEl = document.getElementById('currentDate');
+    if (timeEl) timeEl.textContent = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    if (dateEl) dateEl.textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+function initEventListeners() {
+    // Main search form
+    document.getElementById('searchForm')?.addEventListener('submit', handleSearch);
+
+    // Settings modal
+    const settingsToggle = document.getElementById('settingsToggle');
+    const settingsModal = document.getElementById('settingsModal');
+    settingsToggle?.addEventListener('click', () => settingsModal.classList.add('active'));
+    document.getElementById('closeSettings')?.addEventListener('click', () => settingsModal.classList.remove('active'));
+    settingsModal?.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.remove('active'); });
+
+    // Add Link modal
+    const addLinkModal = document.getElementById('addLinkModal');
+    document.getElementById('addLinkBtn')?.addEventListener('click', () => {
+        addLinkModal.classList.add('active');
+        document.getElementById('linkName').value = '';
+        document.getElementById('linkUrl').value = '';
+    });
+    document.getElementById('closeAddLink')?.addEventListener('click', () => addLinkModal.classList.remove('active'));
+    addLinkModal?.addEventListener('click', (e) => { if (e.target === addLinkModal) addLinkModal.classList.remove('active'); });
+
+    document.getElementById('saveLink')?.addEventListener('click', () => {
+        if (addQuickLink(document.getElementById('linkName').value.trim(), document.getElementById('linkUrl').value.trim())) {
+            addLinkModal.classList.remove('active');
+        }
+    });
+
+    // Settings changes
+    document.getElementById('defaultEngine')?.addEventListener('change', (e) => {
+        state.settings.defaultEngine = e.target.value;
+        saveSettings();
+        const radio = document.querySelector(`input[name="engine"][value="${e.target.value}"]`);
+        if (radio) radio.checked = true;
+    });
+
+    document.getElementById('showQuickLinks')?.addEventListener('change', (e) => {
+        state.settings.showQuickLinks = e.target.checked;
+        saveSettings();
+        document.getElementById('quickLinks').style.display = e.target.checked ? 'block' : 'none';
+    });
+
+    document.getElementById('newTabResults')?.addEventListener('change', (e) => {
+        state.settings.newTabResults = e.target.checked;
+        saveSettings();
+    });
+
+    // AI Taskbar toggle
+    document.getElementById('showAITaskbar')?.addEventListener('change', (e) => {
+        state.settings.showAITaskbar = e.target.checked;
+        saveSettings();
+        const aiTaskbar = document.getElementById('aiTaskbar');
+        if (aiTaskbar) aiTaskbar.style.display = e.target.checked ? 'flex' : 'none';
+    });
+
+    // Style buttons (Brutal / Subtle)
+    document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.settings.style = btn.dataset.style;
+            saveSettings();
+            applyStyles();
+            document.querySelectorAll('.style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === state.settings.style));
+        });
+    });
+
+    // Theme buttons (Dark / Light)
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.settings.theme = btn.dataset.theme;
+            saveSettings();
+            applyStyles();
+            document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === state.settings.theme));
+        });
+    });
+
+    // When intent is selected, uncheck engine radios
+    document.querySelectorAll('input[name="intent"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.querySelectorAll('input[name="engine"]').forEach(r => r.checked = false);
+        });
+    });
+
+    // When engine is selected, uncheck intent radios
+    document.querySelectorAll('input[name="engine"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.querySelectorAll('input[name="intent"]').forEach(r => r.checked = false);
+        });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+            e.preventDefault();
+            document.getElementById('searchInput')?.focus();
+        }
+        if (e.key === 'Escape') document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
+    });
+}
+
+// Handle search - engines are default, intents are secondary
+function handleSearch(e) {
+    e.preventDefault();
+
+    const query = document.getElementById('searchInput').value.trim();
+    if (!query) return;
+
+    // Check if using intent-based search
+    const intentRadio = document.querySelector('input[name="intent"]:checked');
+    if (intentRadio) {
+        const resultsUrl = `results.html?q=${encodeURIComponent(query)}&intent=${intentRadio.value}`;
+        if (state.settings.newTabResults) {
+            window.open(resultsUrl, '_blank');
+        } else {
+            window.location.href = resultsUrl;
+        }
+        return;
+    }
+
+    // Default: Use search engine
+    const engineRadio = document.querySelector('input[name="engine"]:checked');
+    const engine = engineRadio ? engineRadio.value : state.settings.defaultEngine;
+    const url = SEARCH_ENGINES[engine].url + encodeURIComponent(query);
+
+    if (state.settings.newTabResults) {
+        window.open(url, '_blank');
+    } else {
+        window.location.href = url;
+    }
+}
