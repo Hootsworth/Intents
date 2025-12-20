@@ -165,6 +165,10 @@ chrome.commands.onCommand.addListener(async (command) => {
     if (command === 'ping-me') {
         sendMessageOrInject(tab, { action: 'showPingBar' }, ['thought-popup.css'], ['content.js']);
     }
+
+    if (command === 'quick-ai') {
+        sendMessageOrInject(tab, { action: 'showAIBar' }, ['thought-popup.css'], ['content.js']);
+    }
 });
 
 // Handle save thought from content script
@@ -206,6 +210,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         mergeThoughts(request.thoughtIds).then((result) => {
             sendResponse(result);
         });
+        return true;
+    }
+
+    if (request.action === 'askAI') {
+        handleAIRequest(request.prompt, request.context, sendResponse);
         return true;
     }
 });
@@ -305,4 +314,49 @@ async function mergeThoughts(thoughtIds) {
 
     await chrome.storage.local.set({ thoughts: final });
     return { success: true };
+}
+
+async function handleAIRequest(prompt, context, sendResponse) {
+    try {
+        const result = await chrome.storage.local.get(['openaiKey']);
+        if (!result.openaiKey) {
+            sendResponse({ error: 'OpenAI API Key provided. Go to New Tab > Settings.' });
+            return;
+        }
+
+        const messages = [
+            { role: "system", content: "You are a helpful, concise AI assistant. Give short, intuitive answers. Do not encourage follow-ups. Keep it under 50 words if possible." }
+        ];
+
+        if (context) {
+            messages.push({ role: "system", content: `Context: "${context}"` });
+        }
+
+        messages.push({ role: "user", content: prompt });
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${result.openaiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-3.5-turbo',
+                messages: messages,
+                max_tokens: 150,
+                temperature: 0.7
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.error) {
+            sendResponse({ error: 'OpenAI Error: ' + data.error.message });
+        } else {
+            const answer = data.choices[0].message.content.trim();
+            sendResponse({ answer: answer });
+        }
+    } catch (error) {
+        sendResponse({ error: 'Network error or invalid key' });
+    }
 }

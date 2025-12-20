@@ -30,6 +30,10 @@
         if (request.action === 'showPingBar') {
             createPingBar();
         }
+
+        if (request.action === 'showAIBar') {
+            createAIBar();
+        }
     });
 
     // ... (rest of code) ...
@@ -201,6 +205,110 @@
                 showNotification('Snoozed for 5m 💤');
             });
         });
+    }
+
+    function createAIBar() {
+        if (document.getElementById('htt-ai-overlay')) return;
+
+        const selection = window.getSelection().toString().trim();
+        const context = selection ? selection.substring(0, 300) : '';
+
+        const overlay = document.createElement('div');
+        overlay.id = 'htt-ai-overlay';
+        overlay.className = 'htt-ping-overlay'; // Re-use base overlay
+
+        // Contextual HTML
+        const contextHtml = context ? `<div style="font-size: 0.9em; opacity: 0.8; margin-bottom: 12px; font-style: italic; border-left: 3px solid rgba(255,255,255,0.3); padding-left: 10px;">"${escapeHtml(context)}"${selection.length > 300 ? '...' : ''}</div>` : '';
+
+        overlay.innerHTML = `
+            <div class="htt-ping-bar" style="border-left: 4px solid #10a37f;">
+                ${contextHtml}
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 1.2em;">✨</span>
+                    <input type="text" class="htt-ping-input" id="httAIInput" placeholder="Ask AI..." autocomplete="off">
+                </div>
+                <div style="text-align: right; font-size: 0.75em; opacity: 0.6; margin-top: 8px;">Press Enter ↵</div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+
+        const input = overlay.querySelector('#httAIInput');
+        requestAnimationFrame(() => input.focus());
+
+        const close = () => {
+            overlay.style.opacity = '0';
+            setTimeout(() => overlay.remove(), 200);
+        };
+
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) close();
+        });
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') close();
+            if (e.key === 'Enter' && input.value.trim()) {
+                const prompt = input.value.trim();
+
+                // Show loading state
+                input.disabled = true;
+                input.style.opacity = '0.7';
+
+                chrome.runtime.sendMessage({
+                    action: 'askAI',
+                    prompt: prompt,
+                    context: context
+                }, (response) => {
+                    close();
+                    if (response && response.answer) {
+                        showAIResponse(response.answer);
+                    } else if (response && response.error) {
+                        showNotification(response.error);
+                    }
+                });
+            }
+        });
+    }
+
+    function showAIResponse(text) {
+        if (document.getElementById('htt-ai-response')) return;
+
+        const overlay = document.createElement('div');
+        overlay.className = 'htt-friendly-overlay';
+
+        const container = document.createElement('div');
+        container.className = 'htt-friendly-ping';
+        container.id = 'htt-ai-response';
+        // Use AI styling specific
+        container.style.borderLeft = '4px solid #10a37f';
+
+        // Markdown-ish formatting (bold)
+        const formatted = escapeHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+        container.innerHTML = `
+            <div class="htt-fp-icon">✨</div>
+            <div class="htt-fp-header">Quick Answer</div>
+            <div class="htt-fp-text" style="font-size: 1.1em; line-height: 1.6;">${formatted}</div>
+            <div class="htt-fp-actions">
+                <button class="htt-fp-btn primary" id="httAIAck" style="background: #10a37f; color: white;">Done</button>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        document.body.appendChild(container);
+
+        const close = () => {
+            container.style.opacity = '0';
+            container.style.transform = 'translate(-50%, -45%) scale(0.95)';
+            overlay.style.opacity = '0';
+            setTimeout(() => {
+                container.remove();
+                overlay.remove();
+            }, 300);
+        };
+
+        container.querySelector('#httAIAck').addEventListener('click', close);
+        overlay.addEventListener('click', close);
     }
 
     // Color options

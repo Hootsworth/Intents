@@ -16,7 +16,8 @@ const state = {
         theme: 'dark',    // 'dark' or 'light'
         showQuickLinks: true,
         newTabResults: false,
-        showAITaskbar: true
+        showAITaskbar: true,
+        openaiKey: ''
     },
     quickLinks: []
 };
@@ -43,7 +44,37 @@ function loadSettings() {
 
     // AI Taskbar
     const aiTaskbarCheckbox = document.getElementById('showAITaskbar');
-    if (aiTaskbarCheckbox) aiTaskbarCheckbox.checked = state.settings.showAITaskbar;
+    if (aiTaskbarCheckbox) {
+        aiTaskbarCheckbox.checked = state.settings.showAITaskbar;
+        aiTaskbarCheckbox.addEventListener('change', (e) => {
+            state.settings.showAITaskbar = e.target.checked;
+            saveSettings();
+        });
+    }
+
+    // OpenAI Key
+    const keyInput = document.getElementById('openaiKey');
+    if (keyInput) {
+        // Load from storage if available, fallback to state
+        if (chrome && chrome.storage && chrome.storage.local) {
+            chrome.storage.local.get(['openaiKey'], (result) => {
+                if (result.openaiKey) {
+                    state.settings.openaiKey = result.openaiKey;
+                    keyInput.value = result.openaiKey;
+                    saveSettings(); // Sync to localStorage
+                } else {
+                    keyInput.value = state.settings.openaiKey || '';
+                }
+            });
+        } else {
+            keyInput.value = state.settings.openaiKey || '';
+        }
+
+        keyInput.addEventListener('input', (e) => {
+            state.settings.openaiKey = e.target.value.trim();
+            saveSettings();
+        });
+    }
     const aiTaskbar = document.getElementById('aiTaskbar');
     if (aiTaskbar) aiTaskbar.style.display = state.settings.showAITaskbar ? 'flex' : 'none';
 
@@ -66,6 +97,13 @@ function loadSettings() {
 
 function saveSettings() {
     localStorage.setItem('intents-settings', JSON.stringify(state.settings));
+
+    // Sync critical settings to extension storage
+    if (chrome && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({
+            openaiKey: state.settings.openaiKey
+        });
+    }
 }
 
 function applyStyles() {
