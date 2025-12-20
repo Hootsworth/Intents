@@ -76,11 +76,11 @@ if (window.__INTENT_MODE_LOADED__) {
 
     // State
     let currentIntent = null;
-    let originalContent = null;
     let readerActive = false;
     let fontSizeOffset = 0;
     let currentSelection = '';
     let selectionRect = null;
+    let hiddenElements = new Map(); // Store hidden elements and their original display style
 
     // Hold That Thought constants
     const HTT_COLORS = [
@@ -97,23 +97,45 @@ if (window.__INTENT_MODE_LOADED__) {
     /**
      * Main activation function
      */
+    /**
+     * Main activation function
+     */
     function activateIntentMode(intent) {
         if (readerActive) {
-            deactivateIntentMode();
+            // Update intent if already active
+            const oldIntent = currentIntent;
+            currentIntent = INTENTS[intent] || INTENTS.read;
+
+            // Just update CSS variables if container exists
+            const container = document.getElementById('intentModeContainer');
+            if (container) {
+                const baseFontSize = parseInt(currentIntent.fontSize);
+                container.dataset.intent = currentIntent.name.toLowerCase();
+                container.style.setProperty('--intent-max-width', currentIntent.maxWidth);
+                container.style.setProperty('--intent-line-height', currentIntent.lineHeight);
+                container.style.setProperty('--intent-letter-spacing', currentIntent.letterSpacing);
+                container.style.setProperty('--intent-font-size', `${baseFontSize + fontSizeOffset}px`);
+
+                // Update badge
+                const badge = container.querySelector('.intent-badge');
+                if (badge) badge.textContent = `${currentIntent.icon} ${currentIntent.name} Mode`;
+
+                return;
+            }
         }
 
         currentIntent = INTENTS[intent] || INTENTS.read;
 
-        // Store original page content
-        originalContent = document.body.innerHTML;
-
         // Extract main content
         const extracted = extractContent();
 
-        if (!extracted || !extracted.content || extracted.content.trim().length < 200) {
-            showNotification('This page isn\'t suitable for Intent Mode');
+        if (!extracted || !extracted.content || extracted.content.trim().length < 50) {
+            showNotification('Could not extract content from this page.');
             return;
         }
+
+        // Hide original page content (non-destructive)
+        hideOriginalContent();
 
         // Build and inject reader view
         buildReaderView(extracted);
@@ -124,15 +146,56 @@ if (window.__INTENT_MODE_LOADED__) {
      * Deactivate and restore original page
      */
     function deactivateIntentMode() {
-        if (!readerActive || !originalContent) return;
+        if (!readerActive) return;
 
-        document.body.innerHTML = originalContent;
+        // Remove reader view
+        const container = document.getElementById('intentModeContainer');
+        if (container) {
+            container.remove();
+        }
+
+        // Remove style
+        document.body.classList.remove('intent-mode-active');
+
+        // Restore original content visibility
+        restoreOriginalContent();
+
         readerActive = false;
         currentIntent = null;
         fontSizeOffset = 0;
 
-        // Re-inject any scripts that might be needed
-        // Note: Most scripts won't re-run, but page should be back to original state
+        // Remove event listeners
+        document.removeEventListener('keydown', handleKeyboard);
+        document.removeEventListener('mouseup', handleTextSelection);
+    }
+
+    /**
+     * Hide original page content
+     */
+    function hideOriginalContent() {
+        hiddenElements.clear();
+        Array.from(document.body.children).forEach(child => {
+            if (child.id !== 'intentModeContainer' && child.tagName !== 'SCRIPT' && child.tagName !== 'STYLE') {
+                hiddenElements.set(child, child.style.display);
+                child.style.setProperty('display', 'none', 'important');
+            }
+        });
+    }
+
+    /**
+     * Restore original page content
+     */
+    function restoreOriginalContent() {
+        hiddenElements.forEach((originalDisplay, element) => {
+            if (element && element.style) {
+                if (originalDisplay) {
+                    element.style.display = originalDisplay;
+                } else {
+                    element.style.removeProperty('display');
+                }
+            }
+        });
+        hiddenElements.clear();
     }
 
     /**
@@ -178,7 +241,15 @@ if (window.__INTENT_MODE_LOADED__) {
         }
 
         if (!mainElement) {
-            return null;
+            // Final fallback: Use the body itself if mostly text
+            // Clone body but remove scripts/styles first to avoid noise
+            const bodyClone = document.body.cloneNode(true);
+            cleanContent(bodyClone); // Basic cleaning
+            if (bodyClone.textContent.trim().length > 100) {
+                mainElement = document.body; // Use real body as source
+            } else {
+                return null;
+            }
         }
 
         // Extract metadata
@@ -466,9 +537,9 @@ if (window.__INTENT_MODE_LOADED__) {
                     <span class="intent-reading-time">${extracted.readingTime} min read</span>
                 </div>
                 <div class="intent-topbar-right">
-                    <button class="intent-btn" id="intentFontDecrease" title="Decrease font size">A−</button>
-                    <button class="intent-btn" id="intentFontIncrease" title="Increase font size">A+</button>
-                    <button class="intent-btn intent-btn-close" id="intentClose" title="Exit Intent Mode (Esc)">✕</button>
+                    <button type="button" class="intent-btn" id="intentFontDecrease" title="Decrease font size">A−</button>
+                    <button type="button" class="intent-btn" id="intentFontIncrease" title="Increase font size">A+</button>
+                    <button type="button" class="intent-btn intent-btn-close" id="intentClose" title="Exit Intent Mode (Esc)">✕</button>
                 </div>
             </div>
             
@@ -503,8 +574,8 @@ if (window.__INTENT_MODE_LOADED__) {
         </div>
     `;
 
-        // Replace body content
-        document.body.innerHTML = readerHtml;
+        // Inject container
+        document.body.appendChild(document.createRange().createContextualFragment(readerHtml));
         document.body.classList.add('intent-mode-active');
 
         // Attach event listeners
