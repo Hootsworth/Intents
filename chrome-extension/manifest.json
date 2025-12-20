@@ -1,17 +1,48 @@
 {
   "manifest_version": 3,
   "name": "Intents New Tab",
-  "version": "2.1.0",
-  "description": "Replace your new tab page with Intents - a minimal, distraction-free search experience",
-  "permissions": [],
+  "version": "3.0.0",
+  "description": "Replace your new tab page with Intents - a minimal, distraction-free search experience with Hold That Thought feature",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "activeTab"
+  ],
   "host_permissions": [
     "https://api.duckduckgo.com/*",
     "https://duckduckgo.com/*",
     "https://en.wikipedia.org/*",
     "https://export.arxiv.org/*",
     "https://api.stackexchange.com/*",
-    "https://api.github.com/*"
+    "https://api.github.com/*",
+    "<all_urls>"
   ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "thought-popup.css"
+      ]
+    }
+  ],
+  "commands": {
+    "hold-that-thought": {
+      "suggested_key": {
+        "default": "Alt+T",
+        "windows": "Alt+T",
+        "mac": "Alt+T"
+      },
+      "description": "Hold That Thought - Save selected text"
+    }
+  },
   "chrome_url_overrides": {
     "newtab": "index.html"
   },

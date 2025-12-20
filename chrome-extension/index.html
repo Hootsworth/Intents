@@ -15,6 +15,26 @@
 </head>
 
 <body class="home-page">
+    <!-- Thoughts Panel Toggle -->
+    <button class="thoughts-toggle" id="thoughtsToggle" aria-label="My Thoughts">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+        <span class="thoughts-count" id="thoughtsCount">0</span>
+    </button>
+
+    <!-- Thoughts Sidebar Panel -->
+    <div class="thoughts-panel" id="thoughtsPanel">
+        <div class="thoughts-header">
+            <h2>💭 My Thoughts</h2>
+            <button class="thoughts-close" id="thoughtsClose">&times;</button>
+        </div>
+        <div class="thoughts-list" id="thoughtsList">
+            <p class="thoughts-empty">No thoughts saved yet.<br><small>Select text on any page and right-click → "Hold
+                    That Thought"<br>or press <kbd>Alt+T</kbd></small></p>
+        </div>
+    </div>
+
     <div class="container">
         <!-- Settings Toggle -->
         <button class="settings-toggle" id="settingsToggle" aria-label="Settings">

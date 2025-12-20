@@ -2256,3 +2256,261 @@ select {
         padding: var(--space-md);
     }
 }
+
+/* ===== THOUGHTS PANEL (Hold That Thought) ===== */
+.thoughts-toggle {
+    position: fixed;
+    top: var(--space-lg);
+    left: var(--space-lg);
+    width: 44px;
+    height: 44px;
+    background: var(--bg-secondary);
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-brutal-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-primary);
+    transition: all var(--transition-normal);
+    z-index: 100;
+}
+
+.thoughts-toggle:hover {
+    background: var(--accent-primary);
+    color: #000000;
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-brutal);
+}
+
+.thoughts-count {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 18px;
+    height: 18px;
+    background: var(--accent-primary);
+    color: #000000;
+    font-size: 0.65rem;
+    font-weight: 700;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--font-mono);
+}
+
+.thoughts-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 380px;
+    max-width: 90vw;
+    height: 100vh;
+    background: var(--bg-secondary);
+    border-right: var(--border-width) solid var(--border-color);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.3);
+    z-index: 200;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+.thoughts-panel.open {
+    transform: translateX(0);
+}
+
+.thoughts-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-lg);
+    background: var(--bg-tertiary);
+    border-bottom: var(--border-width) solid var(--border-color);
+}
+
+.thoughts-header h2 {
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0;
+}
+
+.thoughts-close {
+    width: 32px;
+    height: 32px;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.thoughts-close:hover {
+    background: #ff4444;
+    color: white;
+}
+
+.thoughts-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-md);
+}
+
+.thoughts-empty {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: var(--space-2xl);
+    line-height: 1.8;
+}
+
+.thoughts-empty small {
+    display: block;
+    margin-top: var(--space-md);
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.thoughts-empty kbd {
+    display: inline-block;
+    padding: 2px 6px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+}
+
+/* Thought Card */
+.thought-card {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--accent-primary);
+    border-radius: var(--border-radius);
+    padding: var(--space-md);
+    margin-bottom: var(--space-md);
+    transition: all var(--transition-normal);
+}
+
+.thought-card:hover {
+    box-shadow: var(--shadow-brutal-sm);
+}
+
+.thought-card.high {
+    border-left-color: #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.thought-card.medium {
+    border-left-color: #f59e0b;
+}
+
+.thought-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+}
+
+.thought-tag {
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+    color: var(--text-secondary);
+}
+
+.thought-delete {
+    width: 24px;
+    height: 24px;
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity var(--transition-fast);
+}
+
+.thought-card:hover .thought-delete {
+    opacity: 1;
+}
+
+.thought-delete:hover {
+    color: #ff4444;
+}
+
+.thought-text {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: var(--text-primary);
+    margin-bottom: var(--space-sm);
+    font-style: italic;
+}
+
+.thought-context {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-sm);
+    padding: var(--space-sm);
+    background: var(--bg-tertiary);
+    border-radius: 6px;
+}
+
+.thought-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.thought-source {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--accent-primary);
+    text-decoration: none;
+}
+
+.thought-source:hover {
+    text-decoration: underline;
+}
+
+.thought-time {
+    flex-shrink: 0;
+    margin-left: var(--space-sm);
+}
+
+/* Subtle mode thoughts panel */
+[data-style="subtle"] .thoughts-toggle {
+    border-radius: 50%;
+}
+
+[data-style="subtle"] .thoughts-panel {
+    border-radius: 0 16px 16px 0;
+}
+
+[data-style="subtle"] .thought-card {
+    border-radius: 12px;
+}
+
+[data-style="subtle"] .thoughts-close {
+    border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .thoughts-panel {
+        width: 100%;
+        max-width: 100%;
+    }
+}

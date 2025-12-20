@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initTimeWidget();
     initGreeting();
     initRecentSearches();
+    initThoughtsPanel();
     initEventListeners();
     applyStyles();
 });
@@ -401,4 +402,127 @@ function handleSearch(e) {
     } else {
         window.location.href = url;
     }
+}
+
+// ========== HOLD THAT THOUGHT - Thoughts Panel ==========
+
+function initThoughtsPanel() {
+    const toggle = document.getElementById('thoughtsToggle');
+    const panel = document.getElementById('thoughtsPanel');
+    const closeBtn = document.getElementById('thoughtsClose');
+
+    if (!toggle || !panel) return;
+
+    // Toggle panel
+    toggle.addEventListener('click', () => {
+        panel.classList.toggle('open');
+        if (panel.classList.contains('open')) {
+            loadThoughts();
+        }
+    });
+
+    // Close panel
+    closeBtn?.addEventListener('click', () => {
+        panel.classList.remove('open');
+    });
+
+    // Load thoughts count on init
+    loadThoughtsCount();
+}
+
+function loadThoughtsCount() {
+    // Check if we're in extension context
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ action: 'getThoughts' }, (response) => {
+            if (response?.thoughts) {
+                const count = document.getElementById('thoughtsCount');
+                if (count) {
+                    count.textContent = response.thoughts.length;
+                    count.style.display = response.thoughts.length > 0 ? 'flex' : 'none';
+                }
+            }
+        });
+    }
+}
+
+function loadThoughts() {
+    const list = document.getElementById('thoughtsList');
+    if (!list) return;
+
+    // Check if we're in extension context
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ action: 'getThoughts' }, (response) => {
+            if (response?.thoughts && response.thoughts.length > 0) {
+                renderThoughts(response.thoughts);
+            } else {
+                list.innerHTML = `<p class="thoughts-empty">No thoughts saved yet.<br><small>Select text on any page and right-click → "Hold That Thought"<br>or press <kbd>Alt+T</kbd></small></p>`;
+            }
+        });
+    } else {
+        // Not in extension context (local file)
+        list.innerHTML = `<p class="thoughts-empty">Thoughts feature requires Chrome extension.<br><small>Load the extension from chrome://extensions</small></p>`;
+    }
+}
+
+function renderThoughts(thoughts) {
+    const list = document.getElementById('thoughtsList');
+    if (!list) return;
+
+    list.innerHTML = thoughts.map(thought => {
+        const date = new Date(thought.timestamp);
+        const timeAgo = getTimeAgo(date);
+        const importanceClass = thought.importance === 'high' ? 'high' : (thought.importance === 'medium' ? 'medium' : '');
+
+        return `
+            <div class="thought-card ${importanceClass}" style="border-left-color: ${thought.color}" data-id="${thought.id}">
+                <div class="thought-header">
+                    <span class="thought-tag">${thought.tag}</span>
+                    <button class="thought-delete" data-id="${thought.id}" title="Delete">&times;</button>
+                </div>
+                <p class="thought-text">${escapeHtml(thought.text)}</p>
+                ${thought.context ? `<p class="thought-context">${escapeHtml(thought.context)}</p>` : ''}
+                <div class="thought-meta">
+                    <a href="${thought.pageUrl}" target="_blank" class="thought-source">${escapeHtml(truncate(thought.pageTitle, 40))}</a>
+                    <span class="thought-time">${timeAgo}</span>
+                </div>
+            </div>
+        `;
+    }).join('');
+
+    // Delete handlers
+    list.querySelectorAll('.thought-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteThought(btn.dataset.id);
+        });
+    });
+}
+
+function deleteThought(id) {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ action: 'deleteThought', id }, () => {
+            loadThoughts();
+            loadThoughtsCount();
+        });
+    }
+}
+
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+    return date.toLocaleDateString();
+}
+
+function truncate(str, len) {
+    return str.length > len ? str.substring(0, len) + '...' : str;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
