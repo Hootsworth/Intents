@@ -639,3 +639,13 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
+
+// Listen for storage changes to update list in real-time
+if (typeof chrome !== 'undefined' && chrome.storage) {
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.thoughts) {
+            loadThoughts();
+            loadThoughtsCount();
+        }
+    });
+}

@@ -519,3 +519,78 @@
 .htt-save:active {
     transform: translateY(0);
 }
+
+/* Checkbox Styling */
+.htt-ping-toggle input[type="checkbox"] {
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    margin-right: 6px;
+    position: relative;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.05);
+    transition: all 0.2s;
+}
+
+.htt-ping-toggle input[type="checkbox"]:hover {
+    border-color: #7c7cf8;
+}
+
+.htt-ping-toggle input[type="checkbox"]:checked {
+    background: #7c7cf8;
+    border-color: #7c7cf8;
+}
+
+.htt-ping-toggle input[type="checkbox"]:checked::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    left: 5px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+/* Notification (Restored) */
+.htt-notification {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    background: #202023;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50px;
+    color: #fff;
+    font-size: 13px;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 2147483647;
+    animation: httNotifIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none;
+}
+
+@keyframes httNotifIn {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+.htt-notification.fade-out {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+    transition: all 0.2s ease;
+}
