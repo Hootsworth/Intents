@@ -716,7 +716,7 @@ if (window.__INTENT_MODE_LOADED__) {
         const tooltip = document.createElement('div');
         tooltip.className = 'intent-htt-tooltip';
         tooltip.innerHTML = `
-        <button class="intent-htt-tooltip-btn" id="httTooltipBtn">
+        <button type="button" class="intent-htt-tooltip-btn" id="httTooltipBtn">
             💭 Hold That Thought
         </button>
     `;
@@ -740,8 +740,15 @@ if (window.__INTENT_MODE_LOADED__) {
             tooltip.style.top = `${selectionRect.bottom + scrollTop + 8}px`;
         }
 
+        // Store the selection text before any click clears it
+        const savedSelection = currentSelection;
+
         // Attach click handler
-        document.getElementById('httTooltipBtn').addEventListener('click', () => {
+        document.getElementById('httTooltipBtn').addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            // Restore the saved selection since clicking clears the browser selection
+            currentSelection = savedSelection;
             hideSelectionTooltip();
             showHttPanel();
         });
@@ -767,28 +774,33 @@ if (window.__INTENT_MODE_LOADED__) {
     function showHttPanel() {
         hideHttPanel(); // Remove existing
 
+        // Store the selection text at this moment
+        const selectionText = currentSelection || '';
         const pageTitle = document.querySelector('.intent-title')?.textContent || document.title;
         const pageUrl = window.location.href;
 
         const panel = document.createElement('div');
         panel.className = 'intent-htt-panel';
         panel.id = 'intentHttPanel';
+        // Store selection in data attribute for later retrieval
+        panel.dataset.selectionText = selectionText;
+
         panel.innerHTML = `
         <div class="intent-htt-panel-header">
             <h3>💭 Hold That Thought</h3>
-            <button class="intent-htt-panel-close" id="httPanelClose">✕</button>
+            <button type="button" class="intent-htt-panel-close" id="httPanelClose">✕</button>
         </div>
         
         <div class="intent-htt-panel-content">
             <div class="intent-htt-preview">
-                <p class="intent-htt-selected-text">"${escapeHtml(currentSelection.substring(0, 200))}${currentSelection.length > 200 ? '...' : ''}"</p>
+                <p class="intent-htt-selected-text">"${escapeHtml(selectionText.substring(0, 200))}${selectionText.length > 200 ? '...' : ''}"</p>
             </div>
             
             <div class="intent-htt-field">
                 <label>Tag</label>
                 <div class="intent-htt-tags" id="httTags">
                     ${HTT_TAGS.map((tag, i) => `
-                        <button class="intent-htt-tag ${i === 0 ? 'active' : ''}" data-tag="${tag}">${tag}</button>
+                        <button type="button" class="intent-htt-tag ${i === 0 ? 'active' : ''}" data-tag="${tag}">${tag}</button>
                     `).join('')}
                 </div>
             </div>
@@ -797,7 +809,7 @@ if (window.__INTENT_MODE_LOADED__) {
                 <label>Color</label>
                 <div class="intent-htt-colors" id="httColors">
                     ${HTT_COLORS.map((c, i) => `
-                        <button class="intent-htt-color ${i === 0 ? 'active' : ''}" data-color="${c.value}" style="background: ${c.value}" title="${c.name}"></button>
+                        <button type="button" class="intent-htt-color ${i === 0 ? 'active' : ''}" data-color="${c.value}" style="background: ${c.value}" title="${c.name}"></button>
                     `).join('')}
                 </div>
             </div>
@@ -805,9 +817,9 @@ if (window.__INTENT_MODE_LOADED__) {
             <div class="intent-htt-field">
                 <label>Importance</label>
                 <div class="intent-htt-importance" id="httImportance">
-                    <button class="intent-htt-imp active" data-imp="low">Low</button>
-                    <button class="intent-htt-imp" data-imp="medium">Medium</button>
-                    <button class="intent-htt-imp" data-imp="high">High ⚡</button>
+                    <button type="button" class="intent-htt-imp active" data-imp="low">Low</button>
+                    <button type="button" class="intent-htt-imp" data-imp="medium">Medium</button>
+                    <button type="button" class="intent-htt-imp" data-imp="high">High ⚡</button>
                 </div>
             </div>
             
@@ -818,8 +830,8 @@ if (window.__INTENT_MODE_LOADED__) {
         </div>
         
         <div class="intent-htt-panel-footer">
-            <button class="intent-htt-cancel" id="httCancel">Cancel</button>
-            <button class="intent-htt-save" id="httSave">Save Thought</button>
+            <button type="button" class="intent-htt-cancel" id="httCancel">Cancel</button>
+            <button type="button" class="intent-htt-save" id="httSave">Save Thought</button>
         </div>
     `;
 
@@ -877,6 +889,10 @@ if (window.__INTENT_MODE_LOADED__) {
      * Save the thought via background script
      */
     function saveHttThought() {
+        // Get the selection text from the panel's data attribute
+        const panel = document.getElementById('intentHttPanel');
+        const selectionText = panel?.dataset.selectionText || currentSelection || '';
+
         const tag = document.querySelector('.intent-htt-tag.active')?.dataset.tag || HTT_TAGS[0];
         const color = document.querySelector('.intent-htt-color.active')?.dataset.color || HTT_COLORS[0].value;
         const importance = document.querySelector('.intent-htt-imp.active')?.dataset.imp || 'low';
@@ -886,7 +902,7 @@ if (window.__INTENT_MODE_LOADED__) {
         const pageUrl = window.location.href;
 
         const thought = {
-            text: currentSelection,
+            text: selectionText,
             pageTitle,
             pageUrl,
             tag,
