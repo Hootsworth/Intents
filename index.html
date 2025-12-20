@@ -213,6 +213,63 @@
                     </label>
                 </div>
 
+                <div class="setting-group"
+                    style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
+                    <button id="openShortcutsBtn" class="style-btn"
+                        style="width: 100%; text-align: center; justify-content: center; font-weight: 500;">
+                        ⌨️ View Keyboard Shortcuts
+                    </button>
+                    <div
+                        style="text-align: center; margin-top: 15px; font-size: 0.7em; color: var(--text-muted); font-family: var(--font-mono);">
+                        v4.0.0
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Shortcuts Modal -->
+    <div class="modal" id="shortcutsModal" style="z-index: 1001;">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h2>Shortcuts</h2>
+                <button class="modal-close" id="closeShortcuts">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="setting-group">
+                    <label class="setting-label">Productivity</label>
+                    <div
+                        style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
+                        <span style="font-size: 0.9em;">Ping Me (Reminder)</span>
+                        <kbd
+                            style="font-family: monospace; background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; font-size: 0.8em; border: 1px solid var(--border-color);">Alt
+                            + P</kbd>
+                    </div>
+                    <div
+                        style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
+                        <span style="font-size: 0.9em;">Quick AI</span>
+                        <kbd
+                            style="font-family: monospace; background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; font-size: 0.8em; border: 1px solid var(--border-color);">Alt
+                            + Q</kbd>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.9em;">Hold Thought</span>
+                        <kbd
+                            style="font-family: monospace; background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; font-size: 0.8em; border: 1px solid var(--border-color);">Alt
+                            + T</kbd>
+                    </div>
+                </div>
+
+                <div class="setting-group">
+                    <label class="setting-label">Context Menu (Right Click)</label>
+                    <div style="font-size: 0.85em; color: var(--text-secondary); line-height: 1.5;">
+                        <ul style="margin-top: 5px; margin-left: 20px; list-style-type: square;">
+                            <li>Hold That Thought (Save Selection)</li>
+                            <li>Intent Mode (Read, Learn, Fix...)</li>
+                            <li>Isolate Selection (Focus Mode)</li>
+                        </ul>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

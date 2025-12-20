@@ -341,25 +341,84 @@
         const container = document.createElement('div');
         container.className = 'htt-friendly-ping';
         container.id = 'htt-ai-response';
-        // Minimal, Clean styling
+        // Minimal, Clean styling - Intentional
         container.style.border = '1px solid rgba(255,255,255,0.1)';
-        container.style.background = '#1e1e1e';
-        container.style.boxShadow = '0 10px 40px rgba(0,0,0,0.5)';
+        container.style.background = '#1a1a1a';
+        container.style.boxShadow = '0 20px 50px rgba(0,0,0,0.4)';
+        container.style.borderRadius = '12px';
+        container.style.padding = '20px';
+        container.style.maxWidth = '400px';
+        container.style.width = '100%';
 
-        // Markdown-ish formatting (bold)
+        // Prepare HTML (Bold Logic)
         const formatted = escapeHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
-        // No icon, just strong typography
         container.innerHTML = `
-            <div class="htt-fp-header" style="text-align: left; padding-left: 5px; color: #10a37f; margin-bottom: 10px;">ANSWER</div>
-            <div class="htt-fp-text" style="font-size: 1.1em; line-height: 1.6; text-align: left; padding: 0 5px;">${formatted}</div>
-            <div class="htt-fp-actions" style="justify-content: flex-end; padding-right: 5px;">
-                <button class="htt-fp-btn primary" id="httAIAck" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white;">Close</button>
+            <div class="htt-fp-header" style="text-align: left; padding-left: 0; color: #10a37f; margin-bottom: 12px; font-size: 0.8em; letter-spacing: 0.1em; text-transform: uppercase; font-family: monospace;">Answer</div>
+            <div class="htt-fp-text" id="htt-typewriter" style="font-size: 1.05em; line-height: 1.7; text-align: left; padding: 0; margin-bottom: 20px; min-height: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"></div>
+            <div class="htt-fp-actions" style="justify-content: flex-end; padding-right: 0; gap: 0;">
+                <button class="htt-fp-btn" id="httAIAck" style="
+                    background: transparent; 
+                    border: 1px solid rgba(255,255,255,0.1); 
+                    color: rgba(255,255,255,0.7); 
+                    border-radius: 6px; 
+                    padding: 8px 16px; 
+                    font-size: 0.8em; 
+                    cursor: pointer; 
+                    transition: all 0.2s ease;
+                    outline: none;
+                ">Close</button>
             </div>
         `;
 
         document.body.appendChild(overlay);
         document.body.appendChild(container);
+
+        // Hover Effect specific to this button
+        const btn = container.querySelector('#httAIAck');
+        btn.addEventListener('mouseenter', () => {
+            btn.style.borderColor = 'rgba(255,255,255,0.4)';
+            btn.style.color = '#fff';
+            btn.style.background = 'rgba(255,255,255,0.05)';
+        });
+        btn.addEventListener('mouseleave', () => {
+            btn.style.borderColor = 'rgba(255,255,255,0.1)';
+            btn.style.color = 'rgba(255,255,255,0.7)';
+            btn.style.background = 'transparent';
+        });
+
+        // Typewriter Effect
+        const target = container.querySelector('#htt-typewriter');
+        const tokens = formatted.split(/(<[^>]+>)/g);
+        let tokenIndex = 0;
+        let charIndex = 0;
+
+        function type() {
+            if (tokenIndex >= tokens.length) return;
+
+            const token = tokens[tokenIndex];
+
+            if (token.startsWith('<')) {
+                // HTML Tag - Append instantly
+                target.innerHTML += token;
+                tokenIndex++;
+                requestAnimationFrame(type);
+            } else {
+                // Text - Type chars
+                if (charIndex < token.length) {
+                    target.innerHTML += token[charIndex];
+                    charIndex++;
+                    setTimeout(type, 10); // Typing speed
+                } else {
+                    tokenIndex++;
+                    charIndex = 0;
+                    requestAnimationFrame(type);
+                }
+            }
+        }
+
+        // Start typing
+        type();
 
         const close = () => {
             container.style.opacity = '0';
@@ -371,7 +430,7 @@
             }, 300);
         };
 
-        container.querySelector('#httAIAck').addEventListener('click', close);
+        btn.addEventListener('click', close);
         overlay.addEventListener('click', close);
     }
 

@@ -21,13 +21,13 @@
     --accent-secondary: #00ff00;
     --accent-tertiary: #ff00ff;
 
-    --border-color: #000000;
-    --border-width: 2px;
-    --border-radius: 0px;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --border-width: 1px;
+    --border-radius: 12px;
 
-    --shadow-brutal: 4px 4px 0px var(--border-color);
-    --shadow-brutal-sm: 2px 2px 0px var(--border-color);
-    --shadow-brutal-hover: 5px 5px 0px var(--border-color);
+    --shadow-brutal: 0 4px 20px rgba(0, 0, 0, 0.25);
+    --shadow-brutal-sm: 0 2px 8px rgba(0, 0, 0, 0.15);
+    --shadow-brutal-hover: 0 8px 30px rgba(0, 0, 0, 0.35);
 
     /* Typography */
     --font-mono: 'Space Mono', monospace;
@@ -58,7 +58,7 @@
     --text-secondary: #444444;
     --text-muted: #666666;
 
-    --border-color: #000000;
+    --border-color: rgba(0, 0, 0, 0.1);
 }
 
 /* ===== SUBTLE DARK ===== */

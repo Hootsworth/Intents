@@ -272,6 +272,22 @@ function initEventListeners() {
     document.getElementById('closeSettings')?.addEventListener('click', () => settingsModal.classList.remove('active'));
     settingsModal?.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.remove('active'); });
 
+    // Shortcuts Modal
+    const shortcutsModal = document.getElementById('shortcutsModal');
+    if (document.getElementById('openShortcutsBtn')) {
+        document.getElementById('openShortcutsBtn').addEventListener('click', () => {
+            shortcutsModal.classList.add('active');
+        });
+    }
+    if (document.getElementById('closeShortcuts')) {
+        document.getElementById('closeShortcuts').addEventListener('click', () => {
+            shortcutsModal.classList.remove('active');
+        });
+    }
+    shortcutsModal?.addEventListener('click', (e) => {
+        if (e.target === shortcutsModal) shortcutsModal.classList.remove('active');
+    });
+
     // Add Link modal
     const addLinkModal = document.getElementById('addLinkModal');
     document.getElementById('addLinkBtn')?.addEventListener('click', () => {
