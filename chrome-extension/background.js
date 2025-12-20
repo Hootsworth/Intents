@@ -13,27 +13,88 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // Handle context menu click
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     if (info.menuItemId === 'hold-that-thought' && info.selectionText) {
-        chrome.tabs.sendMessage(tab.id, {
-            action: 'showThoughtPopup',
-            selectedText: info.selectionText,
-            pageTitle: tab.title,
-            pageUrl: tab.url
-        });
+        // Skip chrome:// and other restricted pages
+        if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+            return;
+        }
+
+        try {
+            // Try to send message first
+            await chrome.tabs.sendMessage(tab.id, {
+                action: 'showThoughtPopup',
+                selectedText: info.selectionText,
+                pageTitle: tab.title,
+                pageUrl: tab.url
+            });
+        } catch (error) {
+            // Content script not injected - inject it now
+            try {
+                await chrome.scripting.insertCSS({
+                    target: { tabId: tab.id },
+                    files: ['thought-popup.css']
+                });
+                await chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    files: ['content.js']
+                });
+                // Wait a bit for script to load, then send message
+                setTimeout(async () => {
+                    try {
+                        await chrome.tabs.sendMessage(tab.id, {
+                            action: 'showThoughtPopup',
+                            selectedText: info.selectionText,
+                            pageTitle: tab.title,
+                            pageUrl: tab.url
+                        });
+                    } catch (e) {
+                        console.log('Failed to show popup after injection:', e);
+                    }
+                }, 100);
+            } catch (injectError) {
+                console.log('Cannot inject into this page:', injectError);
+            }
+        }
     }
 });
 
 // Handle keyboard shortcut
-chrome.commands.onCommand.addListener((command) => {
+chrome.commands.onCommand.addListener(async (command) => {
     if (command === 'hold-that-thought') {
-        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-            if (tabs[0]) {
-                chrome.tabs.sendMessage(tabs[0].id, {
-                    action: 'triggerHoldThought'
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+            return;
+        }
+
+        try {
+            await chrome.tabs.sendMessage(tab.id, {
+                action: 'triggerHoldThought'
+            });
+        } catch (error) {
+            // Inject content script first
+            try {
+                await chrome.scripting.insertCSS({
+                    target: { tabId: tab.id },
+                    files: ['thought-popup.css']
                 });
+                await chrome.scripting.executeScript({
+                    target: { tabId: tab.id },
+                    files: ['content.js']
+                });
+                setTimeout(async () => {
+                    try {
+                        await chrome.tabs.sendMessage(tab.id, {
+                            action: 'triggerHoldThought'
+                        });
+                    } catch (e) {
+                        console.log('Failed after injection:', e);
+                    }
+                }, 100);
+            } catch (injectError) {
+                console.log('Cannot inject into this page:', injectError);
             }
-        });
+        }
     }
 });
 
