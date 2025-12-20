@@ -537,6 +537,7 @@ if (window.__INTENT_MODE_LOADED__) {
                     <span class="intent-reading-time">${extracted.readingTime} min read</span>
                 </div>
                 <div class="intent-topbar-right">
+                    ${intent.name === 'Reflect' ? '<button type="button" class="intent-btn" id="intentToggleLinks" title="Show/Blur Links">👁️</button>' : ''}
                     <button type="button" class="intent-btn" id="intentFontDecrease" title="Decrease font size">A−</button>
                     <button type="button" class="intent-btn" id="intentFontIncrease" title="Increase font size">A+</button>
                     <button type="button" class="intent-btn intent-btn-close" id="intentClose" title="Exit Intent Mode (Esc)">✕</button>
@@ -591,6 +592,14 @@ if (window.__INTENT_MODE_LOADED__) {
     function attachReaderListeners() {
         // Close button
         document.getElementById('intentClose')?.addEventListener('click', deactivateIntentMode);
+
+        // Reflect Link Toggle
+        document.getElementById('intentToggleLinks')?.addEventListener('click', () => {
+            const container = document.getElementById('intentModeContainer');
+            container.classList.toggle('intent-links-visible');
+            const btn = document.getElementById('intentToggleLinks');
+            if (btn) btn.style.opacity = container.classList.contains('intent-links-visible') ? '1' : '0.6';
+        });
 
         // Font size controls
         document.getElementById('intentFontDecrease')?.addEventListener('click', () => adjustFontSize(-2));

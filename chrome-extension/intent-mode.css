@@ -13,23 +13,23 @@
 }
 
 .intent-mode-container {
-    --intent-bg: #0a0a0b;
-    --intent-surface: #141416;
-    --intent-border: #252529;
+    --intent-bg: #121212;
+    --intent-surface: #1e1e1e;
+    --intent-border: rgba(255, 255, 255, 0.1);
     --intent-text: #e8e8ed;
-    --intent-text-muted: #8e8e93;
-    --intent-accent: #7c7cf8;
-    --intent-accent-soft: rgba(124, 124, 248, 0.15);
-    --intent-code-bg: #1a1a1e;
-    --intent-progress: #5e5ce6;
+    --intent-text-muted: #a0a0a5;
+    --intent-accent: #0a84ff;
+    --intent-accent-soft: rgba(10, 132, 255, 0.15);
+    --intent-code-bg: #2c2c2e;
+    --intent-progress: #0a84ff;
 
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: var(--intent-text);
     background: var(--intent-bg);
     min-height: 100vh;
     line-height: var(--intent-line-height, 1.7);
     font-size: var(--intent-font-size, 18px);
-    letter-spacing: var(--intent-letter-spacing, 0.01em);
+    letter-spacing: var(--intent-letter-spacing, normal);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -615,6 +615,13 @@
     opacity: 1;
     background: var(--intent-accent-soft);
     color: var(--intent-accent);
+}
+
+.intent-links-visible [data-intent="reflect"] .intent-content a {
+    filter: none !important;
+    opacity: 1 !important;
+    background: transparent !important;
+    color: var(--intent-accent) !important;
 }
 
 /* ==================== Scrollbar ==================== */

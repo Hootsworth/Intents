@@ -1,10 +1,10 @@
 /**
  * Hold That Thought - Popup Styles
- * Clean, minimal, well-organized design
+ * Native, clean, system-integrated design
  */
 
 #htt-popup {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     position: fixed;
     top: 0;
     left: 0;
@@ -12,6 +12,7 @@
     bottom: 0;
     z-index: 2147483647;
     animation: httFadeIn 0.2s ease;
+    color: #e8e8ed;
 }
 
 @keyframes httFadeIn {
@@ -44,8 +45,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(4px);
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
 }
 
 .htt-modal {
@@ -53,20 +54,20 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 440px;
-    max-width: 92vw;
-    max-height: 90vh;
-    background: #1c1c1e;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    width: 460px;
+    max-width: 90vw;
+    background: #202023;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5), 0 0 1px rgba(255, 255, 255, 0.1);
     overflow: hidden;
-    animation: httSlideIn 0.25s ease;
+    animation: httSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 @keyframes httSlideIn {
     from {
         opacity: 0;
-        transform: translate(-50%, -48%);
+        transform: translate(-50%, -46%);
     }
 
     to {
@@ -80,35 +81,37 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 16px 20px;
-    background: #2c2c2e;
-    border-bottom: 1px solid #3a3a3c;
+    padding: 14px 20px;
+    background: transparent;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .htt-header h3 {
     margin: 0;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     color: #fff;
+    letter-spacing: -0.01em;
 }
 
 .htt-close {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     border: none;
-    background: #3a3a3c;
-    color: #8e8e93;
-    font-size: 18px;
+    background: transparent;
+    color: #999;
+    font-size: 20px;
+    line-height: 1;
     cursor: pointer;
-    border-radius: 8px;
+    border-radius: 4px;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s;
+    transition: all 0.1s;
 }
 
 .htt-close:hover {
-    background: #48484a;
+    background: rgba(255, 255, 255, 0.1);
     color: #fff;
 }
 
@@ -119,44 +122,45 @@
     overflow-y: auto;
 }
 
-/* Selected text preview */
+/* Preview */
 .htt-preview {
-    background: #2c2c2e;
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 24px;
-    border-left: 3px solid #5856d6;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 8px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    border-left: 3px solid #7c7cf8;
 }
 
 .htt-selected-text {
-    margin: 0 0 8px 0;
-    color: #e5e5e7;
+    margin: 0 0 6px 0;
+    color: #e1e1e6;
     font-size: 14px;
     line-height: 1.5;
+    font-family: serif;
+    /* Distinction for quoted text */
     font-style: italic;
 }
 
 .htt-source {
-    font-size: 12px;
-    color: #8e8e93;
+    font-size: 11px;
+    color: #888;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    display: block;
 }
 
 /* Fields */
 .htt-field {
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 .htt-field label {
     display: block;
     font-size: 12px;
-    font-weight: 600;
-    color: #8e8e93;
-    margin-bottom: 10px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-weight: 500;
+    color: #999;
+    margin-bottom: 8px;
 }
 
 /* Tags */
@@ -167,82 +171,95 @@
 }
 
 .htt-tag {
-    padding: 8px 14px;
-    background: #2c2c2e;
-    border: 1px solid #3a3a3c;
-    border-radius: 8px;
-    color: #e5e5e7;
-    font-size: 13px;
+    padding: 6px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid transparent;
+    border-radius: 100px;
+    color: #ccc;
+    font-size: 12px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.1s;
 }
 
 .htt-tag:hover {
-    background: #3a3a3c;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
 }
 
 .htt-tag.active {
-    background: #5856d6;
-    border-color: #5856d6;
+    background: #3e3e42;
+    border-color: #7c7cf8;
     color: #fff;
+    box-shadow: 0 0 0 1px #7c7cf8 inset;
 }
 
 /* Colors */
 .htt-colors {
     display: flex;
-    gap: 10px;
+    gap: 8px;
 }
 
 .htt-color {
-    width: 32px;
-    height: 32px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
-    border: 2px solid transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     cursor: pointer;
-    transition: all 0.15s;
+    transition: transform 0.1s;
+    position: relative;
 }
 
 .htt-color:hover {
     transform: scale(1.1);
 }
 
-.htt-color.active {
-    border-color: #fff;
-    box-shadow: 0 0 0 2px #5856d6;
+.htt-color.active::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 2px solid #7c7cf8;
+    border-radius: 50%;
 }
 
 /* Importance */
 .htt-importance {
     display: flex;
-    gap: 8px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
 }
 
 .htt-imp {
     flex: 1;
-    padding: 10px 12px;
-    background: #2c2c2e;
-    border: 1px solid #3a3a3c;
-    border-radius: 8px;
-    color: #e5e5e7;
-    font-size: 13px;
+    padding: 6px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    color: #999;
+    font-size: 12px;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.1s;
     text-align: center;
 }
 
 .htt-imp:hover {
-    background: #3a3a3c;
-}
-
-.htt-imp.active {
-    background: #5856d6;
-    border-color: #5856d6;
     color: #fff;
 }
 
+.htt-imp.active {
+    background: #3e3e42;
+    color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
 .htt-imp[data-imp="high"].active {
-    background: #ff453a;
-    border-color: #ff453a;
+    background: #3e3e42;
+    color: #ff6b6b;
 }
 
 /* Textarea */
@@ -250,111 +267,75 @@
     width: 100%;
     min-height: 80px;
     padding: 12px;
-    background: #2c2c2e;
-    border: 1px solid #3a3a3c;
-    border-radius: 10px;
-    color: #e5e5e7;
-    font-size: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    color: #fff;
+    font-size: 13px;
     font-family: inherit;
     resize: vertical;
     box-sizing: border-box;
     line-height: 1.5;
+    transition: border-color 0.1s;
 }
 
 .htt-field textarea:focus {
     outline: none;
-    border-color: #5856d6;
+    border-color: #7c7cf8;
+    background: rgba(255, 255, 255, 0.05);
 }
 
 .htt-field textarea::placeholder {
-    color: #636366;
+    color: #555;
 }
 
 /* Footer */
 .htt-footer {
     display: flex;
+    justify-content: flex-end;
     gap: 10px;
     padding: 16px 20px;
-    background: #2c2c2e;
-    border-top: 1px solid #3a3a3c;
+    background: rgba(255, 255, 255, 0.02);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .htt-cancel {
-    flex: 1;
-    padding: 12px;
-    background: #3a3a3c;
-    border: none;
-    border-radius: 10px;
-    color: #e5e5e7;
-    font-size: 14px;
+    padding: 8px 16px;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #ccc;
+    font-size: 13px;
     font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.1s;
 }
 
 .htt-cancel:hover {
-    background: #48484a;
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    border-color: rgba(255, 255, 255, 0.2);
 }
 
 .htt-save {
-    flex: 2;
-    padding: 12px;
-    background: #5856d6;
-    border: none;
-    border-radius: 10px;
+    padding: 8px 20px;
+    background: #7c7cf8;
+    border: 1px solid transparent;
+    border-radius: 6px;
     color: #fff;
-    font-size: 14px;
-    font-weight: 600;
+    font-size: 13px;
+    font-weight: 500;
     cursor: pointer;
-    transition: all 0.15s;
+    transition: all 0.1s;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .htt-save:hover {
     background: #6d6bf7;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(124, 124, 248, 0.3);
 }
 
-/* Notification */
-.htt-notification {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    padding: 12px 24px;
-    background: #1c1c1e;
-    border: 1px solid #3a3a3c;
-    border-radius: 12px;
-    color: #fff;
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-    z-index: 2147483647;
-    animation: httNotifIn 0.25s ease;
-}
-
-@keyframes httNotifIn {
-    from {
-        opacity: 0;
-        transform: translateX(-50%) translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-}
-
-.htt-notification.fade-out {
-    animation: httNotifOut 0.2s ease forwards;
-}
-
-@keyframes httNotifOut {
-    from {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
-    }
-
-    to {
-        opacity: 0;
-        transform: translateX(-50%) translateY(10px);
-    }
+.htt-save:active {
+    transform: translateY(0);
 }

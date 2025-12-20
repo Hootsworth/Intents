@@ -12,7 +12,7 @@ const SEARCH_ENGINES = {
 const state = {
     settings: {
         defaultEngine: 'google',
-        style: 'brutal',  // 'brutal' or 'subtle'
+        style: 'subtle',  // Default to Native/Formal
         theme: 'dark',    // 'dark' or 'light'
         showQuickLinks: true,
         newTabResults: false,
@@ -468,26 +468,35 @@ function renderThoughts(thoughts) {
     const list = document.getElementById('thoughtsList');
     if (!list) return;
 
-    list.innerHTML = thoughts.map(thought => {
-        const date = new Date(thought.timestamp);
-        const timeAgo = getTimeAgo(date);
-        const importanceClass = thought.importance === 'high' ? 'high' : (thought.importance === 'medium' ? 'medium' : '');
-        const deepLink = getFragmentUrl(thought.pageUrl, thought.text);
+    // Group by URL to find duplicates
+    const grouped = {};
+    const urlOrder = [];
 
-        return `
-            <div class="thought-card ${importanceClass}" style="border-left-color: ${thought.color}" data-id="${thought.id}">
-                <div class="thought-header">
-                    <span class="thought-tag">${thought.tag}</span>
-                    <button class="thought-delete" data-id="${thought.id}" title="Delete">&times;</button>
+    thoughts.forEach(t => {
+        if (!grouped[t.pageUrl]) {
+            grouped[t.pageUrl] = [];
+            urlOrder.push(t.pageUrl);
+        }
+        grouped[t.pageUrl].push(t);
+    });
+
+    list.innerHTML = urlOrder.map(url => {
+        const group = grouped[url];
+        if (group.length === 1) {
+            return renderThoughtCard(group[0]);
+        } else {
+            // Render group
+            const ids = group.map(t => t.id).join(',');
+            return `
+                <div class="thought-group">
+                    <div class="thought-group-header">
+                        <span>Similar thoughts found</span>
+                        <button class="merge-btn" data-ids="${ids}">Merge All</button>
+                    </div>
+                    ${group.map(renderThoughtCard).join('')}
                 </div>
-                <p class="thought-text">${escapeHtml(thought.text)}</p>
-                ${thought.context ? `<p class="thought-context">${escapeHtml(thought.context)}</p>` : ''}
-                <div class="thought-meta">
-                    <a href="${deepLink}" target="_blank" class="thought-source">${escapeHtml(truncate(thought.pageTitle, 40))}</a>
-                    <span class="thought-time">${timeAgo}</span>
-                </div>
-            </div>
-        `;
+            `;
+        }
     }).join('');
 
     // Delete handlers
@@ -497,6 +506,83 @@ function renderThoughts(thoughts) {
             deleteThought(btn.dataset.id);
         });
     });
+
+    // Merge handlers
+    list.querySelectorAll('.merge-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleMerge(btn.dataset.ids);
+        });
+    });
+}
+
+function renderThoughtCard(thought) {
+    const date = new Date(thought.timestamp);
+    const timeAgo = getTimeAgo(date);
+    const importanceClass = thought.importance === 'high' ? 'high' : (thought.importance === 'medium' ? 'medium' : '');
+    const deepLink = getFragmentUrl(thought.pageUrl, thought.text);
+
+    return `
+        <div class="thought-card ${importanceClass}" style="border-left-color: ${thought.color}" data-id="${thought.id}">
+            <div class="thought-header">
+                <span class="thought-tag">${thought.tag}</span>
+                <button class="thought-delete" data-id="${thought.id}" title="Delete">&times;</button>
+            </div>
+            <p class="thought-text">${escapeHtml(thought.text)}</p>
+            ${thought.context ? `<p class="thought-context">${escapeHtml(thought.context)}</p>` : ''}
+            <div class="thought-meta">
+                <a href="${deepLink}" target="_blank" class="thought-source">${escapeHtml(truncate(thought.pageTitle, 40))}</a>
+                <span class="thought-time">${timeAgo}</span>
+            </div>
+        </div>
+    `;
+}
+
+function handleMerge(idsString) {
+    const ids = idsString.split(',');
+
+    const btn = document.querySelector(`.merge-btn[data-ids="${idsString}"]`);
+    const groupContainer = btn ? btn.closest('.thought-group') : null;
+
+    if (groupContainer) {
+        // Optimistic UI: Animate immediately
+        groupContainer.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        groupContainer.style.transform = 'scale(0.98)';
+        groupContainer.style.opacity = '0.8';
+        btn.textContent = 'Merging...';
+        btn.disabled = true;
+    }
+
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ action: 'mergeThoughts', thoughtIds: ids }, (response) => {
+            if (response && response.success) {
+                // Success animation
+                if (groupContainer) {
+                    groupContainer.style.transform = 'scale(0.9) translateY(10px)';
+                    groupContainer.style.opacity = '0';
+                    groupContainer.style.height = '0';
+                    groupContainer.style.margin = '0';
+                    groupContainer.style.padding = '0';
+                    groupContainer.style.overflow = 'hidden';
+                }
+
+                // Wait for animation to finish before reloading list
+                setTimeout(() => {
+                    loadThoughts();
+                    loadThoughtsCount();
+                }, 400);
+            } else {
+                // Revert animation on failure
+                if (groupContainer) {
+                    groupContainer.style.transform = 'none';
+                    groupContainer.style.opacity = '1';
+                    btn.textContent = 'Merge All';
+                    btn.disabled = false;
+                    alert('Merge failed: ' + (response?.error || 'Unknown error'));
+                }
+            }
+        });
+    }
 }
 
 function getFragmentUrl(url, text) {

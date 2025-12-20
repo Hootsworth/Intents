@@ -61,50 +61,53 @@
     --border-color: #000000;
 }
 
-/* ===== SUBTLE DARK ===== */
+/* ===== NATIVE / SUBTLE THEME (FORMAL) ===== */
 [data-style="subtle"] {
     --bg-primary: #121212;
-    --bg-secondary: #1a1a1a;
-    --bg-tertiary: #242424;
+    --bg-secondary: #1e1e1e;
+    --bg-tertiary: #2c2c2e;
 
-    --text-primary: #e8e8e8;
-    --text-secondary: #999999;
-    --text-muted: #666666;
+    --text-primary: #e8e8ed;
+    --text-secondary: #a0a0a5;
+    --text-muted: #6e6e73;
 
-    --accent-primary: #6366f1;
-    --accent-secondary: #8b5cf6;
-    --accent-tertiary: #a855f7;
+    /* Native iOS/macOS-like blue accent */
+    --accent-primary: #0a84ff;
+    --accent-secondary: #5e5ce6;
+    --accent-tertiary: #bf5af2;
 
     --border-color: rgba(255, 255, 255, 0.1);
     --border-width: 1px;
     --border-radius: 12px;
 
-    --shadow-brutal: 0 4px 20px rgba(0, 0, 0, 0.3);
-    --shadow-brutal-sm: 0 2px 10px rgba(0, 0, 0, 0.2);
-    --shadow-brutal-hover: 0 6px 25px rgba(0, 0, 0, 0.4);
+    --shadow-brutal: 0 4px 12px rgba(0, 0, 0, 0.2);
+    --shadow-brutal-sm: 0 2px 6px rgba(0, 0, 0, 0.15);
+    --shadow-brutal-hover: 0 8px 24px rgba(0, 0, 0, 0.3);
 
-    --font-display: var(--font-sans);
+    --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --font-mono: 'SF Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
 }
 
-/* ===== SUBTLE LIGHT ===== */
+/* ===== NATIVE LIGHT ===== */
 [data-style="subtle"][data-theme="light"] {
-    --bg-primary: #fafafa;
-    --bg-secondary: #ffffff;
-    --bg-tertiary: #f5f5f5;
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f7;
+    --bg-tertiary: #e5e5ea;
 
-    --text-primary: #1a1a1a;
-    --text-secondary: #555555;
-    --text-muted: #888888;
+    --text-primary: #1d1d1f;
+    --text-secondary: #86868b;
+    --text-muted: #6e6e73;
 
-    --accent-primary: #4f46e5;
-    --accent-secondary: #7c3aed;
-    --accent-tertiary: #9333ea;
+    --accent-primary: #007aff;
+    --accent-secondary: #5856d6;
+    --accent-tertiary: #af52de;
 
-    --border-color: rgba(0, 0, 0, 0.08);
+    --border-color: rgba(0, 0, 0, 0.1);
 
-    --shadow-brutal: 0 4px 20px rgba(0, 0, 0, 0.08);
-    --shadow-brutal-sm: 0 2px 10px rgba(0, 0, 0, 0.05);
-    --shadow-brutal-hover: 0 6px 25px rgba(0, 0, 0, 0.12);
+    --shadow-brutal: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-brutal-sm: 0 2px 6px rgba(0, 0, 0, 0.05);
+    --shadow-brutal-hover: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 
@@ -2513,4 +2516,42 @@ select {
         width: 100%;
         max-width: 100%;
     }
+}
+
+/* Thought Groups */
+.thought-group {
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--border-radius);
+    margin-bottom: var(--space-md);
+    background: var(--bg-secondary);
+    overflow: hidden;
+}
+
+.thought-group-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-sm) var(--space-md);
+    background: var(--bg-tertiary);
+    border-bottom: var(--border-width) solid var(--border-color);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+}
+
+.merge-btn {
+    background: var(--accent-primary);
+    color: #000000;
+    border: none;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    transition: opacity 0.2s;
+}
+
+.merge-btn:hover {
+    opacity: 0.8;
 }

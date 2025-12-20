@@ -206,6 +206,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
         return true;
     }
+
+    if (request.action === 'mergeThoughts') {
+        mergeThoughts(request.thoughtIds).then((result) => {
+            sendResponse(result);
+        });
+        return true;
+    }
 });
 
 // Save thought to storage
@@ -232,4 +239,44 @@ async function deleteThought(id) {
     const result = await chrome.storage.local.get(['thoughts']);
     const thoughts = (result.thoughts || []).filter(t => t.id !== id);
     await chrome.storage.local.set({ thoughts });
+}
+
+// Merge thoughts
+async function mergeThoughts(thoughtIds) {
+    const result = await chrome.storage.local.get(['thoughts']);
+    const all = result.thoughts || [];
+    const toMerge = all.filter(t => thoughtIds.includes(t.id));
+
+    if (toMerge.length < 2) return { success: false, error: 'Not enough thoughts to merge' };
+
+    // Sort old -> new
+    toMerge.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    const newest = toMerge[toMerge.length - 1]; // Use newest metadata
+    const combinedText = toMerge.map(t => t.text).join('\n\n');
+
+    // Combine context properly
+    const uniqueContexts = [...new Set(toMerge.map(t => t.context).filter(c => c))];
+    const combinedContext = uniqueContexts.join('\n---\n');
+
+    // Combine tags
+    const uniqueTags = [...new Set(toMerge.map(t => t.tag))];
+    const combinedTag = uniqueTags.join(', '); // or just pick the first one? User might prefer multiple. 
+    // Actually, UI only shows one tag bubble usually. Let's use Comma separated.
+
+    const merged = {
+        ...newest,
+        text: combinedText,
+        context: combinedContext,
+        tag: combinedTag,
+        id: Date.now().toString(),
+        timestamp: new Date().toISOString()
+    };
+
+    const remaining = all.filter(t => !thoughtIds.includes(t.id));
+    // Put merged at the top (newest)
+    const final = [merged, ...remaining];
+
+    await chrome.storage.local.set({ thoughts: final });
+    return { success: true };
 }
