@@ -217,6 +217,20 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         handleAIRequest(request.prompt, request.context, sendResponse);
         return true;
     }
+
+    if (request.action === 'checkAIKey') {
+        chrome.storage.local.get(['openaiKey'], (result) => {
+            sendResponse({ hasKey: !!result.openaiKey });
+        });
+        return true;
+    }
+
+    if (request.action === 'saveAIKey') {
+        chrome.storage.local.set({ openaiKey: request.key }, () => {
+            sendResponse({ success: true });
+        });
+        return true;
+    }
 });
 
 // Alarm handler

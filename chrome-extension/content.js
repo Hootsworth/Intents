@@ -210,24 +210,85 @@
     function createAIBar() {
         if (document.getElementById('htt-ai-overlay')) return;
 
+        // Check for API Key first
+        chrome.runtime.sendMessage({ action: 'checkAIKey' }, (res) => {
+            if (!res || !res.hasKey) {
+                showKeyInput();
+            } else {
+                showAIQueryOverlay();
+            }
+        });
+    }
+
+    function showKeyInput() {
+        if (document.getElementById('htt-key-overlay')) return;
+
+        const overlay = document.createElement('div');
+        overlay.id = 'htt-key-overlay';
+        overlay.className = 'htt-ping-overlay';
+
+        overlay.innerHTML = `
+            <div class="htt-ping-bar" style="border-left: 4px solid #10a37f; padding: 20px; max-width: 400px;">
+                <div style="font-weight: bold; margin-bottom: 10px; font-size: 1.1em;">Setup Quick AI</div>
+                <div style="font-size: 0.9em; opacity: 0.8; margin-bottom: 15px;">Please enter your OpenAI API Key to continue. It will be stored securely on your device.</div>
+                
+                <input type="password" id="httKeyInput" class="htt-ping-input" placeholder="sk-..." style="margin-bottom: 15px; font-family: monospace;">
+                
+                <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                    <button id="httKeyCancel" style="padding: 6px 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px; cursor: pointer;">Cancel</button>
+                    <button id="httKeySave" style="padding: 6px 12px; background: #10a37f; border: none; color: white; border-radius: 4px; cursor: pointer; font-weight: bold;">Save & Continue</button>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(overlay);
+        const input = overlay.querySelector('#httKeyInput');
+        input.focus();
+
+        const close = () => overlay.remove();
+
+        overlay.querySelector('#httKeyCancel').addEventListener('click', close);
+
+        const save = () => {
+            const key = input.value.trim();
+            if (key.startsWith('sk-')) {
+                chrome.runtime.sendMessage({ action: 'saveAIKey', key: key }, (res) => {
+                    close();
+                    showAIQueryOverlay();
+                });
+            } else {
+                input.style.borderColor = '#ff4444';
+            }
+        };
+
+        overlay.querySelector('#httKeySave').addEventListener('click', save);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') save();
+            if (e.key === 'Escape') close();
+        });
+    }
+
+    function showAIQueryOverlay() {
+        if (document.getElementById('htt-ai-overlay')) return;
+
         const selection = window.getSelection().toString().trim();
         const context = selection ? selection.substring(0, 300) : '';
 
         const overlay = document.createElement('div');
         overlay.id = 'htt-ai-overlay';
-        overlay.className = 'htt-ping-overlay'; // Re-use base overlay
+        overlay.className = 'htt-ping-overlay';
 
-        // Contextual HTML
-        const contextHtml = context ? `<div style="font-size: 0.9em; opacity: 0.8; margin-bottom: 12px; font-style: italic; border-left: 3px solid rgba(255,255,255,0.3); padding-left: 10px;">"${escapeHtml(context)}"${selection.length > 300 ? '...' : ''}</div>` : '';
+        // Context: Minimal, muted
+        const contextHtml = context ? `<div style="font-size: 0.85em; opacity: 0.6; margin-bottom: 12px; font-style: italic; border-left: 2px solid rgba(255,255,255,0.2); padding-left: 10px; max-height: 60px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;">${escapeHtml(context)}</div>` : '';
 
+        // UI: Minimal, Dark, Intentional
+        // No emoji, just clean typography
         overlay.innerHTML = `
-            <div class="htt-ping-bar" style="border-left: 4px solid #10a37f;">
+            <div class="htt-ping-bar" style="border: 1px solid rgba(255,255,255,0.1); background: #1e1e1e; box-shadow: 0 10px 40px rgba(0,0,0,0.5); padding: 15px 20px;">
                 ${contextHtml}
                 <div style="display: flex; align-items: center; gap: 10px;">
-                    <span style="font-size: 1.2em;">✨</span>
-                    <input type="text" class="htt-ping-input" id="httAIInput" placeholder="Ask AI..." autocomplete="off">
+                    <input type="text" class="htt-ping-input" id="httAIInput" placeholder="Ask..." autocomplete="off" style="font-size: 1.1em; letter-spacing: 0.02em;">
                 </div>
-                <div style="text-align: right; font-size: 0.75em; opacity: 0.6; margin-top: 8px;">Press Enter ↵</div>
             </div>
         `;
 
@@ -250,9 +311,10 @@
             if (e.key === 'Enter' && input.value.trim()) {
                 const prompt = input.value.trim();
 
-                // Show loading state
+                // Loading state: minimalistic
                 input.disabled = true;
-                input.style.opacity = '0.7';
+                input.style.opacity = '0.5';
+                input.value = 'Thinking...';
 
                 chrome.runtime.sendMessage({
                     action: 'askAI',
@@ -279,18 +341,20 @@
         const container = document.createElement('div');
         container.className = 'htt-friendly-ping';
         container.id = 'htt-ai-response';
-        // Use AI styling specific
-        container.style.borderLeft = '4px solid #10a37f';
+        // Minimal, Clean styling
+        container.style.border = '1px solid rgba(255,255,255,0.1)';
+        container.style.background = '#1e1e1e';
+        container.style.boxShadow = '0 10px 40px rgba(0,0,0,0.5)';
 
         // Markdown-ish formatting (bold)
         const formatted = escapeHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
 
+        // No icon, just strong typography
         container.innerHTML = `
-            <div class="htt-fp-icon">✨</div>
-            <div class="htt-fp-header">Quick Answer</div>
-            <div class="htt-fp-text" style="font-size: 1.1em; line-height: 1.6;">${formatted}</div>
-            <div class="htt-fp-actions">
-                <button class="htt-fp-btn primary" id="httAIAck" style="background: #10a37f; color: white;">Done</button>
+            <div class="htt-fp-header" style="text-align: left; padding-left: 5px; color: #10a37f; margin-bottom: 10px;">ANSWER</div>
+            <div class="htt-fp-text" style="font-size: 1.1em; line-height: 1.6; text-align: left; padding: 0 5px;">${formatted}</div>
+            <div class="htt-fp-actions" style="justify-content: flex-end; padding-right: 5px;">
+                <button class="htt-fp-btn primary" id="httAIAck" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white;">Close</button>
             </div>
         `;
 
