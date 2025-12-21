@@ -39,6 +39,7 @@ let currentQuery = '';
 let currentIntent = 'learn';
 
 document.addEventListener('DOMContentLoaded', () => {
+    document.body.classList.add('page-transition-wrapper');
     loadTheme();
     parseParams();
     setupEventListeners();
@@ -50,7 +51,7 @@ function loadTheme() {
     if (saved) {
         try {
             const settings = JSON.parse(saved);
-            document.documentElement.setAttribute('data-style', settings.style || 'brutal');
+            document.documentElement.setAttribute('data-style', 'subtle');
             document.documentElement.setAttribute('data-theme', settings.theme || 'dark');
         } catch (e) { }
     }
@@ -194,6 +195,13 @@ async function performSearch() {
     sectionResults.primary = false;
     sectionResults.secondary = false;
     sectionResults.tertiary = false;
+
+    // Show AI Skeleton (Smart Loading)
+    showSection('instantSection', `
+        <div class="skeleton-bar" style="width: 70%"></div>
+        <div class="skeleton-bar" style="width: 90%; opacity: 0.7"></div>
+        <div class="skeleton-bar" style="width: 50%; opacity: 0.5"></div>
+    `);
 
     // Fetch instant answer first
     fetchInstantAnswer();

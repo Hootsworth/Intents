@@ -3,15 +3,6 @@
  * Creates context menus and handles storage for Hold That Thought and Intent Mode
  */
 
-// Intent Mode configurations
-const INTENTS = [
-    { id: 'intent-read', title: '📖 Read', intent: 'read' },
-    { id: 'intent-learn', title: '📚 Learn', intent: 'learn' },
-    { id: 'intent-fix', title: '🔧 Fix', intent: 'fix' },
-    { id: 'intent-study', title: '📝 Study', intent: 'study' },
-    { id: 'intent-reflect', title: '🪞 Reflect', intent: 'reflect' }
-];
-
 // Function to create all context menus
 function createContextMenus() {
     // Clear existing menus first
@@ -23,21 +14,11 @@ function createContextMenus() {
             contexts: ['selection']
         });
 
-        // Intent Mode parent        // Create parent
+        // Single Intent Mode option (uses 'read' mode by default)
         chrome.contextMenus.create({
             id: 'intent-mode',
             title: '🧠 Intent Mode',
-            contexts: ['page', 'selection']
-        });
-
-        // Intent Mode sub-menus
-        INTENTS.forEach(item => {
-            chrome.contextMenus.create({
-                id: item.id,
-                parentId: 'intent-mode',
-                title: item.title,
-                contexts: ['page']
-            });
+            contexts: ['page']
         });
 
         // Isolate Mode
@@ -51,18 +32,10 @@ function createContextMenus() {
     });
 }
 
-// Create context menus on install
+// Create context menus on install only (prevents duplicate ID errors)
 chrome.runtime.onInstalled.addListener(() => {
     createContextMenus();
 });
-
-// Also create on startup (in case extension was updated)
-chrome.runtime.onStartup.addListener(() => {
-    createContextMenus();
-});
-
-// Create menus immediately when script loads (for development)
-createContextMenus();
 
 // Handle context menu click
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -118,12 +91,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         return;
     }
 
-    // Handle Intent Mode
-    const intentItem = INTENTS.find(i => i.id === info.menuItemId);
-    if (intentItem) {
+    // Handle Intent Mode (single option, defaults to 'read')
+    if (info.menuItemId === 'intent-mode') {
         sendMessageOrInject(tab, {
             action: 'activateIntentMode',
-            intent: intentItem.intent
+            intent: 'read'
         }, ['intent-mode.css'], ['intent-mode.js']);
     }
 });
@@ -374,3 +346,133 @@ async function handleAIRequest(prompt, context, sendResponse) {
         sendResponse({ error: 'Network error or invalid key' });
     }
 }
+
+// ============================================
+// FOOTSTEPS - Browsing Trail Tracker
+// ============================================
+
+// Track navigation for footsteps
+chrome.webNavigation.onCommitted.addListener(async (details) => {
+    // Only track main frame navigations (not iframes)
+    if (details.frameId !== 0) return;
+
+    // Skip chrome:// and extension pages
+    if (details.url.startsWith('chrome://') ||
+        details.url.startsWith('chrome-extension://') ||
+        details.url.startsWith('about:') ||
+        details.url === 'about:blank') return;
+
+    // Get tab info for title
+    try {
+        const tab = await chrome.tabs.get(details.tabId);
+        await addFootstep({
+            url: details.url,
+            title: tab.title || new URL(details.url).hostname,
+            tabId: details.tabId,
+            timestamp: Date.now(),
+            transitionType: details.transitionType
+        });
+    } catch (e) {
+        // Tab might not exist anymore
+        console.log('Footsteps: Could not get tab info', e);
+    }
+});
+
+// Update title when page finishes loading (titles are often empty on commit)
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+    if (changeInfo.title && tab.url) {
+        await updateFootstepTitle(tab.url, changeInfo.title);
+    }
+});
+
+// Add a footstep to the trail
+async function addFootstep(footstep) {
+    const result = await chrome.storage.local.get(['footsteps']);
+    let footsteps = result.footsteps || [];
+
+    // Don't add duplicate consecutive URLs
+    if (footsteps.length > 0 && footsteps[0].url === footstep.url) {
+        return;
+    }
+
+    // Add to front (newest first)
+    footsteps.unshift({
+        id: Date.now().toString(),
+        url: footstep.url,
+        title: footstep.title,
+        domain: extractDomain(footstep.url),
+        favicon: `https://www.google.com/s2/favicons?domain=${extractDomain(footstep.url)}&sz=32`,
+        timestamp: footstep.timestamp,
+        transitionType: footstep.transitionType
+    });
+
+    // Keep only last 50 footsteps
+    footsteps = footsteps.slice(0, 50);
+
+    await chrome.storage.local.set({ footsteps });
+}
+
+// Update footstep title
+async function updateFootstepTitle(url, title) {
+    const result = await chrome.storage.local.get(['footsteps']);
+    let footsteps = result.footsteps || [];
+
+    const footstep = footsteps.find(f => f.url === url);
+    if (footstep && (!footstep.title || footstep.title === extractDomain(url))) {
+        footstep.title = title;
+        await chrome.storage.local.set({ footsteps });
+    }
+}
+
+// Extract domain from URL
+function extractDomain(url) {
+    try {
+        return new URL(url).hostname.replace('www.', '');
+    } catch {
+        return url;
+    }
+}
+
+// Get footsteps
+async function getFootsteps() {
+    const result = await chrome.storage.local.get(['footsteps']);
+    return result.footsteps || [];
+}
+
+// Clear footsteps
+async function clearFootsteps() {
+    await chrome.storage.local.set({ footsteps: [] });
+}
+
+// Handle footsteps message actions
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === 'getFootsteps') {
+        getFootsteps().then(footsteps => {
+            sendResponse({ footsteps });
+        });
+        return true;
+    }
+
+    if (request.action === 'clearFootsteps') {
+        clearFootsteps().then(() => {
+            sendResponse({ success: true });
+        });
+        return true;
+    }
+
+    if (request.action === 'navigateToFootstep') {
+        chrome.tabs.update({ url: request.url });
+        sendResponse({ success: true });
+        return true;
+    }
+});
+
+// Handle footsteps keyboard shortcut
+chrome.commands.onCommand.addListener(async (command) => {
+    if (command === 'footsteps') {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
+
+        sendMessageOrInject(tab, { action: 'showFootstepsPanel' }, ['thought-popup.css'], ['content.js']);
+    }
+});

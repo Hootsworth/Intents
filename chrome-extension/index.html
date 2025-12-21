@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;700;900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;700;900&display=swap"
         rel="stylesheet">
 </head>
 
@@ -27,7 +27,12 @@
     <div class="thoughts-panel" id="thoughtsPanel">
         <div class="thoughts-header">
             <h2>💭 My Thoughts</h2>
-            <button class="thoughts-close" id="thoughtsClose">&times;</button>
+            <button class="close-btn-mac" id="thoughtsClose">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+            </button>
         </div>
         <div class="thoughts-list" id="thoughtsList">
             <p class="thoughts-empty">No thoughts saved yet.<br><small>Select text on any page and right-click → "Hold
@@ -88,47 +93,18 @@
                 </div>
 
                 <!-- Intent Mode (Secondary - Curated Results) -->
-                <details class="intent-details">
-                    <summary class="intent-summary">Or search by intent (curated results)</summary>
-                    <div class="intent-selector">
-                        <div class="intent-options">
-                            <label class="intent-option" data-intent="learn">
-                                <input type="radio" name="intent" value="learn">
-                                <span class="intent-card">
-                                    <span class="intent-icon">📚</span>
-                                    <span class="intent-name">Learn</span>
-                                </span>
-                            </label>
-                            <label class="intent-option" data-intent="fix">
-                                <input type="radio" name="intent" value="fix">
-                                <span class="intent-card">
-                                    <span class="intent-icon">🔧</span>
-                                    <span class="intent-name">Fix</span>
-                                </span>
-                            </label>
-                            <label class="intent-option" data-intent="build">
-                                <input type="radio" name="intent" value="build">
-                                <span class="intent-card">
-                                    <span class="intent-icon">🛠️</span>
-                                    <span class="intent-name">Build</span>
-                                </span>
-                            </label>
-                            <label class="intent-option" data-intent="chill">
-                                <input type="radio" name="intent" value="chill">
-                                <span class="intent-card">
-                                    <span class="intent-icon">☕</span>
-                                    <span class="intent-name">Chill</span>
-                                </span>
-                            </label>
-                        </div>
+                <div class="intent-group">
+                    <span class="intent-label">with intent</span>
+                    <div class="intent-toggles">
+                        <button class="intent-btn" data-intent="learn" type="button">Learn</button>
+                        <button class="intent-btn" data-intent="build" type="button">Build</button>
                     </div>
-                </details>
+                </div>
             </form>
 
             <!-- Quick Links -->
             <div class="quick-links" id="quickLinks">
                 <div class="links-grid" id="linksGrid"></div>
-                <button class="add-link-btn" id="addLinkBtn">+ Add Link</button>
             </div>
 
             <!-- AI Taskbar -->
@@ -175,7 +151,7 @@
 
         <!-- Keyboard Shortcuts Info -->
         <div class="shortcuts-hint">
-            <kbd>/</kbd> search <span class="shortcuts-sep">•</span> <kbd>1-4</kbd> intents
+            <kbd>/</kbd> focus search
         </div>
     </div>
 
@@ -184,16 +160,13 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Settings</h2>
-                <button class="modal-close" id="closeSettings">&times;</button>
+                <button class="close-btn-mac" id="closeSettings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
             <div class="modal-body">
-                <div class="setting-group">
-                    <label class="setting-label">Design Style</label>
-                    <div class="style-options">
-                        <button class="style-btn active" data-style="brutal">Brutal</button>
-                        <button class="style-btn" data-style="subtle">Subtle</button>
-                    </div>
-                </div>
                 <div class="setting-group">
                     <label class="setting-label">Color Mode</label>
                     <div class="theme-options">
@@ -231,6 +204,94 @@
                         <span class="toggle-slider"></span>
                     </label>
                 </div>
+                <div class="setting-group">
+                    <label class="setting-label">Force Dark Mode</label>
+                    <label class="toggle">
+                        <input type="checkbox" id="forceDarkMode">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+                <div class="setting-divider"></div>
+                <button class="setting-btn" id="showCommandsBtn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z" />
+                    </svg>
+                    Keyboard Shortcuts
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Commands/Shortcuts Modal -->
+    <div class="modal" id="commandsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Keyboard Shortcuts</h2>
+                <button class="close-btn-mac" id="closeCommands">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="shortcuts-section">
+                    <h3 class="shortcuts-heading">New Tab</h3>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">Focus search</span>
+                        <div class="shortcut-keys">
+                            <kbd>/</kbd>
+                        </div>
+                    </div>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">Select intent (1-2)</span>
+                        <div class="shortcut-keys">
+                            <kbd>1</kbd> <kbd>2</kbd>
+                        </div>
+                    </div>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">Close modals</span>
+                        <div class="shortcut-keys">
+                            <kbd>Esc</kbd>
+                        </div>
+                    </div>
+                </div>
+                <div class="shortcuts-section">
+                    <h3 class="shortcuts-heading">Any Page</h3>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">Hold That Thought</span>
+                        <div class="shortcut-keys">
+                            <kbd>Alt</kbd> + <kbd>T</kbd>
+                        </div>
+                    </div>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">Ping Me (reminder)</span>
+                        <div class="shortcut-keys">
+                            <kbd>Alt</kbd> + <kbd>P</kbd>
+                        </div>
+                    </div>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">Quick AI</span>
+                        <div class="shortcut-keys">
+                            <kbd>Alt</kbd> + <kbd>A</kbd>
+                        </div>
+                    </div>
+                </div>
+                <div class="shortcuts-section">
+                    <h3 class="shortcuts-heading">Context Menu (Right-click)</h3>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">💭 Hold That Thought</span>
+                        <span class="shortcut-note">On selected text</span>
+                    </div>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">🧠 Intent Mode</span>
+                        <span class="shortcut-note">On any page</span>
+                    </div>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">🔍 Isolate Section</span>
+                        <span class="shortcut-note">On selected text</span>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -240,7 +301,11 @@
         <div class="modal-content modal-small">
             <div class="modal-header">
                 <h2>Add Quick Link</h2>
-                <button class="modal-close" id="closeAddLink">&times;</button>
+                <button class="close-btn-mac" id="closeAddLink">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
             <div class="modal-body">
                 <div class="setting-group">

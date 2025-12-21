@@ -12,12 +12,12 @@ const SEARCH_ENGINES = {
 const state = {
     settings: {
         defaultEngine: 'google',
-        style: 'subtle',  // Default to Native/Formal
+        style: 'subtle',  // Standard Stoic Style
         theme: 'dark',    // 'dark' or 'light'
         showQuickLinks: true,
         newTabResults: false,
-        newTabResults: false,
-        showAITaskbar: true
+        showAITaskbar: true,
+        forceDarkMode: false
     },
     quickLinks: []
 };
@@ -53,6 +53,12 @@ function loadSettings() {
         });
     }
 
+    // Force Dark Mode
+    const forceDarkCheckbox = document.getElementById('forceDarkMode');
+    if (forceDarkCheckbox) {
+        forceDarkCheckbox.checked = state.settings.forceDarkMode;
+    }
+
 
     const aiTaskbar = document.getElementById('aiTaskbar');
     if (aiTaskbar) aiTaskbar.style.display = state.settings.showAITaskbar ? 'flex' : 'none';
@@ -61,10 +67,8 @@ function loadSettings() {
     const engineRadio = document.querySelector(`input[name="engine"][value="${state.settings.defaultEngine}"]`);
     if (engineRadio) engineRadio.checked = true;
 
-    // Update style buttons
-    document.querySelectorAll('.style-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.style === state.settings.style);
-    });
+    // Style buttons removal handled in HTML
+    document.documentElement.setAttribute('data-style', 'subtle');
 
     // Update theme buttons
     document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -76,6 +80,11 @@ function loadSettings() {
 
 function saveSettings() {
     localStorage.setItem('intents-settings', JSON.stringify(state.settings));
+
+    // Sync critical settings to extension storage for content scripts
+    chrome.storage.local.set({
+        forceDarkMode: state.settings.forceDarkMode
+    });
 }
 
 function applyStyles() {
@@ -122,9 +131,25 @@ function renderQuickLinks() {
         el.href = link.url;
         el.className = 'quick-link';
         el.target = '_blank';
-        el.innerHTML = `<span class="quick-link-name">${link.name}</span><button class="quick-link-delete" data-index="${i}">&times;</button>`;
+        el.innerHTML = `<span class="quick-link-name">${link.name}</span><button class="quick-link-delete" data-index="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`;
         grid.appendChild(el);
     });
+
+    // Add "Add Link" tile
+    const addBtn = document.createElement('button');
+    addBtn.className = 'add-link-tile';
+    addBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
+    addBtn.addEventListener('click', () => {
+        const modal = document.getElementById('addLinkModal');
+        if (modal) {
+            modal.classList.add('active');
+            document.getElementById('linkName').value = '';
+            document.getElementById('linkUrl').value = '';
+            setTimeout(() => document.getElementById('linkName').focus(), 100);
+        }
+    });
+    grid.appendChild(addBtn);
+
     grid.querySelectorAll('.quick-link-delete').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -233,19 +258,39 @@ function renderRecentSearches(filter = '') {
 
     recentDropdown.innerHTML = `
         <div class="recent-header">
-            <span>Recent searches</span>
-            <button class="clear-recent" id="clearRecent">Clear</button>
+            <span class="recent-title">Recent searches</span>
+            <div class="recent-actions">
+                <button class="clear-recent" id="clearRecent">Clear</button>
+                <button class="close-btn-mac" id="closeRecent" title="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
         </div>
-        ${filtered.slice(0, 5).map(search => `
-            <button class="recent-item" data-search="${search}">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                ${search}
-            </button>
-        `).join('')}
+        <div class="recent-items-container">
+            ${filtered.slice(0, 5).map(search => `
+                <button class="recent-item" data-search="${search}">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    ${search}
+                </button>
+            `).join('')}
+        </div>
     `;
+
+    // Reset positioning to default (spawns at same spot)
+    recentDropdown.style.removeProperty('position');
+    recentDropdown.style.removeProperty('top');
+    recentDropdown.style.removeProperty('left');
+    recentDropdown.style.removeProperty('width');
+    recentDropdown.style.removeProperty('z-index');
+    recentDropdown.style.position = 'absolute'; // Ensure CSS default return
+    recentDropdown.style.top = '100%';
+    recentDropdown.style.left = '0';
+    recentDropdown.style.width = ''; // Let CSS handle 100% stretch
 
     // Click handlers
     recentDropdown.querySelectorAll('.recent-item').forEach(item => {
@@ -260,6 +305,45 @@ function renderRecentSearches(filter = '') {
         recentSearches = [];
         localStorage.removeItem('intents-recent-searches');
         recentDropdown.style.display = 'none';
+    });
+
+    document.getElementById('closeRecent')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        recentDropdown.style.display = 'none';
+    });
+
+    // DRAG LOGIC
+    const header = recentDropdown.querySelector('.recent-header');
+    header.addEventListener('mousedown', (e) => {
+        e.preventDefault(); // Prevent text selection
+        header.style.cursor = 'grabbing';
+
+        const rect = recentDropdown.getBoundingClientRect();
+
+        // Switch to fixed positioning for smooth dragging
+        recentDropdown.style.position = 'fixed';
+        recentDropdown.style.width = rect.width + 'px';
+        recentDropdown.style.left = rect.left + 'px';
+        recentDropdown.style.top = rect.top + 'px';
+        recentDropdown.style.zIndex = '1000';
+        recentDropdown.style.margin = '0'; // Remove margins that might affect position
+
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+
+        function onMouseMove(moveEvent) {
+            recentDropdown.style.left = (moveEvent.clientX - offsetX) + 'px';
+            recentDropdown.style.top = (moveEvent.clientY - offsetY) + 'px';
+        }
+
+        function onMouseUp() {
+            header.style.cursor = 'grab';
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+
+        document.addEventListener('mousemove', onMouseMove);
+        document.addEventListener('mouseup', onMouseUp);
     });
 }
 
@@ -353,15 +437,35 @@ function initEventListeners() {
         if (aiTaskbar) aiTaskbar.style.display = e.target.checked ? 'flex' : 'none';
     });
 
-    // Style buttons (Brutal / Subtle)
-    document.querySelectorAll('.style-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            state.settings.style = btn.dataset.style;
-            saveSettings();
-            applyStyles();
-            document.querySelectorAll('.style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === state.settings.style));
+    // Force Dark Mode toggle
+    document.getElementById('forceDarkMode')?.addEventListener('change', (e) => {
+        state.settings.forceDarkMode = e.target.checked;
+        saveSettings();
+
+        // Broadcast to all tabs
+        chrome.tabs.query({}, (tabs) => {
+            tabs.forEach(tab => {
+                chrome.tabs.sendMessage(tab.id, {
+                    action: 'toggleDarkMode',
+                    enabled: e.target.checked
+                }).catch(() => { }); // Ignore errors for tabs where content script isn't loaded
+            });
         });
     });
+
+    // Commands Modal
+    const commandsModal = document.getElementById('commandsModal');
+    document.getElementById('showCommandsBtn')?.addEventListener('click', () => {
+        commandsModal.classList.add('active');
+    });
+    document.getElementById('closeCommands')?.addEventListener('click', () => {
+        commandsModal.classList.remove('active');
+    });
+    commandsModal?.addEventListener('click', (e) => {
+        if (e.target === commandsModal) commandsModal.classList.remove('active');
+    });
+
+    // Style changes removal handled in HTML
 
     // Theme buttons (Dark / Light)
     document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -373,24 +477,38 @@ function initEventListeners() {
         });
     });
 
-    // When intent is selected, uncheck engine radios
-    document.querySelectorAll('input[name="intent"]').forEach(radio => {
-        radio.addEventListener('change', () => {
-            document.querySelectorAll('input[name="engine"]').forEach(r => r.checked = false);
+    // Intent Toggles
+    const intentBtns = document.querySelectorAll('.intent-btn');
+    intentBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const wasActive = btn.classList.contains('active');
+
+            // Deactivate all
+            intentBtns.forEach(b => b.classList.remove('active'));
+
+            if (!wasActive) {
+                btn.classList.add('active');
+                // Uncheck engine radios
+                document.querySelectorAll('input[name="engine"]').forEach(r => r.checked = false);
+            } else {
+                // Re-select default engine if deselecting intent
+                const defaultEngineRadio = document.querySelector(`input[name="engine"][value="${state.settings.defaultEngine}"]`);
+                if (defaultEngineRadio) defaultEngineRadio.checked = true;
+            }
         });
     });
 
-    // When engine is selected, uncheck intent radios
+    // When engine is selected, reset intent toggles
     document.querySelectorAll('input[name="engine"]').forEach(radio => {
         radio.addEventListener('change', () => {
-            document.querySelectorAll('input[name="intent"]').forEach(r => r.checked = false);
+            intentBtns.forEach(b => b.classList.remove('active'));
         });
     });
 
     // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
         // Focus search with /
-        if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+        if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
             e.preventDefault();
             document.getElementById('searchInput')?.focus();
         }
@@ -399,19 +517,16 @@ function initEventListeners() {
             document.querySelectorAll('.modal.active').forEach(m => m.classList.remove('active'));
             document.getElementById('recentSearches').style.display = 'none';
         }
-        // Intent shortcuts (1-4) when not in input
-        if (document.activeElement.tagName !== 'INPUT' && !e.ctrlKey && !e.metaKey) {
-            const intents = ['learn', 'fix', 'build', 'chill'];
-            if (['1', '2', '3', '4'].includes(e.key)) {
+        // Intent shortcuts (1-2)
+        if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT' && !e.ctrlKey && !e.metaKey) {
+            if (e.key === '1') {
                 e.preventDefault();
-                const index = parseInt(e.key) - 1;
-                const intentRadio = document.querySelector(`input[name="intent"][value="${intents[index]}"]`);
-                if (intentRadio) {
-                    intentRadio.checked = true;
-                    intentRadio.dispatchEvent(new Event('change'));
-                    // Open details if closed
-                    document.querySelector('.intent-details')?.setAttribute('open', '');
-                }
+                const btn = document.querySelector('.intent-btn[data-intent="learn"]');
+                if (btn) btn.click();
+            } else if (e.key === '2') {
+                e.preventDefault();
+                const btn = document.querySelector('.intent-btn[data-intent="build"]');
+                if (btn) btn.click();
             }
         }
     });
@@ -428,13 +543,17 @@ function handleSearch(e) {
     saveRecentSearch(query);
 
     // Check if using intent-based search
-    const intentRadio = document.querySelector('input[name="intent"]:checked');
-    if (intentRadio) {
-        const resultsUrl = `results.html?q=${encodeURIComponent(query)}&intent=${intentRadio.value}`;
+    const activeIntentBtn = document.querySelector('.intent-btn.active');
+    if (activeIntentBtn) {
+        const intent = activeIntentBtn.dataset.intent;
+        const resultsUrl = `results.html?q=${encodeURIComponent(query)}&intent=${intent}`;
         if (state.settings.newTabResults) {
             window.open(resultsUrl, '_blank');
         } else {
-            window.location.href = resultsUrl;
+            document.body.classList.add('page-exit-active');
+            setTimeout(() => {
+                window.location.href = resultsUrl;
+            }, 300); // 300ms matches CSS transition
         }
         return;
     }
@@ -447,7 +566,10 @@ function handleSearch(e) {
     if (state.settings.newTabResults) {
         window.open(url, '_blank');
     } else {
-        window.location.href = url;
+        document.body.classList.add('page-exit-active');
+        setTimeout(() => {
+            window.location.href = url;
+        }, 300);
     }
 }
 

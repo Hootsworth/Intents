@@ -34,6 +34,76 @@
         if (request.action === 'showAIBar') {
             createAIBar();
         }
+
+        if (request.action === 'showFootstepsPanel') {
+            createFootstepsPanel();
+        }
+
+        if (request.action === 'toggleDarkMode') {
+            toggleGlobalDarkMode(request.enabled);
+        }
+    });
+
+    function toggleGlobalDarkMode(enabled) {
+        const existingStyle = document.getElementById('intent-force-dark-mode');
+
+        if (enabled) {
+            // Check if page is already dark to avoid double inversion
+            if (isPageDark()) {
+                console.log('Page is already dark, skipping inversion.');
+                return;
+            }
+
+            if (!existingStyle) {
+                const style = document.createElement('style');
+                style.id = 'intent-force-dark-mode';
+                style.textContent = `
+                    html {
+                        background-color: white !important; /* Force base to be white so it inverts to black */
+                        filter: invert(1) hue-rotate(180deg) !important;
+                    }
+                    img, video, canvas, svg, iframe, [style*="background-image"] {
+                        filter: invert(1) hue-rotate(180deg) !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+        } else {
+            if (existingStyle) {
+                existingStyle.remove();
+            }
+        }
+    }
+
+    function isPageDark() {
+        // Quick check for dark mode media query preference (some sites respect this)
+        // logic: if site supports dark mode AND user prefers it, we assume it's dark.
+        // But many sites ignore this. So we check computed background color.
+
+        const bgColor = window.getComputedStyle(document.body).backgroundColor;
+        const htmlColor = window.getComputedStyle(document.documentElement).backgroundColor;
+
+        const isDark = (color) => {
+            const rgb = color.match(/\d+/g);
+            if (!rgb) return false; // transparent or invalid
+            const brightness = (parseInt(rgb[0]) * 299 + parseInt(rgb[1]) * 587 + parseInt(rgb[2]) * 114) / 1000;
+            return brightness < 128;
+        };
+
+        // If body or html has a dark background color, assume page is dark
+        if ((bgColor !== 'rgba(0, 0, 0, 0)' && isDark(bgColor)) ||
+            (htmlColor !== 'rgba(0, 0, 0, 0)' && isDark(htmlColor))) {
+            return true;
+        }
+
+        return false;
+    }
+
+    // Check initial state
+    chrome.storage.local.get(['forceDarkMode'], (result) => {
+        if (result.forceDarkMode) {
+            toggleGlobalDarkMode(true);
+        }
     });
 
     // ... (rest of code) ...
@@ -342,7 +412,7 @@
 
                 // 1. Thinking State
                 input.disabled = true;
-                input.style.opacity = '0.5';
+                input.classList.add('htt-thinking');
                 input.value = 'Thinking...';
 
                 // 2. Prepare for Morph
@@ -376,68 +446,57 @@
                 const formatted = escapeHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
                 responseContent.innerHTML = `
                     <div class="htt-fp-header" style="text-align: left; padding-left: 0; color: #10a37f; margin-bottom: 12px; font-size: 0.8em; letter-spacing: 0.1em; text-transform: uppercase; font-family: monospace;">Answer</div>
-                    <div class="htt-fp-text" id="htt-typewriter" style="font-size: 1.05em; line-height: 1.7; text-align: left; padding: 0; margin-bottom: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"></div>
+                    <div class="htt-fp-text typewriter-cursor" id="htt-typewriter" style="font-size: 1.05em; line-height: 1.7; text-align: left; padding: 0; margin-bottom: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"></div>
                     <div style="text-align: right;">
-                        <button id="httAIClose" style="background: transparent; border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); border-radius: 6px; padding: 6px 12px; font-size: 0.8em; cursor: pointer; transition: all 0.2s;">Close</button>
+                        <button id="httAIClose" class="close-btn-mac">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                                <path d="M18 6L6 18M6 6l12 12"/>
+                            </svg>
+                        </button>
                     </div>
                 `;
                 responseContent.style.display = 'block';
 
-                // Calculate natural height for expansion
-                // Clone node to measure? Or just set max-height large?
-                // Let's set min-height to something significant or just let it flow?
-                // If we want smooth expansion, we need explicit height transition.
-                // Or just standard flow: 'auto' height transition doesn't animate well in CSS without max-height hacks or JS.
-                // We'll use JS to set height.
-
-                /* Hack for auto height transition: */
-                const currentHeight = container.offsetHeight;
-                container.style.height = currentHeight + 'px';
-
-                // Show content (hidden) to measure
-                // Actually, typewriter will fill it slowly...
-                // Siri style: "The thinking... bar should extend AND text should appear".
-                // So let's expand to a comfortable reading size immediately, or based on text length.
-                // Estimate: 200px + ~20px per line.
-                // Let's expand to 'auto' via max-height trick?
-
-                // container.style.height = 'auto'; // Snaps.
-
-                // Let's animate to a fixed guess first contextually? No.
-                // Let's animate to a specific height based on text length approx.
+                // Calculate natural height
                 const approxHeight = Math.min(600, 150 + (text.length / 2));
                 container.style.height = approxHeight + 'px';
 
                 requestAnimationFrame(() => {
                     responseContent.style.opacity = '1';
 
-                    // Typewriter
+                    // Premium Typewriter
                     const target = responseContent.querySelector('#htt-typewriter');
                     const tokens = formatted.split(/(<[^>]+>)/g);
                     let tokenIndex = 0;
-                    let charIndex = 0;
 
                     function type() {
                         if (tokenIndex >= tokens.length) {
-                            // Finished typing. Release height to auto in case we guessed wrong.
+                            target.classList.remove('typewriter-cursor');
                             container.style.height = 'auto';
                             return;
                         }
+
                         const token = tokens[tokenIndex];
                         if (token.startsWith('<')) {
                             target.innerHTML += token;
                             tokenIndex++;
+                            // HTML tags render instantly
                             requestAnimationFrame(type);
                         } else {
-                            if (charIndex < token.length) {
-                                target.innerHTML += token[charIndex];
-                                charIndex++;
-                                setTimeout(type, 10);
-                            } else {
-                                tokenIndex++;
-                                charIndex = 0;
-                                requestAnimationFrame(type);
+                            // Text typing with variable speed
+                            let charIndex = 0;
+                            function typeChar() {
+                                if (charIndex < token.length) {
+                                    target.innerHTML += token[charIndex];
+                                    charIndex++;
+                                    // Randomize delay between 10ms and 30ms for natural feel
+                                    setTimeout(typeChar, Math.random() * 20 + 10);
+                                } else {
+                                    tokenIndex++;
+                                    type();
+                                }
                             }
+                            typeChar();
                         }
                     }
                     type();
@@ -476,52 +535,38 @@
             <div class="htt-overlay" id="httOverlay"></div>
             <div class="htt-modal">
                 <div class="htt-header">
-                    <h3>💭 Hold That Thought</h3>
-                    <button class="htt-close" id="httClose">&times;</button>
+                    <h3>Hold That Thought</h3>
+                    <button class="close-btn-mac" id="httClose">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
                 
                 <div class="htt-content">
                     <div class="htt-preview">
-                        <p class="htt-selected-text">"${escapeHtml(text.substring(0, 200))}${text.length > 200 ? '...' : ''}"</p>
+                        <p class="htt-selected-text">"${escapeHtml(text.substring(0, 150))}${text.length > 150 ? '...' : ''}"</p>
                         <span class="htt-source">${escapeHtml(title)}</span>
                     </div>
                     
                     <div class="htt-field">
                         <label>Tag</label>
                         <div class="htt-tags" id="httTags">
-                            ${TAGS.map((tag, i) => `
-                                <button class="htt-tag ${i === 0 ? 'active' : ''}" data-tag="${tag}">${tag}</button>
-                            `).join('')}
+                            <button class="htt-tag active" data-tag="📝 Note">Note</button>
+                            <button class="htt-tag" data-tag="💡 Idea">Idea</button>
+                            <button class="htt-tag" data-tag="📚 Read Later">Read Later</button>
                         </div>
                     </div>
                     
                     <div class="htt-field">
-                        <label>Color</label>
-                        <div class="htt-colors" id="httColors">
-                            ${COLORS.map((c, i) => `
-                                <button class="htt-color ${i === 0 ? 'active' : ''}" data-color="${c.value}" style="background: ${c.value}" title="${c.name}"></button>
-                            `).join('')}
-                        </div>
-                    </div>
-                    
-                    <div class="htt-field">
-                        <label>Importance</label>
-                        <div class="htt-importance" id="httImportance">
-                            <button class="htt-imp active" data-imp="low">Low</button>
-                            <button class="htt-imp" data-imp="medium">Medium</button>
-                            <button class="htt-imp" data-imp="high">High ⚡</button>
-                        </div>
-                    </div>
-                    
-                    <div class="htt-field">
-                        <label>Add Context (optional)</label>
-                        <textarea id="httContext" placeholder="Why is this important? Any notes?"></textarea>
+                        <label>Note</label>
+                        <textarea id="httContext" placeholder="Why save this?"></textarea>
                     </div>
                 </div>
                 
                 <div class="htt-footer">
                     <button class="htt-cancel" id="httCancel">Cancel</button>
-                    <button class="htt-save" id="httSave">Save Thought</button>
+                    <button class="htt-save" id="httSave">Save</button>
                 </div>
             </div>
         `;
@@ -542,23 +587,19 @@
             });
         });
 
-        // Color selection
-        document.querySelectorAll('.htt-color').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.htt-color').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
+        // Keyboard: Escape to close, Cmd/Ctrl+Enter to save
+        const keyHandler = (e) => {
+            if (e.key === 'Escape') {
+                closePopup();
+                document.removeEventListener('keydown', keyHandler);
+            }
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                saveThought();
+            }
+        };
+        document.addEventListener('keydown', keyHandler);
 
-        // Importance selection
-        document.querySelectorAll('.htt-imp').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.htt-imp').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
-
-        // Focus trap
+        // Focus
         document.getElementById('httContext').focus();
     }
 
@@ -571,9 +612,7 @@
     }
 
     function saveThought() {
-        const tag = document.querySelector('.htt-tag.active')?.dataset.tag || TAGS[0];
-        const color = document.querySelector('.htt-color.active')?.dataset.color || COLORS[0].value;
-        const importance = document.querySelector('.htt-imp.active')?.dataset.imp || 'low';
+        const tag = document.querySelector('.htt-tag.active')?.dataset.tag || '📝 Note';
         const context = document.getElementById('httContext')?.value || '';
 
         const thought = {
@@ -581,17 +620,17 @@
             pageTitle: currentPageTitle,
             pageUrl: currentPageUrl,
             tag,
-            color,
-            importance,
+            color: '#fef08a', // Default yellow
+            importance: 'medium',
             context
         };
 
         chrome.runtime.sendMessage({ action: 'saveThought', thought }, (response) => {
             if (response?.success) {
                 closePopup();
-                showNotification('Thought saved! 💭');
+                showNotification('Saved');
             } else {
-                showNotification('Failed to save thought');
+                showNotification('Failed to save');
             }
         });
     }
@@ -615,6 +654,173 @@
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+
+    // ============================================
+    // FOOTSTEPS - Browsing Trail Panel
+    // ============================================
+
+    function createFootstepsPanel() {
+        // Toggle if already open
+        const existing = document.getElementById('footsteps-panel');
+        if (existing) {
+            closeFootstepsPanel();
+            return;
+        }
+
+        // Request footsteps data from background
+        chrome.runtime.sendMessage({ action: 'getFootsteps' }, (response) => {
+            if (!response) return;
+            renderFootstepsPanel(response.footsteps || []);
+        });
+    }
+
+    function renderFootstepsPanel(footsteps) {
+        // Remove existing panel if any (for re-render after clear)
+        document.getElementById('footsteps-panel')?.remove();
+        document.getElementById('footsteps-overlay')?.remove();
+
+        // Create overlay - very subtle
+        const overlay = document.createElement('div');
+        overlay.id = 'footsteps-overlay';
+        overlay.className = 'footsteps-overlay';
+
+        // Create panel - minimal container
+        const panel = document.createElement('div');
+        panel.id = 'footsteps-panel';
+        panel.className = 'footsteps-panel';
+
+        // Header - ultra minimal
+        const header = document.createElement('div');
+        header.className = 'footsteps-header';
+        header.innerHTML = `
+            <span class="footsteps-title">Trail</span>
+            <div class="footsteps-header-actions">
+                <button class="footsteps-action-btn" id="footstepsClear" title="Clear">
+                    Clear
+                </button>
+                <button class="close-btn-mac" id="footstepsClose" title="Close" style="width: 20px; height: 20px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        // Trail container
+        const trail = document.createElement('div');
+        trail.className = 'footsteps-trail';
+
+        if (footsteps.length === 0) {
+            trail.innerHTML = `
+                <div class="footsteps-empty">
+                    <span class="footsteps-empty-text">No trail yet</span>
+                </div>
+            `;
+        } else {
+            footsteps.forEach((step, index) => {
+                const item = document.createElement('div');
+                item.className = 'footsteps-item';
+                item.dataset.url = step.url;
+
+                const isCurrentPage = step.url === window.location.href;
+                if (isCurrentPage) {
+                    item.classList.add('current');
+                }
+
+                // Step number for visual hierarchy
+                const stepNum = index + 1;
+
+                item.innerHTML = `
+                    <span class="footsteps-item-num">${stepNum}</span>
+                    <img class="footsteps-item-favicon" src="${step.favicon}" alt="" onerror="this.style.display='none'">
+                    <div class="footsteps-item-info">
+                        <span class="footsteps-item-title">${escapeHtml(step.title || step.domain)}</span>
+                        <span class="footsteps-item-meta">${escapeHtml(step.domain)} · ${formatRelativeTime(step.timestamp)}</span>
+                    </div>
+                `;
+
+                // Click to navigate
+                item.addEventListener('click', () => {
+                    chrome.runtime.sendMessage({ action: 'navigateToFootstep', url: step.url });
+                    closeFootstepsPanel();
+                });
+
+                trail.appendChild(item);
+            });
+        }
+
+        // Footer with shortcut hint
+        const footer = document.createElement('div');
+        footer.className = 'footsteps-footer';
+        footer.innerHTML = `<span class="footsteps-hint">alt+b to toggle</span>`;
+
+        // Assemble panel
+        panel.appendChild(header);
+        panel.appendChild(trail);
+        panel.appendChild(footer);
+
+        // Add to page
+        document.body.appendChild(overlay);
+        document.body.appendChild(panel);
+
+        // Force reflow for animation
+        panel.offsetHeight;
+        overlay.classList.add('visible');
+        panel.classList.add('visible');
+
+        // Event listeners
+        overlay.addEventListener('click', closeFootstepsPanel);
+        document.getElementById('footstepsClose').addEventListener('click', closeFootstepsPanel);
+        document.getElementById('footstepsClear').addEventListener('click', () => {
+            chrome.runtime.sendMessage({ action: 'clearFootsteps' }, () => {
+                renderFootstepsPanel([]);
+            });
+        });
+
+        // Escape to close
+        const handleEscape = (e) => {
+            if (e.key === 'Escape') {
+                closeFootstepsPanel();
+                document.removeEventListener('keydown', handleEscape);
+            }
+        };
+        document.addEventListener('keydown', handleEscape);
+    }
+
+    function closeFootstepsPanel() {
+        const panel = document.getElementById('footsteps-panel');
+        const overlay = document.getElementById('footsteps-overlay');
+
+        if (panel) {
+            panel.classList.remove('visible');
+            panel.classList.add('closing');
+        }
+        if (overlay) {
+            overlay.classList.remove('visible');
+            overlay.classList.add('closing');
+        }
+
+        setTimeout(() => {
+            panel?.remove();
+            overlay?.remove();
+        }, 300);
+    }
+
+    function formatRelativeTime(timestamp) {
+        const now = Date.now();
+        const diff = now - timestamp;
+
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+
+        if (seconds < 60) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        if (days === 1) return 'Yesterday';
+        return `${days}d ago`;
     }
 
 })();

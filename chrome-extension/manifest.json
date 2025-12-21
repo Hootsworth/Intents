@@ -9,7 +9,9 @@
     "activeTab",
     "scripting",
     "alarms",
-    "notifications"
+    "notifications",
+    "webNavigation",
+    "tabs"
   ],
   "host_permissions": [
     "https://api.duckduckgo.com/*",
@@ -62,6 +64,14 @@
         "mac": "Alt+Q"
       },
       "description": "Quick AI: Ask Question"
+    },
+    "footsteps": {
+      "suggested_key": {
+        "default": "Alt+B",
+        "windows": "Alt+B",
+        "mac": "Alt+B"
+      },
+      "description": "Footsteps - View browsing trail"
     }
   },
   "action": {

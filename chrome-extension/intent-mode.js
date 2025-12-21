@@ -3,35 +3,49 @@
  * Transform any webpage into the best possible version for thinking
  */
 
-// Listen for messages from background script - ALWAYS register this
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'activateIntentMode') {
-        if (typeof window.__intentModeActivate__ === 'function') {
-            window.__intentModeActivate__(request.intent);
-        }
-        sendResponse({ success: true });
-    }
-
-    if (request.action === 'triggerIsolate') {
-        const selection = window.getSelection();
-        if (selection && selection.rangeCount > 0 && !selection.isCollapsed) {
-            const div = document.createElement('div');
-            div.appendChild(selection.getRangeAt(0).cloneContents());
-            if (typeof window.__intentModeActivate__ === 'function') {
-                window.__intentModeActivate__('read', div.innerHTML);
-            }
-        } else {
-            alert('Please select some text to isolate.');
-        }
-    }
-    return true;
-});
-
-// Prevent multiple injections of the main code
+// Prevent multiple injections
 if (window.__INTENT_MODE_LOADED__) {
     // Already loaded, nothing to do
 } else {
     window.__INTENT_MODE_LOADED__ = true;
+
+    // Register message listener ONLY ONCE inside the guard
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === 'activateIntentMode') {
+            if (typeof window.__intentModeActivate__ === 'function') {
+                window.__intentModeActivate__(request.intent);
+            }
+            sendResponse({ success: true });
+        }
+
+        if (request.action === 'triggerIsolate') {
+            // Get selection more reliably
+            const selection = window.getSelection();
+            const selectionText = selection ? selection.toString().trim() : '';
+
+            if (selectionText.length > 0) {
+                const div = document.createElement('div');
+                if (selection.rangeCount > 0) {
+                    div.appendChild(selection.getRangeAt(0).cloneContents());
+                } else {
+                    div.textContent = selectionText;
+                }
+                if (typeof window.__intentModeActivate__ === 'function') {
+                    window.__intentModeActivate__('read', div.innerHTML);
+                }
+            } else {
+                // Show notification instead of blocking alert
+                const notif = document.createElement('div');
+                notif.className = 'intent-notification';
+                notif.textContent = 'Select some text to isolate';
+                notif.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(30,30,32,0.95);color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:100000;';
+                document.body.appendChild(notif);
+                setTimeout(() => notif.remove(), 2000);
+            }
+            sendResponse({ success: true });
+        }
+        return true;
+    });
 
     // Intent configurations
     const INTENTS = {
@@ -92,6 +106,7 @@ if (window.__INTENT_MODE_LOADED__) {
     let readerActive = false;
     let fontSizeOffset = 0;
     let currentSelection = '';
+    let savedSelection = ''; // Backup selection before click clears it
     let selectionRect = null;
     let hiddenElements = new Map(); // Store hidden elements and their original display style
 
@@ -572,10 +587,15 @@ if (window.__INTENT_MODE_LOADED__) {
                     <span class="intent-reading-time">${extracted.readingTime} min read</span>
                 </div>
                 <div class="intent-topbar-right">
-                    ${intent.name === 'Reflect' ? '<button type="button" class="intent-btn" id="intentToggleLinks" title="Show/Blur Links">👁️</button>' : ''}
+                    <button type="button" class="intent-btn" id="intentToggleLinks" title="Toggle Link Visibility (Blur/Hide)">👁️</button>
+                    ${intent.name === 'Reflect' ? '' : ''}
                     <button type="button" class="intent-btn" id="intentFontDecrease" title="Decrease font size">A−</button>
                     <button type="button" class="intent-btn" id="intentFontIncrease" title="Increase font size">A+</button>
-                    <button type="button" class="intent-btn intent-btn-close" id="intentClose" title="${isIsolate ? 'Exit Isolation' : 'Exit Intent Mode (Esc)'}">${isIsolate ? 'Exit' : '✕'}</button>
+                    <button type="button" class="close-btn-mac" id="intentClose" title="${isIsolate ? 'Exit Isolation' : 'Exit Intent Mode (Esc)'}" style="width: 20px; height: 20px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
             </div>
             
@@ -637,12 +657,13 @@ if (window.__INTENT_MODE_LOADED__) {
         document.getElementById('intentClose')?.addEventListener('click', deactivateIntentMode);
         document.getElementById('intentExitIso')?.addEventListener('click', deactivateIntentMode);
 
-        // Reflect Link Toggle
+        // Link Visibility Toggle
         document.getElementById('intentToggleLinks')?.addEventListener('click', () => {
             const container = document.getElementById('intentModeContainer');
-            container.classList.toggle('intent-links-visible');
+            container.classList.toggle('intent-hide-links');
             const btn = document.getElementById('intentToggleLinks');
-            if (btn) btn.style.opacity = container.classList.contains('intent-links-visible') ? '1' : '0.6';
+            // Visual feedback: Opacity 1 if links are visible (default), 0.6 if hidden
+            if (btn) btn.style.opacity = container.classList.contains('intent-hide-links') ? '0.6' : '1';
         });
 
         // Font size controls
@@ -852,7 +873,7 @@ if (window.__INTENT_MODE_LOADED__) {
         tooltip.className = 'intent-htt-tooltip';
         tooltip.innerHTML = `
         <button type="button" class="intent-htt-tooltip-btn" id="httTooltipBtn">
-            💭 Hold That Thought
+            Save thought
         </button>
     `;
 
@@ -875,10 +896,9 @@ if (window.__INTENT_MODE_LOADED__) {
             tooltip.style.top = `${selectionRect.bottom + scrollTop + 8}px`;
         }
 
-        // Store the selection text before any click clears it
-        const savedSelection = currentSelection;
+        // Store the selection text before any click clears it (module-level)
+        savedSelection = currentSelection;
 
-        // Attach click handler
         // Attach click handler
         const btn = document.getElementById('httTooltipBtn');
 
@@ -923,10 +943,16 @@ if (window.__INTENT_MODE_LOADED__) {
     function showHttPanel() {
         hideHttPanel(); // Remove existing
 
-        // Store the selection text at this moment
-        const selectionText = currentSelection || '';
+        // Use savedSelection as fallback when currentSelection is empty
+        const selectionText = currentSelection || savedSelection || '';
         const pageTitle = document.querySelector('.intent-title')?.textContent || document.title;
         const pageUrl = window.location.href;
+
+        // If no selection, show notification and exit
+        if (!selectionText) {
+            showNotification('Select some text first');
+            return;
+        }
 
         const panel = document.createElement('div');
         panel.className = 'intent-htt-panel';
@@ -936,51 +962,37 @@ if (window.__INTENT_MODE_LOADED__) {
 
         panel.innerHTML = `
         <div class="intent-htt-panel-header">
-            <h3>💭 Hold That Thought</h3>
-            <button type="button" class="intent-htt-panel-close" id="httPanelClose">✕</button>
+            <h3>Hold That Thought</h3>
+            <button type="button" class="close-btn-mac" id="httPanelClose" style="width: 24px; height: 24px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
         </div>
         
         <div class="intent-htt-panel-content">
             <div class="intent-htt-preview">
-                <p class="intent-htt-selected-text">"${escapeHtml(selectionText.substring(0, 200))}${selectionText.length > 200 ? '...' : ''}"</p>
+                <p class="intent-htt-selected-text">"${escapeHtml(selectionText.substring(0, 120))}${selectionText.length > 120 ? '...' : ''}"</p>
             </div>
             
             <div class="intent-htt-field">
                 <label>Tag</label>
                 <div class="intent-htt-tags" id="httTags">
-                    ${HTT_TAGS.map((tag, i) => `
-                        <button type="button" class="intent-htt-tag ${i === 0 ? 'active' : ''}" data-tag="${tag}">${tag}</button>
-                    `).join('')}
+                    <button type="button" class="intent-htt-tag active" data-tag="📝 Note">Note</button>
+                    <button type="button" class="intent-htt-tag" data-tag="💡 Idea">Idea</button>
+                    <button type="button" class="intent-htt-tag" data-tag="📚 Read Later">Read Later</button>
                 </div>
             </div>
             
             <div class="intent-htt-field">
-                <label>Color</label>
-                <div class="intent-htt-colors" id="httColors">
-                    ${HTT_COLORS.map((c, i) => `
-                        <button type="button" class="intent-htt-color ${i === 0 ? 'active' : ''}" data-color="${c.value}" style="background: ${c.value}" title="${c.name}"></button>
-                    `).join('')}
-                </div>
-            </div>
-            
-            <div class="intent-htt-field">
-                <label>Importance</label>
-                <div class="intent-htt-importance" id="httImportance">
-                    <button type="button" class="intent-htt-imp active" data-imp="low">Low</button>
-                    <button type="button" class="intent-htt-imp" data-imp="medium">Medium</button>
-                    <button type="button" class="intent-htt-imp" data-imp="high">High ⚡</button>
-                </div>
-            </div>
-            
-            <div class="intent-htt-field">
-                <label>Context (optional)</label>
-                <textarea id="httContext" placeholder="Why is this important? Add a note..."></textarea>
+                <label>Note</label>
+                <textarea id="httContext" placeholder="Why save this?"></textarea>
             </div>
         </div>
         
         <div class="intent-htt-panel-footer">
             <button type="button" class="intent-htt-cancel" id="httCancel">Cancel</button>
-            <button type="button" class="intent-htt-save" id="httSave">Save Thought</button>
+            <button type="button" class="intent-htt-save" id="httSave">Save</button>
         </div>
     `;
 
@@ -1002,21 +1014,17 @@ if (window.__INTENT_MODE_LOADED__) {
             });
         });
 
-        // Color selection
-        document.querySelectorAll('.intent-htt-color').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.intent-htt-color').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
-
-        // Importance selection
-        document.querySelectorAll('.intent-htt-imp').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.intent-htt-imp').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-            });
-        });
+        // Keyboard: Escape to close, Cmd/Ctrl+Enter to save
+        const keyHandler = (e) => {
+            if (e.key === 'Escape') {
+                hideHttPanel();
+                document.removeEventListener('keydown', keyHandler);
+            }
+            if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+                saveHttThought();
+            }
+        };
+        document.addEventListener('keydown', keyHandler);
 
         // Focus context textarea
         setTimeout(() => document.getElementById('httContext')?.focus(), 100);
@@ -1040,11 +1048,9 @@ if (window.__INTENT_MODE_LOADED__) {
     function saveHttThought() {
         // Get the selection text from the panel's data attribute
         const panel = document.getElementById('intentHttPanel');
-        const selectionText = panel?.dataset.selectionText || currentSelection || '';
+        const selectionText = panel?.dataset.selectionText || currentSelection || savedSelection || '';
 
-        const tag = document.querySelector('.intent-htt-tag.active')?.dataset.tag || HTT_TAGS[0];
-        const color = document.querySelector('.intent-htt-color.active')?.dataset.color || HTT_COLORS[0].value;
-        const importance = document.querySelector('.intent-htt-imp.active')?.dataset.imp || 'low';
+        const tag = document.querySelector('.intent-htt-tag.active')?.dataset.tag || '📝 Note';
         const context = document.getElementById('httContext')?.value || '';
 
         const pageTitle = document.querySelector('.intent-title')?.textContent || document.title;
@@ -1055,17 +1061,17 @@ if (window.__INTENT_MODE_LOADED__) {
             pageTitle,
             pageUrl,
             tag,
-            color,
-            importance,
+            color: '#fef08a', // Default yellow
+            importance: 'medium',
             context
         };
 
         chrome.runtime.sendMessage({ action: 'saveThought', thought }, (response) => {
             if (response?.success) {
                 hideHttPanel();
-                showNotification('Thought saved! 💭');
+                showNotification('Saved');
             } else {
-                showNotification('Failed to save thought');
+                showNotification('Failed to save');
             }
         });
     }
