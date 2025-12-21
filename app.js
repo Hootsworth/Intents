@@ -12,9 +12,10 @@ const SEARCH_ENGINES = {
 const state = {
     settings: {
         defaultEngine: 'google',
-        style: 'brutal',  // 'brutal' or 'subtle'
+        style: 'subtle',  // Default to Native/Formal
         theme: 'dark',    // 'dark' or 'light'
         showQuickLinks: true,
+        newTabResults: false,
         newTabResults: false,
         showAITaskbar: true
     },
@@ -27,8 +28,10 @@ document.addEventListener('DOMContentLoaded', () => {
     initTimeWidget();
     initGreeting();
     initRecentSearches();
+    initThoughtsPanel();
     initEventListeners();
     applyStyles();
+    initOfflineDetection();
 });
 
 function loadSettings() {
@@ -42,7 +45,15 @@ function loadSettings() {
 
     // AI Taskbar
     const aiTaskbarCheckbox = document.getElementById('showAITaskbar');
-    if (aiTaskbarCheckbox) aiTaskbarCheckbox.checked = state.settings.showAITaskbar;
+    if (aiTaskbarCheckbox) {
+        aiTaskbarCheckbox.checked = state.settings.showAITaskbar;
+        aiTaskbarCheckbox.addEventListener('change', (e) => {
+            state.settings.showAITaskbar = e.target.checked;
+            saveSettings();
+        });
+    }
+
+
     const aiTaskbar = document.getElementById('aiTaskbar');
     if (aiTaskbar) aiTaskbar.style.display = state.settings.showAITaskbar ? 'flex' : 'none';
 
@@ -85,6 +96,20 @@ function loadQuickLinks() {
         saveQuickLinks();
     }
     renderQuickLinks();
+}
+
+// Offline Detection
+function initOfflineDetection() {
+    // Check if already offline on load
+    if (!navigator.onLine) {
+        window.location.href = 'offline.html';
+        return;
+    }
+
+    // Listen for offline event
+    window.addEventListener('offline', () => {
+        window.location.href = 'offline.html';
+    });
 }
 
 function saveQuickLinks() { localStorage.setItem('intents-quicklinks', JSON.stringify(state.quickLinks)); }
@@ -262,6 +287,29 @@ function initEventListeners() {
     document.getElementById('closeSettings')?.addEventListener('click', () => settingsModal.classList.remove('active'));
     settingsModal?.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.remove('active'); });
 
+    // Shortcuts Modal
+    const shortcutsModal = document.getElementById('shortcutsModal');
+    if (document.getElementById('openShortcutsBtn')) {
+        document.getElementById('openShortcutsBtn').addEventListener('click', () => {
+            shortcutsModal.classList.add('active');
+        });
+    }
+    if (document.getElementById('closeShortcuts')) {
+        document.getElementById('closeShortcuts').addEventListener('click', () => {
+            shortcutsModal.classList.remove('active');
+        });
+    }
+    shortcutsModal?.addEventListener('click', (e) => {
+        if (e.target === shortcutsModal) shortcutsModal.classList.remove('active');
+    });
+
+    // Offline Game Button
+    if (document.getElementById('playOfflineGame')) {
+        document.getElementById('playOfflineGame').addEventListener('click', () => {
+            window.location.href = 'offline.html';
+        });
+    }
+
     // Add Link modal
     const addLinkModal = document.getElementById('addLinkModal');
     document.getElementById('addLinkBtn')?.addEventListener('click', () => {
@@ -401,4 +449,254 @@ function handleSearch(e) {
     } else {
         window.location.href = url;
     }
+}
+
+// ========== HOLD THAT THOUGHT - Thoughts Panel ==========
+
+function initThoughtsPanel() {
+    const toggle = document.getElementById('thoughtsToggle');
+    const panel = document.getElementById('thoughtsPanel');
+    const closeBtn = document.getElementById('thoughtsClose');
+
+    if (!toggle || !panel) return;
+
+    // Toggle panel
+    toggle.addEventListener('click', () => {
+        panel.classList.toggle('open');
+        if (panel.classList.contains('open')) {
+            loadThoughts();
+        }
+    });
+
+    // Close panel
+    closeBtn?.addEventListener('click', () => {
+        panel.classList.remove('open');
+    });
+
+    // Load thoughts count on init
+    loadThoughtsCount();
+}
+
+function loadThoughtsCount() {
+    // Check if we're in extension context
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ action: 'getThoughts' }, (response) => {
+            if (response?.thoughts) {
+                const count = document.getElementById('thoughtsCount');
+                if (count) {
+                    count.textContent = response.thoughts.length;
+                    count.style.display = response.thoughts.length > 0 ? 'flex' : 'none';
+                }
+            }
+        });
+    }
+}
+
+function loadThoughts() {
+    const list = document.getElementById('thoughtsList');
+    if (!list) return;
+
+    // Check if we're in extension context
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ action: 'getThoughts' }, (response) => {
+            if (response?.thoughts && response.thoughts.length > 0) {
+                renderThoughts(response.thoughts);
+            } else {
+                list.innerHTML = `<p class="thoughts-empty">No thoughts saved yet.<br><small>Select text on any page and right-click → "Hold That Thought"<br>or press <kbd>Alt+T</kbd></small></p>`;
+            }
+        });
+    } else {
+        // Not in extension context (local file)
+        list.innerHTML = `<p class="thoughts-empty">Thoughts feature requires Chrome extension.<br><small>Load the extension from chrome://extensions</small></p>`;
+    }
+}
+
+function renderThoughts(thoughts) {
+    const list = document.getElementById('thoughtsList');
+    if (!list) return;
+
+    // Group by URL to find duplicates
+    const grouped = {};
+    const urlOrder = [];
+
+    thoughts.forEach(t => {
+        if (!grouped[t.pageUrl]) {
+            grouped[t.pageUrl] = [];
+            urlOrder.push(t.pageUrl);
+        }
+        grouped[t.pageUrl].push(t);
+    });
+
+    list.innerHTML = urlOrder.map(url => {
+        const group = grouped[url];
+        if (group.length === 1) {
+            return renderThoughtCard(group[0]);
+        } else {
+            // Render group
+            const ids = group.map(t => t.id).join(',');
+            return `
+                <div class="thought-group">
+                    <div class="thought-group-header">
+                        <span>Similar thoughts found</span>
+                        <button class="merge-btn" data-ids="${ids}">Merge All</button>
+                    </div>
+                    ${group.map(renderThoughtCard).join('')}
+                </div>
+            `;
+        }
+    }).join('');
+
+    // Delete handlers
+    list.querySelectorAll('.thought-delete').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            deleteThought(btn.dataset.id);
+        });
+    });
+
+    // Merge handlers
+    list.querySelectorAll('.merge-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            handleMerge(btn.dataset.ids);
+        });
+    });
+}
+
+function renderThoughtCard(thought) {
+    const date = new Date(thought.timestamp);
+    const timeAgo = getTimeAgo(date);
+    const importanceClass = thought.importance === 'high' ? 'high' : (thought.importance === 'medium' ? 'medium' : '');
+    const deepLink = thought.pageUrl ? getFragmentUrl(thought.pageUrl, thought.text) : '';
+
+    return `
+        <div class="thought-card ${importanceClass}" style="border-left-color: ${thought.color}" data-id="${thought.id}">
+            <div class="thought-header">
+                <span class="thought-tag">${thought.tag}</span>
+                <button class="thought-delete" data-id="${thought.id}" title="Delete">&times;</button>
+            </div>
+            <p class="thought-text">${escapeHtml(thought.text)}</p>
+            ${thought.context ? `<p class="thought-context">${escapeHtml(thought.context)}</p>` : ''}
+            <div class="thought-meta">
+                ${thought.pageUrl
+            ? `<a href="${deepLink}" target="_blank" class="thought-source">${escapeHtml(truncate(thought.pageTitle || 'Note', 40))}</a>`
+            : `<span class="thought-source" style="color: inherit; opacity: 0.7;">${escapeHtml(truncate(thought.pageTitle || 'Note', 40))}</span>`
+        }
+                <span class="thought-time">${timeAgo}</span>
+            </div>
+        </div>
+    `;
+}
+
+function handleMerge(idsString) {
+    const ids = idsString.split(',');
+
+    const btn = document.querySelector(`.merge-btn[data-ids="${idsString}"]`);
+    const groupContainer = btn ? btn.closest('.thought-group') : null;
+
+    if (groupContainer) {
+        // Optimistic UI: Animate immediately
+        groupContainer.style.transition = 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)';
+        groupContainer.style.transform = 'scale(0.98)';
+        groupContainer.style.opacity = '0.8';
+        btn.textContent = 'Merging...';
+        btn.disabled = true;
+    }
+
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ action: 'mergeThoughts', thoughtIds: ids }, (response) => {
+            if (response && response.success) {
+                // Success animation
+                if (groupContainer) {
+                    groupContainer.style.transform = 'scale(0.9) translateY(10px)';
+                    groupContainer.style.opacity = '0';
+                    groupContainer.style.height = '0';
+                    groupContainer.style.margin = '0';
+                    groupContainer.style.padding = '0';
+                    groupContainer.style.overflow = 'hidden';
+                }
+
+                // Wait for animation to finish before reloading list
+                setTimeout(() => {
+                    loadThoughts();
+                    loadThoughtsCount();
+                }, 400);
+            } else {
+                // Revert animation on failure
+                if (groupContainer) {
+                    groupContainer.style.transform = 'none';
+                    groupContainer.style.opacity = '1';
+                    btn.textContent = 'Merge All';
+                    btn.disabled = false;
+                    alert('Merge failed: ' + (response?.error || 'Unknown error'));
+                }
+            }
+        });
+    }
+}
+
+function getFragmentUrl(url, text) {
+    if (!text) return url;
+
+    // Clean text: remove newlines and extra spaces
+    const cleanText = text.replace(/\s+/g, ' ').trim();
+    if (!cleanText) return url;
+
+    // Create text fragment
+    // If text is long (> 300 chars), use start,end syntax
+    let fragment = '';
+    if (cleanText.length > 300) {
+        const words = cleanText.split(' ');
+        if (words.length > 10) {
+            const start = words.slice(0, 5).join(' ');
+            const end = words.slice(-5).join(' ');
+            fragment = `#:~:text=${encodeURIComponent(start)},${encodeURIComponent(end)}`;
+        } else {
+            fragment = `#:~:text=${encodeURIComponent(cleanText)}`;
+        }
+    } else {
+        fragment = `#:~:text=${encodeURIComponent(cleanText)}`;
+    }
+
+    return url + fragment;
+}
+
+function deleteThought(id) {
+    if (typeof chrome !== 'undefined' && chrome.runtime && chrome.runtime.sendMessage) {
+        chrome.runtime.sendMessage({ action: 'deleteThought', id }, () => {
+            loadThoughts();
+            loadThoughtsCount();
+        });
+    }
+}
+
+function getTimeAgo(date) {
+    const seconds = Math.floor((new Date() - date) / 1000);
+
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
+    return date.toLocaleDateString();
+}
+
+function truncate(str, len) {
+    if (!str) return '';
+    return str.length > len ? str.substring(0, len) + '...' : str;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Listen for storage changes to update list in real-time
+if (typeof chrome !== 'undefined' && chrome.storage) {
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local' && changes.thoughts) {
+            loadThoughts();
+            loadThoughtsCount();
+        }
+    });
 }
