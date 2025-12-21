@@ -43,10 +43,9 @@
     --space-2xl: 3rem;
     --space-3xl: 4rem;
 
-    /* Transitions - Premium Easing */
-    --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-normal: 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-smooth: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    /* Transitions */
+    --transition-fast: 0.1s ease;
+    --transition-normal: 0.2s ease;
 }
 
 /* ===== BRUTAL LIGHT ===== */
@@ -133,11 +132,6 @@ button {
     cursor: pointer;
     border: none;
     background: none;
-    transition: all var(--transition-fast);
-}
-
-button:active {
-    transform: scale(0.98);
 }
 
 input,
@@ -346,7 +340,6 @@ select {
 
 .search-wrapper:focus-within {
     box-shadow: var(--shadow-brutal-hover);
-    transform: translateY(-2px);
 }
 
 .search-input {
@@ -371,16 +364,11 @@ select {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition-fast);
+    transition: background var(--transition-fast);
 }
 
 .search-btn:hover {
     background: var(--accent-secondary);
-    transform: scale(1.02);
-}
-
-.search-btn:active {
-    transform: scale(0.98);
 }
 
 /* Engine Selector */
@@ -464,7 +452,6 @@ select {
     background: var(--accent-primary);
     color: #000000;
     box-shadow: var(--shadow-brutal-sm);
-    transform: translateY(-2px);
 }
 
 .quick-link-name {
@@ -477,25 +464,18 @@ select {
 
 .quick-link-delete {
     position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 18px;
-    height: 18px;
-    background: rgba(255, 68, 68, 0.9);
+    top: 2px;
+    right: 2px;
+    width: 20px;
+    height: 20px;
+    background: #ff4444;
     color: white;
     border: none;
-    border-radius: 50%;
-    font-size: 12px;
+    font-size: 14px;
     line-height: 1;
     display: none;
     align-items: center;
     justify-content: center;
-    transition: all var(--transition-fast);
-}
-
-.quick-link-delete:hover {
-    background: #ff2222;
-    transform: scale(1.1);
 }
 
 .quick-link:hover .quick-link-delete {
@@ -635,57 +615,26 @@ select {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    background: rgba(0, 0, 0, 0.8);
     z-index: 1000;
     align-items: center;
     justify-content: center;
     padding: var(--space-lg);
-    opacity: 0;
-    transition: opacity var(--transition-normal);
 }
 
 .modal.active {
     display: flex;
-    opacity: 1;
-    animation: modalFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes modalFadeIn {
-    from {
-        opacity: 0;
-        backdrop-filter: blur(0px);
-    }
-
-    to {
-        opacity: 1;
-        backdrop-filter: blur(8px);
-    }
 }
 
 .modal-content {
     background: var(--bg-secondary);
     border: var(--border-width) solid var(--border-color);
     border-radius: var(--border-radius);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--shadow-brutal);
     width: 100%;
     max-width: 420px;
     max-height: 90vh;
     overflow-y: auto;
-    animation: modalSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes modalSlideIn {
-    from {
-        opacity: 0;
-        transform: translateY(-20px) scale(0.98);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0) scale(1);
-    }
 }
 
 .modal-small {
@@ -708,13 +657,12 @@ select {
 }
 
 .modal-close {
-    width: 36px;
-    height: 36px;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-muted);
-    font-size: 1.25rem;
+    width: 40px;
+    height: 40px;
+    background: var(--bg-tertiary);
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 1.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -722,9 +670,8 @@ select {
 }
 
 .modal-close:hover {
-    background: rgba(255, 80, 80, 0.1);
-    border-color: rgba(255, 80, 80, 0.3);
-    color: #ff5050;
+    background: #ff4444;
+    color: white;
 }
 
 .modal-body {
