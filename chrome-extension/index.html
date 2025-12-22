@@ -15,6 +15,7 @@
 </head>
 
 <body class="home-page">
+    <div class="wallpaper" id="wallpaper"></div>
     <!-- Thoughts Panel Toggle -->
     <button class="thoughts-toggle" id="thoughtsToggle" aria-label="My Thoughts">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -224,6 +225,39 @@
                         <input type="checkbox" id="forceDarkMode">
                         <span class="toggle-slider"></span>
                     </label>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">Wallpaper</label>
+                    <div class="bg-options" id="bgOptions">
+                        <button class="bg-btn active" data-bg="none" title="None">
+                            <div class="bg-preview none"></div>
+                        </button>
+                        <!-- Curated Aesthetic Backgrounds -->
+                        <button class="bg-btn" data-bg="photo-1477346611705-65d1883cee1e" title="Midnight Mountains">
+                            <img src="https://images.unsplash.com/photo-1477346611705-65d1883cee1e?auto=format&fit=crop&w=100&q=60"
+                                alt="">
+                        </button>
+                        <button class="bg-btn" data-bg="photo-1494438639946-1ebd1d20bf85" title="Minimal Lamp">
+                            <img src="https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?auto=format&fit=crop&w=100&q=60"
+                                alt="">
+                        </button>
+                        <button class="bg-btn" data-bg="photo-1507525428034-b723cf961d3e" title="Soft Beach">
+                            <img src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=100&q=60"
+                                alt="">
+                        </button>
+                        <button class="bg-btn" data-bg="photo-1519681393784-d120267933ba" title="Starry Night">
+                            <img src="https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=100&q=60"
+                                alt="">
+                        </button>
+                        <button class="bg-btn" data-bg="photo-1464822759023-fed622ff2c3b" title="Alpine Glow">
+                            <img src="https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=100&q=60"
+                                alt="">
+                        </button>
+                        <button class="bg-btn" data-bg="photo-1470770841072-f978cf4d019e" title="Evening Lake">
+                            <img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=100&q=60"
+                                alt="">
+                        </button>
+                    </div>
                 </div>
                 <div class="setting-divider"></div>
                 <button class="setting-btn" id="showCommandsBtn">

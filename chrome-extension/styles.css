@@ -159,6 +159,94 @@ select {
     justify-content: center;
     min-height: 100vh;
     padding: var(--space-xl);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Wallpaper Background */
+.wallpaper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: -2;
+    transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0;
+}
+
+.wallpaper.active {
+    opacity: 1;
+}
+
+/* Vignette overlay for better contrast */
+.wallpaper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+    pointer-events: none;
+}
+
+[data-theme="light"] .wallpaper::after {
+    background: radial-gradient(circle at center, transparent 0%, rgba(255, 255, 255, 0.1) 100%);
+}
+
+/* Settings BG Options */
+.bg-options {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.bg-btn {
+    aspect-ratio: 16/10;
+    border-radius: 8px;
+    border: 2px solid transparent;
+    overflow: hidden;
+    padding: 0;
+    background: var(--bg-secondary);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.bg-btn img,
+.bg-preview {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.bg-preview.none {
+    background: linear-gradient(135deg, #111 0%, #333 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bg-preview.none::after {
+    content: 'None';
+    font-size: 10px;
+    color: white;
+    opacity: 0.6;
+}
+
+.bg-btn:hover {
+    transform: scale(1.05);
+    border-color: var(--accent-primary);
+}
+
+.bg-btn.active {
+    border-color: var(--accent-primary);
+    box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
 }
 
 .container {

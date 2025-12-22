@@ -18,7 +18,8 @@ const state = {
         newTabResults: false,
         showAITaskbar: true,
         forceDarkMode: false,
-        showQuote: false  // Opt-in daily quote
+        showQuote: false,  // Opt-in daily quote
+        customBackground: 'none' // Curated background ID or 'none'
     },
     quickLinks: []
 };
@@ -78,6 +79,14 @@ function loadSettings() {
     // Style buttons removal handled in HTML
     document.documentElement.setAttribute('data-style', 'subtle');
 
+    // Custom Background
+    if (state.settings.customBackground) {
+        document.querySelectorAll('.bg-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.bg === state.settings.customBackground);
+        });
+        applyBackground();
+    }
+
     document.getElementById('quickLinks').style.display = state.settings.showQuickLinks ? 'block' : 'none';
 }
 
@@ -93,6 +102,31 @@ function saveSettings() {
 function applyStyles() {
     document.documentElement.setAttribute('data-style', state.settings.style);
     document.documentElement.setAttribute('data-theme', state.settings.theme);
+}
+
+function applyBackground() {
+    const wp = document.getElementById('wallpaper');
+    if (!wp) return;
+
+    const bgId = state.settings.customBackground;
+
+    if (bgId === 'none' || !bgId) {
+        wp.classList.remove('active');
+        setTimeout(() => {
+            wp.style.backgroundImage = 'none';
+        }, 600);
+        return;
+    }
+
+    const imgUrl = `https://images.unsplash.com/${bgId}?auto=format&fit=crop&w=1920&q=80`;
+
+    // Predownload for smooth transition
+    const tempImg = new Image();
+    tempImg.src = imgUrl;
+    tempImg.onload = () => {
+        wp.style.backgroundImage = `url(${imgUrl})`;
+        wp.classList.add('active');
+    };
 }
 
 function loadQuickLinks() {
@@ -545,6 +579,17 @@ function initEventListeners() {
             saveSettings();
             applyStyles();
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === state.settings.theme));
+        });
+    });
+
+    // Custom Background Picker
+    document.querySelectorAll('.bg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.settings.customBackground = btn.dataset.bg;
+            document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            saveSettings();
+            applyBackground();
         });
     });
 
