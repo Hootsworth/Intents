@@ -3049,6 +3049,45 @@ select {
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
+/* Glassmorphism Overrides when Wallpaper is Active */
+body.has-wallpaper .search-wrapper,
+body.has-wallpaper .recent-searches,
+body.has-wallpaper .quick-link,
+body.has-wallpaper .ai-taskbar,
+body.has-wallpaper .thoughts-panel,
+body.has-wallpaper .modal-content,
+body.has-wallpaper .intent-btn,
+body.has-wallpaper .engine-label,
+body.has-wallpaper .ai-link,
+body.has-wallpaper .settings-toggle,
+body.has-wallpaper .thoughts-toggle,
+body.has-wallpaper .time-widget,
+body.has-wallpaper .thought-card {
+    background: var(--bg-glass) !important;
+    backdrop-filter: blur(var(--blur-strength)) !important;
+    -webkit-backdrop-filter: blur(var(--blur-strength)) !important;
+    border: 1px solid var(--border-glass) !important;
+    box-shadow: var(--shadow-brutal) !important;
+    transition: background 0.8s ease, backdrop-filter 0.8s ease, border 0.8s ease, transform 0.4s var(--ease-comfort);
+}
+
+body.has-wallpaper .quick-link:hover,
+body.has-wallpaper .ai-link:hover,
+body.has-wallpaper .settings-toggle:hover,
+body.has-wallpaper .thoughts-toggle:hover {
+    background: rgba(255, 255, 255, 0.15) !important;
+}
+
+[data-theme="light"].has-wallpaper .search-wrapper,
+[data-theme="light"].has-wallpaper .recent-searches,
+[data-theme="light"].has-wallpaper .quick-link,
+[data-theme="light"].has-wallpaper .ai-taskbar,
+[data-theme="light"].has-wallpaper .thoughts-panel,
+[data-theme="light"].has-wallpaper .modal-content {
+    background: rgba(255, 255, 255, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+}
+
 .release-repo-link svg {
     opacity: 0.8;
 }

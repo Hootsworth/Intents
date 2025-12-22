@@ -109,11 +109,15 @@ function applyBackground() {
     if (!wp) return;
 
     const bgId = state.settings.customBackground;
+    const hasWallpaper = bgId !== 'none' && !!bgId;
+
+    // Toggle class on body for CSS targeting
+    document.body.classList.toggle('has-wallpaper', hasWallpaper);
 
     // Clear previous state
     wp.classList.remove('animated');
 
-    if (bgId === 'none' || !bgId) {
+    if (!hasWallpaper) {
         wp.classList.remove('active');
         setTimeout(() => {
             wp.style.backgroundImage = 'none';
