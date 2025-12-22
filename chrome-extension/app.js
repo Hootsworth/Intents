@@ -292,11 +292,16 @@ function renderRecentSearches(filter = '') {
     recentDropdown.style.left = '0';
     recentDropdown.style.width = ''; // Let CSS handle 100% stretch
 
-    // Click handlers
+    // Click handlers - use mousedown to trigger before blur
     recentDropdown.querySelectorAll('.recent-item').forEach(item => {
-        item.addEventListener('click', () => {
-            document.getElementById('searchInput').value = item.dataset.search;
-            document.getElementById('searchForm').dispatchEvent(new Event('submit'));
+        item.addEventListener('mousedown', (e) => {
+            e.preventDefault(); // Keep focus on input
+            const searchInput = document.getElementById('searchInput');
+            const searchForm = document.getElementById('searchForm');
+            if (searchInput && searchForm) {
+                searchInput.value = item.dataset.search;
+                searchForm.requestSubmit();
+            }
         });
     });
 

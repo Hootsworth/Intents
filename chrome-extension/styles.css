@@ -194,6 +194,10 @@ select {
     box-shadow: var(--shadow-brutal);
 }
 
+.settings-toggle:hover svg {
+    animation: rotateGear 0.4s var(--ease-comfort) forwards;
+}
+
 /* Logo */
 .logo {
     font-family: var(--font-sans);
@@ -268,6 +272,8 @@ select {
     margin-bottom: var(--space-2xl);
     text-transform: uppercase;
     letter-spacing: 0.2em;
+    opacity: 0;
+    animation: fadeSlideUp 0.6s var(--ease-comfort) 0.3s forwards;
 }
 
 /* Greeting */
@@ -286,6 +292,107 @@ select {
     from {
         opacity: 0;
         transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== MICROANIMATION KEYFRAMES ===== */
+@keyframes pulseGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 20px 4px rgba(255, 255, 255, 0.1);
+    }
+}
+
+@keyframes bounceIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.3) translateY(20px);
+    }
+
+    50% {
+        transform: scale(1.05) translateY(-5px);
+    }
+
+    70% {
+        transform: scale(0.95) translateY(2px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes pressDown {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(0.95);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes shimmerSweep {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+@keyframes floatSubtle {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+@keyframes rippleOut {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+    }
+
+    100% {
+        box-shadow: 0 0 0 12px rgba(255, 255, 255, 0);
+    }
+}
+
+@keyframes rotateGear {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(90deg);
+    }
+}
+
+@keyframes fadeSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
     }
 
     to {
@@ -943,6 +1050,7 @@ select {
     background: var(--accent-primary);
     color: #000000;
     box-shadow: var(--shadow-brutal-sm);
+    animation: rippleOut 0.4s ease-out;
 }
 
 .engine-option:hover .engine-label {
@@ -985,6 +1093,32 @@ select {
     transition: all 0.25s cubic-bezier(0.32, 0.72, 0, 1);
     position: relative;
     min-height: 60px;
+    opacity: 0;
+    animation: bounceIn 0.5s var(--ease-comfort) forwards;
+}
+
+.quick-link:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.quick-link:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.quick-link:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.quick-link:nth-child(4) {
+    animation-delay: 0.25s;
+}
+
+.quick-link:nth-child(5) {
+    animation-delay: 0.3s;
+}
+
+.quick-link:nth-child(6) {
+    animation-delay: 0.35s;
 }
 
 .quick-link:hover {
@@ -1064,6 +1198,11 @@ select {
     width: 24px;
     height: 24px;
     stroke-width: 2;
+    transition: transform 0.3s var(--ease-comfort);
+}
+
+.add-link-tile:hover svg {
+    transform: rotate(90deg);
 }
 
 /* Time Widget */
@@ -1145,6 +1284,10 @@ select {
     min-width: 80px;
     text-decoration: none;
     color: var(--text-primary);
+}
+
+.ai-link:hover {
+    animation: floatSubtle 2s ease-in-out infinite;
 }
 
 .ai-link:hover {
@@ -1424,6 +1567,7 @@ select {
     background: #333;
     color: #fff;
     border-color: transparent;
+    animation: pressDown 0.2s ease;
 }
 
 /* Light mode active buttons */

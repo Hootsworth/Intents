@@ -107,6 +107,63 @@
     }
 }
 
+/* Microanimation keyframes */
+@keyframes microBounce {
+    0% {
+        transform: scale(1);
+    }
+
+    30% {
+        transform: scale(1.1);
+    }
+
+    60% {
+        transform: scale(0.95);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes ringPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5);
+    }
+
+    100% {
+        box-shadow: 0 0 0 8px rgba(255, 255, 255, 0);
+    }
+}
+
+@keyframes successGlow {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+    }
+
+    50% {
+        box-shadow: 0 0 25px 6px rgba(255, 255, 255, 0.4);
+    }
+}
+
+@keyframes tagPop {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.7;
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
 /* ============================================
    Header
    ============================================ */
@@ -239,6 +296,11 @@
     background: var(--stoic-active);
     border-color: var(--stoic-text-muted);
     color: var(--stoic-text);
+    animation: tagPop 0.25s ease forwards;
+}
+
+.htt-tag:active {
+    transform: scale(0.95);
 }
 
 /* Colors - subtle swatches */
@@ -266,6 +328,11 @@
 .htt-color.active {
     opacity: 1;
     border-color: var(--stoic-text);
+    animation: ringPulse 0.5s ease-out forwards;
+}
+
+.htt-color:active {
+    transform: scale(0.9);
 }
 
 /* Importance - segmented control */
@@ -298,6 +365,7 @@
 .htt-imp.active {
     background: var(--stoic-hover);
     color: var(--stoic-text);
+    animation: microBounce 0.25s ease;
 }
 
 .htt-imp[data-imp="high"].active {
@@ -374,6 +442,7 @@
 
 .htt-save:hover {
     opacity: 0.9;
+    animation: successGlow 1s ease-in-out infinite;
 }
 
 .htt-save:active {
