@@ -372,6 +372,10 @@
 /* ==================== Content Styling ==================== */
 .intent-content {
     color: var(--intent-text);
+    font-size: var(--intent-font-size, 18px);
+    line-height: var(--intent-line-height, 1.75);
+    letter-spacing: var(--intent-letter-spacing, 0.01em);
+    transition: font-size 0.3s ease, line-height 0.3s ease, letter-spacing 0.3s ease;
 }
 
 .intent-content h1,
@@ -1348,14 +1352,23 @@
 }
 
 /* ==================== Font Variations ==================== */
-.intent-font-serif .intent-content {
-    font-family: Georgia, 'Times New Roman', Times, serif;
+.intent-font-serif .intent-content,
+.intent-font-serif .intent-content p,
+.intent-font-serif .intent-content li,
+.intent-font-serif .intent-content span {
+    font-family: Georgia, 'Times New Roman', Times, serif !important;
 }
 
-.intent-font-mono .intent-content {
-    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+.intent-font-mono .intent-content,
+.intent-font-mono .intent-content p,
+.intent-font-mono .intent-content li,
+.intent-font-mono .intent-content span {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace !important;
 }
 
-.intent-font-dyslexic .intent-content {
-    font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif;
+.intent-font-dyslexic .intent-content,
+.intent-font-dyslexic .intent-content p,
+.intent-font-dyslexic .intent-content li,
+.intent-font-dyslexic .intent-content span {
+    font-family: 'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif !important;
 }
