@@ -31,7 +31,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initThoughtsPanel();
     initEventListeners();
     applyStyles();
-    initOfflineDetection();
 });
 
 function loadSettings() {
@@ -107,19 +106,7 @@ function loadQuickLinks() {
     renderQuickLinks();
 }
 
-// Offline Detection
-function initOfflineDetection() {
-    // Check if already offline on load
-    if (!navigator.onLine) {
-        window.location.href = 'offline.html';
-        return;
-    }
 
-    // Listen for offline event
-    window.addEventListener('offline', () => {
-        window.location.href = 'offline.html';
-    });
-}
 
 function saveQuickLinks() { localStorage.setItem('intents-quicklinks', JSON.stringify(state.quickLinks)); }
 
@@ -401,12 +388,7 @@ function initEventListeners() {
         if (e.target === releaseNotesModal) releaseNotesModal.classList.remove('active');
     });
 
-    // Offline Game Button
-    if (document.getElementById('playOfflineGame')) {
-        document.getElementById('playOfflineGame').addEventListener('click', () => {
-            window.location.href = 'offline.html';
-        });
-    }
+
 
     // Add Link modal
     const addLinkModal = document.getElementById('addLinkModal');
