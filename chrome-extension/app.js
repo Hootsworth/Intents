@@ -17,7 +17,8 @@ const state = {
         showQuickLinks: true,
         newTabResults: false,
         showAITaskbar: true,
-        forceDarkMode: false
+        forceDarkMode: false,
+        showQuote: false  // Opt-in daily quote
     },
     quickLinks: []
 };
@@ -31,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initThoughtsPanel();
     initEventListeners();
     applyStyles();
+    initDailyQuote();
 });
 
 function loadSettings() {
@@ -58,21 +60,23 @@ function loadSettings() {
         forceDarkCheckbox.checked = state.settings.forceDarkMode;
     }
 
+    // Daily Quote
+    const showQuoteCheckbox = document.getElementById('showQuote');
+    if (showQuoteCheckbox) {
+        showQuoteCheckbox.checked = state.settings.showQuote;
+        showQuoteCheckbox.addEventListener('change', (e) => {
+            state.settings.showQuote = e.target.checked;
+            saveSettings();
+            initDailyQuote();
+        });
+    }
+
 
     const aiTaskbar = document.getElementById('aiTaskbar');
     if (aiTaskbar) aiTaskbar.style.display = state.settings.showAITaskbar ? 'flex' : 'none';
 
-    // Set default engine radio
-    const engineRadio = document.querySelector(`input[name="engine"][value="${state.settings.defaultEngine}"]`);
-    if (engineRadio) engineRadio.checked = true;
-
     // Style buttons removal handled in HTML
     document.documentElement.setAttribute('data-style', 'subtle');
-
-    // Update theme buttons
-    document.querySelectorAll('.theme-btn').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.theme === state.settings.theme);
-    });
 
     document.getElementById('quickLinks').style.display = state.settings.showQuickLinks ? 'block' : 'none';
 }
@@ -186,6 +190,65 @@ function initGreeting() {
     }
 
     greetingEl.textContent = greeting;
+}
+
+// Daily Quote Feature
+async function initDailyQuote() {
+    const container = document.getElementById('quoteContainer');
+    const textEl = document.getElementById('quoteText');
+    const authorEl = document.getElementById('quoteAuthor');
+
+    if (!container || !textEl || !authorEl) return;
+
+    // Check if feature is enabled
+    if (!state.settings.showQuote) {
+        container.style.display = 'none';
+        return;
+    }
+
+    container.style.display = 'block';
+
+    // Check cache first (refresh every 6 hours)
+    const cached = localStorage.getItem('intents-daily-quote');
+    const cacheTime = localStorage.getItem('intents-quote-time');
+    const now = Date.now();
+    const sixHours = 6 * 60 * 60 * 1000;
+
+    if (cached && cacheTime && (now - parseInt(cacheTime)) < sixHours) {
+        try {
+            const quote = JSON.parse(cached);
+            textEl.textContent = quote.text;
+            authorEl.textContent = quote.author;
+            return;
+        } catch (e) { }
+    }
+
+    // Fetch new quote
+    try {
+        const response = await fetch('https://quoteslate.vercel.app/api/quotes/random');
+        if (response.ok) {
+            const data = await response.json();
+            const quote = { text: data.quote, author: data.author };
+            textEl.textContent = quote.text;
+            authorEl.textContent = quote.author;
+            localStorage.setItem('intents-daily-quote', JSON.stringify(quote));
+            localStorage.setItem('intents-quote-time', now.toString());
+        } else {
+            throw new Error('API failed');
+        }
+    } catch (e) {
+        // Fallback quotes
+        const fallbacks = [
+            { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
+            { text: "Simplicity is the ultimate sophistication.", author: "Leonardo da Vinci" },
+            { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
+            { text: "Less is more.", author: "Ludwig Mies van der Rohe" },
+            { text: "The secret of getting ahead is getting started.", author: "Mark Twain" }
+        ];
+        const fallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
+        textEl.textContent = fallback.text;
+        authorEl.textContent = fallback.author;
+    }
 }
 
 // Recent searches functionality

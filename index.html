@@ -4,324 +4,411 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intents (New Tab)</title>
-    <meta name="description" content="Intents - A minimal search engine. No ads. No tracking. Just search.">
-    <link rel="stylesheet" href="styles.css?v=4.0.2">
+    <title>Intents — The Stoic New Tab Experience</title>
+    <meta name="description"
+        content="Intents is a minimal, focused search experience for Chrome. Features include Hold That Thought and Intent-based search.">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;700;900&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;700;900&display=swap"
         rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #0a0a0b;
+            --bg-card: rgba(255, 255, 255, 0.03);
+            --text-main: #fcfcfc;
+            --text-dim: #a1a1aa;
+            --accent-primary: #ffffff;
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+
+        /* ----- Background Effects ----- */
+        .ambient-glow {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background:
+                radial-gradient(circle at 20% 30%, rgba(124, 58, 237, 0.05) 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* ----- Navigation ----- */
+        nav {
+            padding: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(8px);
+        }
+
+        .nav-logo {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            font-size: 1.25rem;
+            background: linear-gradient(90deg, #FF5F6D, #FFC371, #FFD700, #4CD964, #5AC8FA, #007AFF, #A259FF);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: gradientMove 3s linear infinite;
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            100% {
+                background-position: 200% 50%;
+            }
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+
+        .nav-links a:hover {
+            color: var(--text-main);
+        }
+
+        /* ----- Hero Section ----- */
+        .hero {
+            padding: 8rem 2rem 4rem;
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2.5rem;
+        }
+
+        .hero h1 {
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            letter-spacing: -0.04em;
+            line-height: 1;
+            max-width: 14ch;
+        }
+
+        .hero p {
+            font-size: 1.25rem;
+            color: var(--text-dim);
+            max-width: 60ch;
+        }
+
+        .cta-button {
+            padding: 1rem 2.5rem;
+            background: var(--text-main);
+            color: var(--bg-dark);
+            border-radius: 100px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: var(--transition);
+            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            border: 2px solid transparent;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -10px rgba(255, 255, 255, 0.2);
+        }
+
+        .cta-button-rainbow {
+            background: var(--bg-dark);
+            color: var(--text-main);
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-button-rainbow::before {
+            content: '';
+            position: absolute;
+            top: -2px;
+            left: -2px;
+            right: -2px;
+            bottom: -2px;
+            background: linear-gradient(90deg, #FF5F6D, #FFC371, #FFD700, #4CD964, #5AC8FA, #007AFF, #A259FF);
+            z-index: -1;
+            border-radius: 100px;
+            background-size: 200% auto;
+            animation: gradientMove 3s linear infinite;
+        }
+
+        /* ----- Showcase ----- */
+        .showcase {
+            max-width: 1000px;
+            margin: 4rem auto;
+            padding: 2rem;
+            perspective: 1000px;
+        }
+
+        .showcase-inner {
+            border: 1px solid var(--border-glass);
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.8);
+            transform: rotateX(5deg) translateY(0px);
+            transition: var(--transition);
+            background: var(--bg-card);
+            backdrop-filter: blur(20px);
+        }
+
+        .showcase-inner:hover {
+            transform: rotateX(0deg) translateY(-10px);
+        }
+
+        .showcase img {
+            width: 100%;
+            display: block;
+            border-radius: 24px;
+        }
+
+        /* ----- Features Grid ----- */
+        .features {
+            max-width: 1200px;
+            margin: 8rem auto;
+            padding: 2rem;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            padding: 3rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-8px);
+        }
+
+        .feature-icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .feature-card p {
+            color: var(--text-dim);
+            font-size: 1.1rem;
+        }
+
+        /* ----- Footer ----- */
+        footer {
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+            border-top: 1px solid var(--border-glass);
+            margin-top: 4rem;
+        }
+
+        .footer-logo {
+            font-family: 'Space Mono', monospace;
+            font-weight: 700;
+            color: var(--text-dim);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 2rem;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .footer-links a {
+            color: var(--text-dim);
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+
+        .copyright {
+            color: var(--text-dim);
+            font-size: 0.8rem;
+            opacity: 0.6;
+        }
+
+        /* ----- Button Icon ----- */
+        .chrome-icon {
+            width: 20px;
+            height: 20px;
+            fill: currentColor;
+        }
+
+        /* ----- Animations ----- */
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            animation: revealOnLoad 1s forwards;
+        }
+
+        @keyframes revealOnLoad {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 3.5rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .feature-card {
+                padding: 2rem;
+            }
+        }
+    </style>
 </head>
 
-<body class="home-page">
-    <div class="container">
-        <!-- Settings Toggle -->
-        <button class="settings-toggle" id="settingsToggle" aria-label="Settings">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <circle cx="12" cy="12" r="3"></circle>
-                <path
-                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
-                </path>
-            </svg>
-        </button>
+<body>
+    <div class="ambient-glow"></div>
 
-        <!-- Main Content -->
-        <main class="home-main">
-            <p class="greeting" id="greeting"></p>
-            <h1 class="logo">INTENTS</h1>
-            <p class="tagline">Search with purpose</p>
-
-            <form class="search-form" id="searchForm">
-                <div class="search-wrapper">
-                    <input type="text" name="q" class="search-input" placeholder="Search..." autocomplete="off"
-                        autofocus id="searchInput">
-                    <button type="submit" class="search-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.5">
-                            <circle cx="11" cy="11" r="8"></circle>
-                            <path d="m21 21-4.35-4.35"></path>
-                        </svg>
-                    </button>
-                </div>
-                <!-- Recent Searches Dropdown -->
-                <div class="recent-searches" id="recentSearches"></div>
-
-                <!-- Search Engine (Default) -->
-                <div class="engine-selector">
-                    <label class="engine-option">
-                        <input type="radio" name="engine" value="google" checked>
-                        <span class="engine-label">Google</span>
-                    </label>
-                    <label class="engine-option">
-                        <input type="radio" name="engine" value="duckduckgo">
-                        <span class="engine-label">DuckDuckGo</span>
-                    </label>
-                    <label class="engine-option">
-                        <input type="radio" name="engine" value="bing">
-                        <span class="engine-label">Bing</span>
-                    </label>
-                    <label class="engine-option">
-                        <input type="radio" name="engine" value="brave">
-                        <span class="engine-label">Brave</span>
-                    </label>
-                </div>
-
-                <!-- Intent Mode (Secondary - Curated Results) -->
-                <details class="intent-details">
-                    <summary class="intent-summary">Or search by intent (curated results)</summary>
-                    <div class="intent-selector">
-                        <div class="intent-options">
-                            <label class="intent-option" data-intent="learn">
-                                <input type="radio" name="intent" value="learn">
-                                <span class="intent-card">
-                                    <span class="intent-icon">📚</span>
-                                    <span class="intent-name">Learn</span>
-                                </span>
-                            </label>
-                            <label class="intent-option" data-intent="fix">
-                                <input type="radio" name="intent" value="fix">
-                                <span class="intent-card">
-                                    <span class="intent-icon">🔧</span>
-                                    <span class="intent-name">Fix</span>
-                                </span>
-                            </label>
-                            <label class="intent-option" data-intent="build">
-                                <input type="radio" name="intent" value="build">
-                                <span class="intent-card">
-                                    <span class="intent-icon">🛠️</span>
-                                    <span class="intent-name">Build</span>
-                                </span>
-                            </label>
-                            <label class="intent-option" data-intent="chill">
-                                <input type="radio" name="intent" value="chill">
-                                <span class="intent-card">
-                                    <span class="intent-icon">☕</span>
-                                    <span class="intent-name">Chill</span>
-                                </span>
-                            </label>
-                        </div>
-                    </div>
-                </details>
-            </form>
-
-            <!-- Quick Links -->
-            <div class="quick-links" id="quickLinks">
-                <div class="links-grid" id="linksGrid"></div>
-                <button class="add-link-btn" id="addLinkBtn">+ Add Link</button>
-            </div>
-
-            <!-- AI Taskbar -->
-            <div class="ai-taskbar" id="aiTaskbar">
-                <span class="ai-taskbar-label">Ask AI</span>
-                <div class="ai-links">
-                    <a href="https://chatgpt.com" target="_blank" class="ai-link" title="ChatGPT">
-                        <svg class="ai-logo" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M22.2819 9.8211a5.9847 5.9847 0 0 0-.5157-4.9108 6.0462 6.0462 0 0 0-6.5098-2.9A6.0651 6.0651 0 0 0 4.9807 4.1818a5.9847 5.9847 0 0 0-3.9977 2.9 6.0462 6.0462 0 0 0 .7427 7.0966 5.98 5.98 0 0 0 .511 4.9107 6.051 6.051 0 0 0 6.5146 2.9001A5.9847 5.9847 0 0 0 13.2599 24a6.0557 6.0557 0 0 0 5.7718-4.2058 5.9894 5.9894 0 0 0 3.9977-2.9001 6.0557 6.0557 0 0 0-.7475-7.0729zm-9.022 12.6081a4.4755 4.4755 0 0 1-2.8764-1.0408l.1419-.0804 4.7783-2.7582a.7948.7948 0 0 0 .3927-.6813v-6.7369l2.02 1.1686a.071.071 0 0 1 .038.052v5.5826a4.504 4.504 0 0 1-4.4945 4.4944zm-9.6607-4.1254a4.4708 4.4708 0 0 1-.5346-3.0137l.142.0852 4.783 2.7582a.7712.7712 0 0 0 .7806 0l5.8428-3.3685v2.3324a.0804.0804 0 0 1-.0332.0615L9.74 19.9502a4.4992 4.4992 0 0 1-6.1408-1.6464zM2.3408 7.8956a4.485 4.485 0 0 1 2.3655-1.9728V11.6a.7664.7664 0 0 0 .3879.6765l5.8144 3.3543-2.0201 1.1685a.0757.0757 0 0 1-.071 0l-4.8303-2.7865A4.504 4.504 0 0 1 2.3408 7.8956zm16.0993 3.8558L12.6 8.3829l2.02-1.1638a.0757.0757 0 0 1 .071 0l4.8303 2.7913a4.4944 4.4944 0 0 1-.6765 8.1042v-5.6772a.79.79 0 0 0-.407-.667zm2.0107-3.0231l-.142-.0852-4.7735-2.7818a.7759.7759 0 0 0-.7854 0L9.409 9.2297V6.8974a.0662.0662 0 0 1 .0284-.0615l4.8303-2.7866a4.4992 4.4992 0 0 1 6.6802 4.66zM8.3065 12.863l-2.02-1.1638a.0804.0804 0 0 1-.038-.0567V6.0742a4.4992 4.4992 0 0 1 7.3757-3.4537l-.142.0805L8.704 5.459a.7948.7948 0 0 0-.3927.6813zm1.0976-2.3654l2.602-1.4998 2.6069 1.4998v2.9994l-2.5974 1.4997-2.6067-1.4997Z" />
-                        </svg>
-                        <span class="ai-name">ChatGPT</span>
-                    </a>
-                    <a href="https://claude.ai" target="_blank" class="ai-link" title="Claude">
-                        <svg class="ai-logo" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.08.079H8.89l-.08-.08h-.08l-.159.08h-.398l-.16-.08-.239.08-.558-.159-.32-.08-.318-.079-.4-.159-.238-.08-.4-.239-.318-.159-.32-.318-.238-.16-.559-.557-.08-.16-.318-.398-.08-.08-.159-.318-.159-.16v-.159l-.08-.08v-.079l-.08-.08v-.239l-.08-.08v-.238l-.08-.16v-1.116l.08-.08v-.318l.16-.399.079-.239.08-.08v-.159l.08-.08.079-.159.08-.08.08-.159.159-.16.08-.158.08-.08.238-.24.08-.079.08-.08h.08l.079-.08.08-.08h.08l.079-.079.08-.08h.08l.159-.08.08-.079h.08l.158-.08h.16l.08-.08h.238l.08-.079h1.275l.08.08h.159l.159.079h.08l.159.08h.08l.08.08.159.079.08.08.159.08.08.08.079.079.24.16.079.08.08.08.159.158.08.08.079.16.16.159.079.159.08.08v.08l.08.159v.08l.08.159v.08l.08.238v.956l-.08.08v.239l-.08.159-.08.08v.16l-.08.079-.08.16-.16.238-.08.16-.079.08-.08.159-.16.159-.079.08-.08.08-.08.08-.079.079-.08.08-.16.08-.079.08-.08.08-.08.079h-.08l-.079.08-.08.08h-.08l-.158.08-.08.08h-.24l-.079.079h-.558l.318.718 1.514 3.347.16.32.159.318v.08l.08.159.079.08.16.318.079.16.08.159.08.16.08.079.079.16v.08l.08.159.08.08v.159l.08.16.079.079v.08l.08.16.08.159.08.238.079.24.08.238v.08l.08.159v.398l.08.16v.956l-.08.16v.318l-.08.16v.08l-.08.159-.08.16-.08.159-.08.08-.08.16-.079.159-.16.159-.079.16-.08.08-.16.159-.159.16-.08.08-.16.08-.159.158-.08.08-.159.08-.08.08-.16.08-.159.08-.08.08h-.08l-.159.08-.16.08h-.08l-.159.08h-.159l-.16.08h-.238l-.16.08h-.716l-.16-.08h-.159l-.08-.08h-.16l-.159-.08h-.08l-.159-.08-.16-.08-.08-.08-.159-.08-.08-.08-.16-.08-.159-.08-.08-.08-.159-.16-.08-.08-.16-.079-.079-.16-.16-.159-.08-.08-.08-.16-.159-.159-.08-.08-.08-.16-.08-.159-.08-.16-.079-.159-.08-.08-.08-.16-.08-.159-.08-.16-.08-.159-.08-.239-.079-.159-.08-.24-.08-.159-.08-.24-.08-.238-.08-.24-.08-.238v-.08l-.08-.16-.08-.318-.08-.16-.079-.318-.08-.16-.08-.318-.08-.24-.08-.318-.08-.239-.16-.398-.08-.24-.16-.398-.08-.159-.159-.399-.08-.238-.16-.32-.159-.398zm9.92-4.139l.558.16.957.318.319.16.318.159.16.08.159.08.318.238.16.08.319.239.159.16.159.158.16.16.159.16.159.159.08.16.159.239.08.159.08.16.08.159.079.16.08.239.08.159v.16l.08.159v.08l.08.239v1.035l-.08.24v.159l-.08.08v.159l-.08.16-.08.159-.08.08-.08.159-.08.16-.159.159-.08.08-.08.16-.159.159-.08.08-.16.16-.159.159-.08.08-.16.08-.159.159-.08.08-.159.08-.16.08-.159.08-.08.08-.16.08-.159.08h-.08l-.159.08-.16.08h-.08l-.239.08h-.159l-.16.08h-.876l-.16-.08h-.159l-.16-.08h-.08l-.159-.08-.08-.08-.159-.08-.16-.08-.08-.08-.16-.08-.159-.08-.08-.08-.16-.16-.159-.08-.08-.08-.159-.16-.16-.159-.08-.08-.159-.16-.08-.159-.16-.16-.08-.159-.08-.16-.08-.16-.08-.159-.08-.239-.08-.16v-.079l-.08-.16-.08-.239v-.159l-.08-.24v-1.035l.08-.159v-.16l.08-.239.08-.16.08-.159.08-.08.08-.16.08-.159.08-.08.08-.16.16-.159.08-.08.16-.16.159-.159.08-.08.16-.16.159-.16.08-.08.16-.08.159-.16.08-.08.159-.08.16-.08.08-.08.16-.08.158-.08.08-.08h.08l.16-.08.159-.08h.08l.159-.08h.16l.159-.08h.16l.159-.08h.637l.16.08h.159l.16.08h.08zm-1.355 3.108l-.16.08h-.079l-.08.08-.08.08-.08.08-.08.08-.08.16-.08.16v.079l-.08.16v.477l.08.16v.08l.08.08.08.16.08.08.08.08.08.08.08.08h.08l.16.08h.318l.08-.08h.08l.08-.08.08-.08.08-.08.08-.08.08-.08.08-.16v-.08l.08-.16v-.477l-.08-.08v-.16l-.08-.08-.08-.16-.08-.08-.08-.08-.08-.08-.08-.08h-.08l-.08-.08h-.478z" />
-                        </svg>
-                        <span class="ai-name">Claude</span>
-                    </a>
-                    <a href="https://gemini.google.com" target="_blank" class="ai-link" title="Gemini">
-                        <svg class="ai-logo" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M12 0C5.352 0 0 5.352 0 12s5.352 12 12 12 12-5.352 12-12S18.648 0 12 0zm0 2.4c5.28 0 9.6 4.32 9.6 9.6s-4.32 9.6-9.6 9.6-9.6-4.32-9.6-9.6 4.32-9.6 9.6-9.6zm0 1.44c-3.168 0-6 1.728-7.488 4.32l7.488 4.32 7.488-4.32c-1.488-2.592-4.32-4.32-7.488-4.32zm-7.488 6.24v3.84L12 18.24l7.488-4.32v-3.84L12 14.4z" />
-                        </svg>
-                        <span class="ai-name">Gemini</span>
-                    </a>
-                    <a href="https://perplexity.ai" target="_blank" class="ai-link" title="Perplexity">
-                        <svg class="ai-logo" viewBox="0 0 24 24" fill="currentColor">
-                            <path
-                                d="M12 0L1.5 6v12L12 24l10.5-6V6L12 0zm0 2.4l8.1 4.68v9.84L12 21.6l-8.1-4.68V7.08L12 2.4zm0 3.6L6.6 9.24V14.76L12 18l5.4-3.24V9.24L12 6zm0 2.4l3.24 1.944v3.312L12 15.6l-3.24-1.944v-3.312L12 8.4z" />
-                        </svg>
-                        <span class="ai-name">Perplexity</span>
-                    </a>
-                </div>
-            </div>
-        </main>
-
-        <!-- Time & Date Widget -->
-        <div class="time-widget">
-            <div class="time" id="currentTime"></div>
-            <div class="date" id="currentDate"></div>
+    <nav>
+        <div class="nav-logo">INTENTS</div>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#about">About</a>
+            <a href="https://github.com" target="_blank">GitHub</a>
         </div>
+    </nav>
 
-        <!-- Keyboard Shortcuts Info -->
-        <div class="shortcuts-hint">
-            <kbd>/</kbd> search <span class="shortcuts-sep">•</span> <kbd>1-4</kbd> intents
+    <main>
+        <section class="hero reveal">
+            <h1>Search with Intent, not just Queries.</h1>
+            <p>A stoic new tab experience for Chrome that bridges the gap between thoughts and findings. Minimal by
+                design, powerful by choice.</p>
+            <a href="#" class="cta-button cta-button-rainbow">
+                <svg class="chrome-icon" viewBox="0 0 24 24">
+                    <path
+                        d="M12,0C5.37,0,0,5.37,0,12c0,6.63,5.37,12,12,12s12-5.37,12-12C24,5.37,18.63,0,12,0z M12,22C6.48,22,2,17.52,2,12 C2,6.48,6.48,2,12,2s10,4.48,10,10C22,17.52,17.52,22,12,22z M12,4.64L6.34,14.45L12,17.72l5.66-3.27L12,4.64z M7.79,13.62l4.21-7.29 l4.21,7.29L12,16.05L7.79,13.62z" />
+                </svg>
+                Add to Google Chrome
+            </a>
+        </section>
+
+        <section class="showcase reveal" style="animation-delay: 0.2s;">
+            <div class="showcase-inner">
+                <!-- Using the generated high-end mockup -->
+                <img src="https://antigravity-artifacts.s3.amazonaws.com/intents_hero_mockup_1766401501582.png"
+                    alt="Intents Extension UI Mockup">
+            </div>
+        </section>
+
+        <section class="features" id="features">
+            <div class="feature-card reveal" style="animation-delay: 0.3s;">
+                <div class="feature-icon">💭</div>
+                <h3>Hold That Thought</h3>
+                <p>Found a gem? Save text snippets from any page instantly with Alt+T. Access them all from your new
+                    tab, organized by importance and category.</p>
+            </div>
+            <div class="feature-card reveal" style="animation-delay: 0.4s;">
+                <div class="feature-icon">🧠</div>
+                <h3>Intent Mode</h3>
+                <p>Not all searches are equal. Choose your intent—Learn, Build, Fix, or Chill—and get curated multi-API
+                    results tailored to your exact need.</p>
+            </div>
+            <div class="feature-card reveal" style="animation-delay: 0.5s;">
+                <div class="feature-icon">✨</div>
+                <h3>Stoic Design</h3>
+                <p>Zero distractions. No ads. No tracking. Just a beautiful, ultra-fast interface that respects your
+                    focus and delights your eyes.</p>
+            </div>
+        </section>
+
+        <section class="hero reveal" style="padding-top: 4rem;">
+            <h2>Your workspace deserves a better start.</h2>
+            <p style="margin-top: 1rem;">Join thousands of thinkers who use Intents to keep their flow unbroken.</p>
+            <a href="#" class="cta-button" style="margin-top: 2rem;">Get Started Free</a>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-logo">Intents — Search with Purpose</div>
+        <div class="footer-links">
+            <a href="#">Security</a>
+            <a href="#">Privacy</a>
+            <a href="#">Terms</a>
+            <a href="https://github.com">GitHub</a>
         </div>
-    </div>
+        <p class="copyright">&copy; 2025 Intents Extension. All rights reserved.</p>
+    </footer>
 
-    <!-- Settings Modal -->
-    <div class="modal" id="settingsModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>Settings</h2>
-                <button class="modal-close" id="closeSettings">&times;</button>
-            </div>
-            <div class="modal-body">
+    <script>
+        // Smooth reveal on scroll
+        const observerOptions = {
+            threshold: 0.1
+        };
 
-                <div class="setting-group">
-                    <label class="setting-label">Design Style</label>
-                    <div class="style-options">
-                        <button class="style-btn active" data-style="brutal">Brutal</button>
-                        <button class="style-btn" data-style="subtle">Subtle</button>
-                    </div>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Color Mode</label>
-                    <div class="theme-options">
-                        <button class="theme-btn active" data-theme="dark">Dark</button>
-                        <button class="theme-btn" data-theme="light">Light</button>
-                    </div>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Default Search Engine</label>
-                    <select class="setting-select" id="defaultEngine">
-                        <option value="google">Google</option>
-                        <option value="duckduckgo">DuckDuckGo</option>
-                        <option value="bing">Bing</option>
-                        <option value="brave">Brave</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Show Quick Links</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="showQuickLinks" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Open in New Tab</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="newTabResults">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Show AI Taskbar</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="showAITaskbar" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        }, observerOptions);
 
-                <div class="setting-group"
-                    style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border-color);">
-                    <button id="openShortcutsBtn" class="settings-action-btn"
-                        style="width: 100%; text-align: center; justify-content: center; font-weight: 500; padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--border-color); color: var(--text-primary); border-radius: var(--border-radius); cursor: pointer; transition: all 0.2s; margin-bottom: 10px;">
-                        ⌨️ View Keyboard Shortcuts
-                    </button>
-                    <button id="playOfflineGame" class="settings-action-btn"
-                        style="width: 100%; text-align: center; justify-content: center; font-weight: 500; padding: 8px 16px; background: linear-gradient(135deg, rgba(124, 124, 248, 0.1), rgba(168, 85, 247, 0.1)); border: 1px solid rgba(124, 124, 248, 0.3); color: var(--text-primary); border-radius: var(--border-radius); cursor: pointer; transition: all 0.2s;">
-                        🎮 Play Orbit Runner
-                    </button>
-                    <div
-                        style="text-align: center; margin-top: 15px; font-size: 0.7em; color: var(--text-muted); font-family: var(--font-mono);">
-                        v4.2.0
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Shortcuts Modal -->
-    <div class="modal" id="shortcutsModal" style="z-index: 1001;">
-        <div class="modal-content modal-small">
-            <div class="modal-header">
-                <h2>Shortcuts</h2>
-                <button class="modal-close" id="closeShortcuts">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="setting-group">
-                    <label class="setting-label">Productivity</label>
-                    <div
-                        style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
-                        <span style="font-size: 0.9em;">Ping Me (Reminder)</span>
-                        <kbd
-                            style="font-family: monospace; background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; font-size: 0.8em; border: 1px solid var(--border-color);">Alt
-                            + P</kbd>
-                    </div>
-                    <div
-                        style="display: flex; justify-content: space-between; margin-bottom: 10px; align-items: center;">
-                        <span style="font-size: 0.9em;">Quick AI</span>
-                        <kbd
-                            style="font-family: monospace; background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; font-size: 0.8em; border: 1px solid var(--border-color);">Alt
-                            + Q</kbd>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 0.9em;">Hold Thought</span>
-                        <kbd
-                            style="font-family: monospace; background: var(--bg-tertiary); padding: 2px 6px; border-radius: 4px; font-size: 0.8em; border: 1px solid var(--border-color);">Alt
-                            + T</kbd>
-                    </div>
-                </div>
-
-                <div class="setting-group">
-                    <label class="setting-label">Context Menu (Right Click)</label>
-                    <div style="font-size: 0.85em; color: var(--text-secondary); line-height: 1.5;">
-                        <ul style="margin-top: 5px; margin-left: 20px; list-style-type: square;">
-                            <li>Hold That Thought (Save Selection)</li>
-                            <li>Intent Mode (Read, Learn, Fix...)</li>
-                            <li>Isolate Selection (Focus Mode)</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Link Modal -->
-    <div class="modal" id="addLinkModal">
-        <div class="modal-content modal-small">
-            <div class="modal-header">
-                <h2>Add Quick Link</h2>
-                <button class="modal-close" id="closeAddLink">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="setting-group">
-                    <label class="setting-label">Name</label>
-                    <input type="text" class="setting-input" id="linkName" placeholder="e.g., GitHub">
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">URL</label>
-                    <input type="url" class="setting-input" id="linkUrl" placeholder="https://github.com">
-                </div>
-                <button class="save-link-btn" id="saveLink">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Add Link Modal -->
-    <div class="modal" id="addLinkModal">
-        <div class="modal-content modal-small">
-            <div class="modal-header">
-                <h2>Add Quick Link</h2>
-                <button class="modal-close" id="closeAddLink">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="setting-group">
-                    <label class="setting-label">Name</label>
-                    <input type="text" class="setting-input" id="linkName" placeholder="e.g., GitHub">
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">URL</label>
-                    <input type="url" class="setting-input" id="linkUrl" placeholder="https://github.com">
-                </div>
-                <button class="save-link-btn" id="saveLink">Save</button>
-            </div>
-        </div>
-    </div>
-
-    <script src="app.js?v=4.0.2"></script>
+        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    </script>
 </body>
 
 </html>

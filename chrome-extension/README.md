@@ -23,7 +23,7 @@ Replace your Chrome new tab page with **Intents** - a minimal, distraction-free 
 ### Customization
 - Quick links for your favorite sites
 - AI Taskbar with quick access to ChatGPT, Claude, Gemini, and Perplexity
-- Customizable theme (Dark/Light) and style (Brutal/Subtle)
+- Customizable theme (Dark/Light) with Stoic design language
 - Time-based greeting (Good morning/afternoon/evening)
 
 ### 🎯 Intent Mode (NEW!)

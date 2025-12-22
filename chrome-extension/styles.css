@@ -8,7 +8,7 @@
 }
 
 :root {
-    /* Default: Brutal Dark */
+    /* Base Theme Variables */
     --bg-primary: #1e1e1e;
     --bg-secondary: #2a2a2a;
     --bg-tertiary: #3a3a3a;
@@ -28,7 +28,6 @@
     /* MacOS value */
 
     --shadow-brutal: 0 8px 32px rgba(0, 0, 0, 0.2);
-    /* Deep diffuse shadow */
     --shadow-brutal-sm: 0 4px 12px rgba(0, 0, 0, 0.1);
     --shadow-brutal-hover: 0 12px 48px rgba(0, 0, 0, 0.3);
 
@@ -59,7 +58,7 @@
     /* Premium "Spring" Feel */
 }
 
-/* ===== BRUTAL LIGHT ===== */
+/* ===== LIGHT MODE BASE ===== */
 [data-theme="light"] {
     --bg-primary: #f0f0f0;
     --bg-secondary: #e0e0e0;
@@ -269,11 +268,51 @@ select {
     font-size: 0.875rem;
     color: var(--text-secondary);
     text-align: center;
-    margin-bottom: var(--space-2xl);
+    margin-bottom: var(--space-lg);
     text-transform: uppercase;
     letter-spacing: 0.2em;
     opacity: 0;
     animation: fadeSlideUp 0.6s var(--ease-comfort) 0.3s forwards;
+}
+
+/* Daily Quote */
+.quote-container {
+    text-align: center;
+    max-width: 500px;
+    margin: 0 auto var(--space-2xl);
+    padding: 0 var(--space-md);
+    opacity: 0;
+    animation: fadeSlideUp 0.8s var(--ease-comfort) 0.5s forwards;
+}
+
+.quote-text {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 8px;
+}
+
+.quote-text::before {
+    content: '"';
+    opacity: 0.5;
+}
+
+.quote-text::after {
+    content: '"';
+    opacity: 0.5;
+}
+
+.quote-author {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.quote-author::before {
+    content: '— ';
 }
 
 /* Greeting */
