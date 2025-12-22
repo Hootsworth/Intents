@@ -1593,6 +1593,8 @@ select {
     flex-direction: column;
     align-items: center;
     gap: var(--space-md);
+    padding: var(--space-lg);
+    border-radius: var(--border-radius);
 }
 
 .ai-taskbar-label {
