@@ -147,6 +147,7 @@
         <div class="time-widget">
             <div class="time" id="currentTime"></div>
             <div class="date" id="currentDate"></div>
+            <button class="version-badge" id="versionBtn" title="Release Notes">v4.0</button>
         </div>
 
         <!-- Keyboard Shortcuts Info -->
@@ -317,6 +318,87 @@
                     <input type="url" class="setting-input" id="linkUrl" placeholder="https://github.com">
                 </div>
                 <button class="save-link-btn" id="saveLink">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Release Notes Modal -->
+    <div class="modal" id="releaseNotesModal">
+        <div class="modal-content modal-release">
+            <div class="modal-header">
+                <h2>🚀 Release Notes</h2>
+                <button class="close-btn-mac" id="closeReleaseNotes">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="release-version-header">
+                    <span class="release-version">v4.0.0</span>
+                    <span class="release-date">December 2025</span>
+                    <span class="release-tag">Latest</span>
+                </div>
+
+                <div class="release-section">
+                    <h3 class="release-section-title">✨ Design System</h3>
+                    <ul class="release-list">
+                        <li><span class="release-badge new">New</span> Stoic Design Language</li>
+                        <li><span class="release-badge new">New</span> Glassmorphism & Premium Blur Effects</li>
+                        <li><span class="release-badge new">New</span> Dark & Light Mode Support</li>
+                        <li><span class="release-badge new">New</span> Premium Microanimations Throughout</li>
+                        <li><span class="release-badge improved">Improved</span> Infinite Rainbow Logo Animation</li>
+                    </ul>
+                </div>
+
+                <div class="release-section">
+                    <h3 class="release-section-title">🧠 Core Features</h3>
+                    <ul class="release-list">
+                        <li><span class="release-badge new">New</span> Intent-Based Search (Learn, Fix, Build, Chill)
+                        </li>
+                        <li><span class="release-badge new">New</span> Multi-API Results Page</li>
+                        <li><span class="release-badge new">New</span> Quick Links with Drag & Drop</li>
+                        <li><span class="release-badge new">New</span> Recent Searches with History</li>
+                        <li><span class="release-badge improved">Improved</span> Time & Date Widget</li>
+                    </ul>
+                </div>
+
+                <div class="release-section">
+                    <h3 class="release-section-title">💭 Hold That Thought</h3>
+                    <ul class="release-list">
+                        <li><span class="release-badge new">New</span> Save Text Snippets from Any Page</li>
+                        <li><span class="release-badge new">New</span> Tags & Color Organization</li>
+                        <li><span class="release-badge new">New</span> Importance Levels (Low, Medium, High)</li>
+                        <li><span class="release-badge new">New</span> Keyboard Shortcut: <kbd>Alt+T</kbd></li>
+                        <li><span class="release-badge new">New</span> Thought Merging & Grouping</li>
+                    </ul>
+                </div>
+
+                <div class="release-section">
+                    <h3 class="release-section-title">📖 Intent Mode (Reader View)</h3>
+                    <ul class="release-list">
+                        <li><span class="release-badge new">New</span> Distraction-Free Reading</li>
+                        <li><span class="release-badge new">New</span> Auto-Generated Table of Contents</li>
+                        <li><span class="release-badge new">New</span> Reading Progress Bar</li>
+                        <li><span class="release-badge new">New</span> Estimated Reading Time</li>
+                        <li><span class="release-badge new">New</span> Typography Controls</li>
+                    </ul>
+                </div>
+
+                <div class="release-section">
+                    <h3 class="release-section-title">⚡ Productivity</h3>
+                    <ul class="release-list">
+                        <li><span class="release-badge new">New</span> Ping Me - Quick Reminders (<kbd>Alt+P</kbd>)</li>
+                        <li><span class="release-badge new">New</span> Quick AI Access (<kbd>Alt+Q</kbd>)</li>
+                        <li><span class="release-badge new">New</span> AI Taskbar (ChatGPT, Claude, Gemini)</li>
+                        <li><span class="release-badge new">New</span> Keyboard Shortcuts Modal</li>
+                        <li><span class="release-badge new">New</span> Force Dark Mode for All Sites</li>
+                    </ul>
+                </div>
+
+                <div class="release-footer">
+                    <p>Made with ❤️ for focused productivity</p>
+                </div>
             </div>
         </div>
     </div>

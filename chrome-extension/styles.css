@@ -1228,6 +1228,154 @@ select {
     letter-spacing: 0.1em;
 }
 
+/* Version Badge */
+.version-badge {
+    margin-top: 8px;
+    padding: 3px 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s var(--ease-comfort);
+    opacity: 0.6;
+}
+
+.version-badge:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.15);
+    color: var(--text-secondary);
+    transform: translateY(-1px);
+}
+
+/* Release Notes Modal */
+.modal-release {
+    max-width: 560px;
+}
+
+.release-version-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-glass);
+}
+
+.release-version {
+    font-family: var(--font-mono);
+    font-size: 1.5rem;
+    font-weight: 700;
+    background: linear-gradient(90deg, #FF5F6D, #FFC371, #FFD700, #4CD964);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.release-date {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.release-tag {
+    padding: 4px 12px;
+    background: rgba(76, 217, 100, 0.15);
+    border: 1px solid rgba(76, 217, 100, 0.3);
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #4CD964;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.release-section {
+    margin-bottom: 24px;
+}
+
+.release-section-title {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.release-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.release-list li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    margin-bottom: 4px;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 10px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    transition: all 0.2s ease;
+}
+
+.release-list li:hover {
+    background: rgba(255, 255, 255, 0.05);
+    transform: translateX(4px);
+}
+
+.release-list li kbd {
+    padding: 2px 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+}
+
+.release-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    flex-shrink: 0;
+}
+
+.release-badge.new {
+    background: rgba(0, 122, 255, 0.15);
+    color: #5AC8FA;
+}
+
+.release-badge.improved {
+    background: rgba(255, 149, 0, 0.15);
+    color: #FFB340;
+}
+
+.release-badge.fixed {
+    background: rgba(76, 217, 100, 0.15);
+    color: #4CD964;
+}
+
+.release-footer {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-glass);
+    text-align: center;
+}
+
+.release-footer p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
 /* Shortcuts Hint */
 .shortcuts-hint {
     position: fixed;

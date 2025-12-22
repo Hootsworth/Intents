@@ -392,6 +392,15 @@ function initEventListeners() {
         if (e.target === shortcutsModal) shortcutsModal.classList.remove('active');
     });
 
+    // Release Notes Modal
+    const releaseNotesModal = document.getElementById('releaseNotesModal');
+    const versionBtn = document.getElementById('versionBtn');
+    versionBtn?.addEventListener('click', () => releaseNotesModal.classList.add('active'));
+    document.getElementById('closeReleaseNotes')?.addEventListener('click', () => releaseNotesModal.classList.remove('active'));
+    releaseNotesModal?.addEventListener('click', (e) => {
+        if (e.target === releaseNotesModal) releaseNotesModal.classList.remove('active');
+    });
+
     // Offline Game Button
     if (document.getElementById('playOfflineGame')) {
         document.getElementById('playOfflineGame').addEventListener('click', () => {
