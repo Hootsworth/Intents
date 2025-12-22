@@ -114,6 +114,13 @@ function applyBackground() {
     // Toggle class on body for CSS targeting
     document.body.classList.toggle('has-wallpaper', hasWallpaper);
 
+    // Force dark mode when wallpaper is active
+    if (hasWallpaper) {
+        state.settings.theme = 'dark';
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === 'dark'));
+    }
+
     // Clear previous state
     wp.classList.remove('animated');
 
