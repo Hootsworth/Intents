@@ -1132,8 +1132,9 @@ select {
     transition: all 0.25s cubic-bezier(0.32, 0.72, 0, 1);
     position: relative;
     min-height: 60px;
-    opacity: 0;
-    animation: bounceIn 0.5s var(--ease-comfort) forwards;
+    opacity: 1;
+    /* Changed from 0 to fix visibility issue */
+    animation: bounceIn 0.5s var(--ease-comfort) both;
 }
 
 .quick-link:nth-child(1) {
@@ -2864,13 +2865,48 @@ select {
 }
 
 @keyframes skeleton {
-    0% {
-        background-position: 200% 0;
-    }
-
     100% {
         background-position: -200% 0;
     }
+}
+
+/* Release Notes Repo Link */
+.release-footer {
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--space-xl);
+    text-align: center;
+}
+
+.release-repo-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 100px;
+    color: var(--text-primary);
+    font-size: 0.85rem;
+    font-weight: 500;
+    transition: all 0.3s var(--ease-comfort);
+    text-decoration: none;
+}
+
+.release-repo-link:hover {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.release-repo-link svg {
+    opacity: 0.8;
+}
+
+.release-repo-link:hover svg {
+    opacity: 1;
 }
 
 /* Result Items */
@@ -4054,7 +4090,7 @@ select:focus {
 }
 
 .quick-link {
-    animation: fadeSlideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+    animation: fadeSlideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
 /* Stagger delays for first few items to create flow */
