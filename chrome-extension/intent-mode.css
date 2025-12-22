@@ -1372,3 +1372,103 @@
 .intent-font-dyslexic .intent-content span {
     font-family: 'OpenDyslexic', 'Comic Sans MS', cursive, sans-serif !important;
 }
+
+/* ==================== Dyslexia Mode Button ==================== */
+.intent-dyslexia-toggle {
+    margin-top: 8px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.intent-dyslexia-btn {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.intent-dyslexia-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.intent-dyslexia-btn.active {
+    background: rgba(99, 179, 237, 0.2);
+    border-color: rgba(99, 179, 237, 0.4);
+    color: #63b3ed;
+}
+
+.intent-dyslexia-hint {
+    display: block;
+    margin-top: 8px;
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.35);
+    text-align: center;
+}
+
+/* ==================== Resume Reading Prompt ==================== */
+.intent-resume-prompt {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(20, 20, 22, 0.95);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 12px 16px;
+    z-index: 1000;
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+}
+
+.intent-resume-prompt.visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.intent-resume-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.intent-resume-text {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+}
+
+.intent-resume-btn {
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    border-radius: 8px;
+    color: #0f0f10;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.intent-resume-btn:hover {
+    background: white;
+    transform: scale(1.02);
+}
+
+.intent-resume-close {
+    margin-left: 4px;
+}

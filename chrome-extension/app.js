@@ -34,6 +34,8 @@ document.addEventListener('DOMContentLoaded', () => {
     initEventListeners();
     applyStyles();
     initDailyQuote();
+    initCommandPalette();
+    initGlobalShortcuts();
 });
 
 function loadSettings() {
@@ -676,6 +678,13 @@ function handleSearch(e) {
     const query = document.getElementById('searchInput').value.trim();
     if (!query) return;
 
+    // Check for math expression first
+    const calcResult = evaluateMathExpression(query);
+    if (calcResult !== null) {
+        showCalcResult(query, calcResult);
+        return;
+    }
+
     // Save to recent searches
     saveRecentSearch(query);
 
@@ -708,6 +717,103 @@ function handleSearch(e) {
             window.location.href = url;
         }, 300);
     }
+}
+
+// Quick Calculator - evaluate math expressions
+function evaluateMathExpression(query) {
+    // Check if it looks like a math expression
+    const mathPattern = /^[\d\s+\-*/().^%sqrtpielogsincostan]+$/i;
+    if (!mathPattern.test(query)) return null;
+
+    // Must contain at least one operator or function
+    if (!/[+\-*/^%()]|sqrt|sin|cos|tan|log|pi|e/i.test(query)) return null;
+
+    try {
+        // Replace common math functions with JS equivalents
+        let expr = query
+            .replace(/\^/g, '**')
+            .replace(/sqrt\(/gi, 'Math.sqrt(')
+            .replace(/sin\(/gi, 'Math.sin(')
+            .replace(/cos\(/gi, 'Math.cos(')
+            .replace(/tan\(/gi, 'Math.tan(')
+            .replace(/log\(/gi, 'Math.log10(')
+            .replace(/ln\(/gi, 'Math.log(')
+            .replace(/\bpi\b/gi, 'Math.PI')
+            .replace(/\be\b/gi, 'Math.E');
+
+        // Security: only allow safe characters
+        if (/[^0-9+\-*/().%\s]/.test(expr.replace(/Math\.\w+/g, ''))) {
+            return null;
+        }
+
+        // eslint-disable-next-line no-eval
+        const result = eval(expr);
+
+        if (typeof result === 'number' && isFinite(result)) {
+            // Round to reasonable precision
+            return Math.round(result * 1000000) / 1000000;
+        }
+        return null;
+    } catch (e) {
+        return null;
+    }
+}
+
+// Show calculator result
+function showCalcResult(expression, result) {
+    // Remove existing result
+    document.getElementById('calcResult')?.remove();
+
+    const searchBar = document.querySelector('.search-container');
+    const resultEl = document.createElement('div');
+    resultEl.id = 'calcResult';
+    resultEl.className = 'calc-result';
+    resultEl.innerHTML = `
+        <div class="calc-result-content">
+            <span class="calc-expression">${escapeHtml(expression)} =</span>
+            <span class="calc-answer">${result}</span>
+            <button class="calc-copy" title="Copy result">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+            </button>
+            <button class="calc-close close-btn-mac" style="width: 16px; height: 16px; margin-left: 8px;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+    `;
+
+    searchBar.appendChild(resultEl);
+
+    // Animate in
+    requestAnimationFrame(() => resultEl.classList.add('visible'));
+
+    // Copy button
+    resultEl.querySelector('.calc-copy').addEventListener('click', () => {
+        navigator.clipboard.writeText(String(result));
+        resultEl.querySelector('.calc-copy').innerHTML = `
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 6L9 17l-5-5"/>
+            </svg>
+        `;
+        setTimeout(() => {
+            resultEl.querySelector('.calc-copy').innerHTML = `
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="9" y="9" width="13" height="13" rx="2"/>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                </svg>
+            `;
+        }, 1500);
+    });
+
+    // Close button
+    resultEl.querySelector('.calc-close').addEventListener('click', () => {
+        resultEl.classList.remove('visible');
+        setTimeout(() => resultEl.remove(), 200);
+    });
 }
 
 // ========== HOLD THAT THOUGHT - Thoughts Panel ==========
@@ -956,6 +1062,191 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
         if (area === 'local' && changes.thoughts) {
             loadThoughts();
             loadThoughtsCount();
+        }
+    });
+}
+
+// ========== COMMAND PALETTE ==========
+const COMMANDS = [
+    { id: 'search', name: 'Focus Search', desc: 'Jump to search bar', icon: '🔍', action: () => document.getElementById('searchInput')?.focus() },
+    { id: 'chatgpt', name: 'Open ChatGPT', desc: 'Open ChatGPT in new tab', icon: '🤖', action: () => window.open('https://chatgpt.com', '_blank') },
+    { id: 'claude', name: 'Open Claude', desc: 'Open Claude AI in new tab', icon: '🧠', action: () => window.open('https://claude.ai', '_blank') },
+    { id: 'gemini', name: 'Open Gemini', desc: 'Open Google Gemini', icon: '✨', action: () => window.open('https://gemini.google.com', '_blank') },
+    { id: 'thoughts', name: 'Toggle Thoughts', desc: 'Show or hide saved thoughts', icon: '💭', shortcut: ['Ctrl', 'Shift', 'T'], action: () => document.getElementById('thoughtsPanel')?.classList.toggle('active') },
+    { id: 'settings', name: 'Open Settings', desc: 'Open extension settings', icon: '⚙️', action: () => document.getElementById('settingsModal')?.classList.add('active') },
+    { id: 'addlink', name: 'Add Quick Link', desc: 'Add a new quick link', icon: '🔗', action: () => document.getElementById('addLinkModal')?.classList.add('active') },
+    { id: 'github', name: 'Open GitHub', desc: 'Go to GitHub', icon: '🐙', action: () => window.open('https://github.com', '_blank') },
+    { id: 'stackoverflow', name: 'Open Stack Overflow', desc: 'Go to Stack Overflow', icon: '📚', action: () => window.open('https://stackoverflow.com', '_blank') },
+    { id: 'mdn', name: 'Open MDN Docs', desc: 'Mozilla Developer Network', icon: '📖', action: () => window.open('https://developer.mozilla.org', '_blank') },
+    { id: 'commands', name: 'Show All Commands', desc: 'View keyboard shortcuts', icon: '⌨️', action: () => document.getElementById('commandsModal')?.classList.add('active') },
+];
+
+let selectedCommandIndex = 0;
+let filteredCommands = [...COMMANDS];
+
+function initCommandPalette() {
+    const palette = document.getElementById('commandPalette');
+    const input = document.getElementById('commandInput');
+    const results = document.getElementById('commandResults');
+    const closeBtn = document.getElementById('commandPaletteClose');
+
+    if (!palette || !input) return;
+
+    // Close button
+    closeBtn?.addEventListener('click', closeCommandPalette);
+
+    // Click outside to close
+    palette.addEventListener('click', (e) => {
+        if (e.target === palette) closeCommandPalette();
+    });
+
+    // Input handling
+    input.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase();
+        filterCommands(query);
+    });
+
+    // Keyboard navigation
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowDown') {
+            e.preventDefault();
+            selectedCommandIndex = Math.min(selectedCommandIndex + 1, filteredCommands.length - 1);
+            updateCommandSelection();
+        } else if (e.key === 'ArrowUp') {
+            e.preventDefault();
+            selectedCommandIndex = Math.max(selectedCommandIndex - 1, 0);
+            updateCommandSelection();
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            executeSelectedCommand();
+        } else if (e.key === 'Escape') {
+            closeCommandPalette();
+        }
+    });
+
+    // Initial render
+    renderCommands();
+}
+
+function openCommandPalette() {
+    const palette = document.getElementById('commandPalette');
+    const input = document.getElementById('commandInput');
+
+    if (!palette) return;
+
+    palette.classList.add('active');
+    filteredCommands = [...COMMANDS];
+    selectedCommandIndex = 0;
+    input.value = '';
+    renderCommands();
+
+    setTimeout(() => input?.focus(), 50);
+}
+
+function closeCommandPalette() {
+    document.getElementById('commandPalette')?.classList.remove('active');
+}
+
+function filterCommands(query) {
+    if (!query) {
+        filteredCommands = [...COMMANDS];
+    } else {
+        filteredCommands = COMMANDS.filter(cmd =>
+            cmd.name.toLowerCase().includes(query) ||
+            cmd.desc.toLowerCase().includes(query)
+        );
+    }
+    selectedCommandIndex = 0;
+    renderCommands();
+}
+
+function renderCommands() {
+    const results = document.getElementById('commandResults');
+    if (!results) return;
+
+    if (filteredCommands.length === 0) {
+        results.innerHTML = '<div class="command-palette-empty">No commands found</div>';
+        return;
+    }
+
+    results.innerHTML = filteredCommands.map((cmd, i) => `
+        <div class="command-item ${i === selectedCommandIndex ? 'selected' : ''}" data-index="${i}">
+            <div class="command-item-icon">${cmd.icon}</div>
+            <div class="command-item-text">
+                <div class="command-item-name">${cmd.name}</div>
+                <div class="command-item-desc">${cmd.desc}</div>
+            </div>
+            ${cmd.shortcut ? `
+                <div class="command-item-shortcut">
+                    ${cmd.shortcut.map(k => `<kbd>${k}</kbd>`).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `).join('');
+
+    // Click handlers
+    results.querySelectorAll('.command-item').forEach(item => {
+        item.addEventListener('click', () => {
+            selectedCommandIndex = parseInt(item.dataset.index);
+            executeSelectedCommand();
+        });
+    });
+}
+
+function updateCommandSelection() {
+    document.querySelectorAll('.command-item').forEach((item, i) => {
+        item.classList.toggle('selected', i === selectedCommandIndex);
+    });
+
+    // Scroll into view
+    document.querySelector('.command-item.selected')?.scrollIntoView({ block: 'nearest' });
+}
+
+function executeSelectedCommand() {
+    const cmd = filteredCommands[selectedCommandIndex];
+    if (cmd) {
+        closeCommandPalette();
+        cmd.action();
+    }
+}
+
+// ========== GLOBAL KEYBOARD SHORTCUTS ==========
+function initGlobalShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // Don't trigger when typing in inputs
+        const isTyping = ['INPUT', 'TEXTAREA'].includes(document.activeElement?.tagName) &&
+            !document.activeElement?.classList.contains('command-palette-input');
+
+        // Ctrl+K or Cmd+K - Command Palette
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            openCommandPalette();
+            return;
+        }
+
+        // / key - Focus search (only when not typing)
+        if (e.key === '/' && !isTyping) {
+            e.preventDefault();
+            document.getElementById('searchInput')?.focus();
+            return;
+        }
+
+        // Ctrl+Shift+T - Toggle Thoughts
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
+            e.preventDefault();
+            document.getElementById('thoughtsPanel')?.classList.toggle('active');
+            return;
+        }
+
+        // Escape - Close modals
+        if (e.key === 'Escape') {
+            closeCommandPalette();
+            document.getElementById('settingsModal')?.classList.remove('active');
+            document.getElementById('addLinkModal')?.classList.remove('active');
+            document.getElementById('commandsModal')?.classList.remove('active');
+            document.getElementById('releaseModal')?.classList.remove('active');
+            document.getElementById('thoughtsPanel')?.classList.remove('active');
+            document.getElementById('calcResult')?.classList.remove('visible');
         }
     });
 }

@@ -650,6 +650,16 @@ if (window.__INTENT_MODE_LOADED__) {
                         <input type="range" id="intentLetterSpacing" class="intent-slider" min="0" max="0.1" step="0.01" value="0.01">
                         <span class="intent-slider-value" id="intentLetterSpacingValue">0.01em</span>
                     </div>
+                    <div class="intent-setting-group intent-dyslexia-toggle">
+                        <button class="intent-dyslexia-btn" id="intentDyslexiaToggle">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <path d="M12 6v6l4 2"/>
+                            </svg>
+                            <span>Dyslexia-Friendly Mode</span>
+                        </button>
+                        <span class="intent-dyslexia-hint">OpenDyslexic font + wider spacing</span>
+                    </div>
                 </div>
             </div>
             
@@ -841,6 +851,52 @@ if (window.__INTENT_MODE_LOADED__) {
             container.style.setProperty('--intent-letter-spacing', value + 'em');
             document.getElementById('intentLetterSpacingValue').textContent = value + 'em';
         });
+
+        // Dyslexia Mode toggle
+        document.getElementById('intentDyslexiaToggle')?.addEventListener('click', () => {
+            const container = document.getElementById('intentModeContainer');
+            const btn = document.getElementById('intentDyslexiaToggle');
+            const isEnabled = container.classList.toggle('intent-dyslexia-mode');
+
+            if (isEnabled) {
+                // Apply dyslexia-friendly settings
+                container.classList.add('intent-font-dyslexic');
+                container.style.setProperty('--intent-line-height', '2.0');
+                container.style.setProperty('--intent-letter-spacing', '0.05em');
+                document.getElementById('intentLineHeight').value = '2.0';
+                document.getElementById('intentLineHeightValue').textContent = '2.0';
+                document.getElementById('intentLetterSpacing').value = '0.05';
+                document.getElementById('intentLetterSpacingValue').textContent = '0.05em';
+                document.getElementById('intentFontSelect').value = 'dyslexic';
+                btn.classList.add('active');
+            } else {
+                // Reset to defaults
+                container.classList.remove('intent-font-dyslexic');
+                container.style.setProperty('--intent-line-height', '1.75');
+                container.style.setProperty('--intent-letter-spacing', '0.01em');
+                document.getElementById('intentLineHeight').value = '1.75';
+                document.getElementById('intentLineHeightValue').textContent = '1.75';
+                document.getElementById('intentLetterSpacing').value = '0.01';
+                document.getElementById('intentLetterSpacingValue').textContent = '0.01em';
+                document.getElementById('intentFontSelect').value = 'system';
+                btn.classList.remove('active');
+            }
+        });
+
+        // Reading Progress Memory - save scroll position
+        const reader = document.getElementById('intentReader');
+        if (reader) {
+            let scrollTimeout;
+            reader.addEventListener('scroll', () => {
+                clearTimeout(scrollTimeout);
+                scrollTimeout = setTimeout(() => {
+                    saveReadingProgress(window.location.href, reader.scrollTop);
+                }, 500);
+            });
+
+            // Check for saved progress and show resume prompt
+            checkReadingProgress(window.location.href);
+        }
 
         // TOC toggle
         document.getElementById('intentTocToggle')?.addEventListener('click', toggleToc);
@@ -1246,6 +1302,107 @@ if (window.__INTENT_MODE_LOADED__) {
                 showNotification('Failed to save');
             }
         });
+    }
+
+    // ========== READING PROGRESS MEMORY ==========
+    function getReadingProgressKey(url) {
+        return 'intent-reading-progress-' + btoa(url).substring(0, 32);
+    }
+
+    function saveReadingProgress(url, scrollTop) {
+        const key = getReadingProgressKey(url);
+        const data = {
+            scrollTop,
+            timestamp: Date.now(),
+            url
+        };
+        localStorage.setItem(key, JSON.stringify(data));
+
+        // Clean up old entries (older than 7 days)
+        cleanOldReadingProgress();
+    }
+
+    function checkReadingProgress(url) {
+        const key = getReadingProgressKey(url);
+        const saved = localStorage.getItem(key);
+
+        if (!saved) return;
+
+        try {
+            const data = JSON.parse(saved);
+            const sevenDays = 7 * 24 * 60 * 60 * 1000;
+
+            // Only show if saved within 7 days and scrolled past 200px
+            if (Date.now() - data.timestamp < sevenDays && data.scrollTop > 200) {
+                showResumePrompt(data.scrollTop);
+            }
+        } catch (e) {
+            localStorage.removeItem(key);
+        }
+    }
+
+    function showResumePrompt(scrollTop) {
+        const container = document.getElementById('intentModeContainer');
+        if (!container) return;
+
+        const prompt = document.createElement('div');
+        prompt.className = 'intent-resume-prompt';
+        prompt.innerHTML = `
+            <div class="intent-resume-content">
+                <span class="intent-resume-text">Continue where you left off?</span>
+                <button class="intent-resume-btn" id="intentResumeYes">Resume</button>
+                <button class="close-btn-mac intent-resume-close" id="intentResumeNo" style="width: 14px; height: 14px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        `;
+
+        container.appendChild(prompt);
+        requestAnimationFrame(() => prompt.classList.add('visible'));
+
+        // Resume button
+        document.getElementById('intentResumeYes')?.addEventListener('click', () => {
+            const reader = document.getElementById('intentReader');
+            if (reader) reader.scrollTop = scrollTop;
+            dismissResumePrompt(prompt);
+        });
+
+        // Dismiss button
+        document.getElementById('intentResumeNo')?.addEventListener('click', () => {
+            dismissResumePrompt(prompt);
+            // Clear saved progress for this page
+            localStorage.removeItem(getReadingProgressKey(window.location.href));
+        });
+
+        // Auto dismiss after 8 seconds
+        setTimeout(() => dismissResumePrompt(prompt), 8000);
+    }
+
+    function dismissResumePrompt(prompt) {
+        if (!prompt) return;
+        prompt.classList.remove('visible');
+        setTimeout(() => prompt.remove(), 300);
+    }
+
+    function cleanOldReadingProgress() {
+        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+        const now = Date.now();
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith('intent-reading-progress-')) {
+                try {
+                    const data = JSON.parse(localStorage.getItem(key));
+                    if (now - data.timestamp > sevenDays) {
+                        localStorage.removeItem(key);
+                    }
+                } catch (e) {
+                    localStorage.removeItem(key);
+                }
+            }
+        }
     }
 
     // Expose activateIntentMode globally so the message listener can call it
