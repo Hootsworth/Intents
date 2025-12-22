@@ -1400,6 +1400,8 @@ select {
     left: var(--space-lg);
     font-family: var(--font-mono);
     text-align: left;
+    padding: var(--space-md);
+    border-radius: var(--border-radius);
     transition: all 0.4s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
@@ -1442,6 +1444,7 @@ select {
 /* Release Notes Modal */
 .modal-release {
     max-width: 560px;
+    border-radius: var(--border-radius);
 }
 
 .release-version-header {
@@ -3063,29 +3066,47 @@ body.has-wallpaper .settings-toggle,
 body.has-wallpaper .thoughts-toggle,
 body.has-wallpaper .time-widget,
 body.has-wallpaper .thought-card {
-    background: var(--bg-glass) !important;
-    backdrop-filter: blur(var(--blur-strength)) !important;
-    -webkit-backdrop-filter: blur(var(--blur-strength)) !important;
-    border: 1px solid var(--border-glass) !important;
-    box-shadow: var(--shadow-brutal) !important;
-    transition: background 0.8s ease, backdrop-filter 0.8s ease, border 0.8s ease, transform 0.4s var(--ease-comfort);
+    background: rgba(20, 20, 22, 0.75) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+    color: #ffffff !important;
+    transition: all 0.5s var(--ease-comfort);
+}
+
+body.has-wallpaper .time-widget,
+body.has-wallpaper .modal-release {
+    border-radius: var(--border-radius) !important;
 }
 
 body.has-wallpaper .quick-link:hover,
 body.has-wallpaper .ai-link:hover,
 body.has-wallpaper .settings-toggle:hover,
 body.has-wallpaper .thoughts-toggle:hover {
-    background: rgba(255, 255, 255, 0.15) !important;
+    background: rgba(255, 255, 255, 0.12) !important;
 }
 
-[data-theme="light"].has-wallpaper .search-wrapper,
-[data-theme="light"].has-wallpaper .recent-searches,
-[data-theme="light"].has-wallpaper .quick-link,
-[data-theme="light"].has-wallpaper .ai-taskbar,
-[data-theme="light"].has-wallpaper .thoughts-panel,
-[data-theme="light"].has-wallpaper .modal-content {
-    background: rgba(255, 255, 255, 0.7) !important;
-    border: 1px solid rgba(255, 255, 255, 0.3) !important;
+/* Force white text in wallpaper mode */
+body.has-wallpaper .text-primary,
+body.has-wallpaper .greeting,
+body.has-wallpaper .tagline,
+body.has-wallpaper .time,
+body.has-wallpaper .date,
+body.has-wallpaper .quick-link-name,
+body.has-wallpaper .ai-name,
+body.has-wallpaper .engine-label,
+body.has-wallpaper .thought-text,
+body.has-wallpaper .thought-tag,
+body.has-wallpaper .ai-taskbar-label {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+body.has-wallpaper .text-secondary,
+body.has-wallpaper .text-muted,
+body.has-wallpaper .thought-meta,
+body.has-wallpaper .thought-time {
+    color: rgba(255, 255, 255, 0.6) !important;
 }
 
 .release-repo-link svg {
