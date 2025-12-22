@@ -1081,3 +1081,212 @@
     stroke: white;
     /* White on hover */
 }
+
+/* ==================== Typography Settings Panel ==================== */
+.intent-settings-panel {
+    position: fixed;
+    top: 60px;
+    right: 24px;
+    width: 280px;
+    background: rgba(20, 20, 22, 0.95);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    z-index: 1001;
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+    pointer-events: none;
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.intent-settings-panel.open {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    pointer-events: auto;
+}
+
+.intent-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.intent-settings-close {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
+.intent-settings-close:hover {
+    color: white;
+}
+
+.intent-settings-body {
+    padding: 16px 20px;
+}
+
+.intent-setting-group {
+    margin-bottom: 20px;
+}
+
+.intent-setting-group:last-child {
+    margin-bottom: 0;
+}
+
+.intent-setting-group label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 10px;
+}
+
+.intent-theme-options {
+    display: flex;
+    gap: 8px;
+}
+
+.intent-theme-btn {
+    flex: 1;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.intent-theme-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.intent-theme-btn.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.intent-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    appearance: none;
+}
+
+.intent-slider {
+    width: calc(100% - 50px);
+    -webkit-appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    height: 4px;
+    border-radius: 2px;
+    outline: none;
+}
+
+.intent-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.intent-slider-value {
+    display: inline-block;
+    width: 45px;
+    text-align: right;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.6);
+    font-family: monospace;
+}
+
+/* ==================== Light Theme ==================== */
+.intent-mode-container.intent-theme-light {
+    --intent-bg: #f8f8f8;
+    --intent-surface: rgba(0, 0, 0, 0.03);
+    --intent-border: rgba(0, 0, 0, 0.08);
+    --intent-text: #1a1a1a;
+    --intent-text-muted: rgba(0, 0, 0, 0.5);
+    --intent-accent: rgba(0, 0, 0, 0.7);
+    --intent-accent-soft: rgba(0, 0, 0, 0.06);
+    --intent-code-bg: rgba(0, 0, 0, 0.04);
+    --intent-progress: rgba(0, 0, 0, 0.3);
+    background: var(--intent-bg);
+}
+
+.intent-theme-light .intent-topbar {
+    background: rgba(248, 248, 248, 0.85);
+}
+
+.intent-theme-light .intent-title,
+.intent-theme-light .intent-content h1,
+.intent-theme-light .intent-content h2,
+.intent-theme-light .intent-content h3,
+.intent-theme-light .intent-content h4 {
+    color: #1a1a1a;
+}
+
+.intent-theme-light .intent-content {
+    color: #333;
+}
+
+/* ==================== Sepia Theme ==================== */
+.intent-mode-container.intent-theme-sepia {
+    --intent-bg: #f4ecd8;
+    --intent-surface: rgba(139, 119, 80, 0.08);
+    --intent-border: rgba(139, 119, 80, 0.15);
+    --intent-text: #433422;
+    --intent-text-muted: rgba(67, 52, 34, 0.6);
+    --intent-accent: #8b7750;
+    --intent-accent-soft: rgba(139, 119, 80, 0.12);
+    --intent-code-bg: rgba(139, 119, 80, 0.08);
+    --intent-progress: #a89060;
+    background: var(--intent-bg);
+}
+
+.intent-theme-sepia .intent-topbar {
+    background: rgba(244, 236, 216, 0.9);
+}
+
+.intent-theme-sepia .intent-title,
+.intent-theme-sepia .intent-content h1,
+.intent-theme-sepia .intent-content h2,
+.intent-theme-sepia .intent-content h3,
+.intent-theme-sepia .intent-content h4 {
+    color: #2c2013;
+}
+
+.intent-theme-sepia .intent-content {
+    color: #433422;
+}
+
+/* ==================== Font Variations ==================== */
+.intent-font-serif .intent-content {
+    font-family: Georgia, 'Times New Roman', Times, serif;
+}
+
+.intent-font-mono .intent-content {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Consolas, monospace;
+}
+
+.intent-font-dyslexic .intent-content {
+    font-family: 'OpenDyslexic', 'Comic Sans MS', sans-serif;
+}

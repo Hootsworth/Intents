@@ -587,8 +587,8 @@ if (window.__INTENT_MODE_LOADED__) {
                     <span class="intent-reading-time">${extracted.readingTime} min read</span>
                 </div>
                 <div class="intent-topbar-right">
-                    <button type="button" class="intent-btn" id="intentToggleLinks" title="Toggle Link Visibility (Blur/Hide)">👁️</button>
-                    ${intent.name === 'Reflect' ? '' : ''}
+                    <button type="button" class="intent-btn" id="intentToggleLinks" title="Disable Links">🔗</button>
+                    <button type="button" class="intent-btn" id="intentSettingsToggle" title="Typography Settings">⚙️</button>
                     <button type="button" class="intent-btn" id="intentFontDecrease" title="Decrease font size">A−</button>
                     <button type="button" class="intent-btn" id="intentFontIncrease" title="Increase font size">A+</button>
                     <button type="button" class="close-btn-mac" id="intentClose" title="${isIsolate ? 'Exit Isolation' : 'Exit Intent Mode (Esc)'}" style="width: 20px; height: 20px;">
@@ -596,6 +596,43 @@ if (window.__INTENT_MODE_LOADED__) {
                             <path d="M18 6L6 18M6 6l12 12"/>
                         </svg>
                     </button>
+                </div>
+            </div>
+            
+            <!-- Typography Settings Panel -->
+            <div class="intent-settings-panel" id="intentSettingsPanel">
+                <div class="intent-settings-header">
+                    <span>Reading Preferences</span>
+                    <button type="button" class="intent-settings-close" id="intentSettingsClose">×</button>
+                </div>
+                <div class="intent-settings-body">
+                    <div class="intent-setting-group">
+                        <label>Theme</label>
+                        <div class="intent-theme-options">
+                            <button class="intent-theme-btn active" data-theme="dark" title="Dark">🌙</button>
+                            <button class="intent-theme-btn" data-theme="light" title="Light">☀️</button>
+                            <button class="intent-theme-btn" data-theme="sepia" title="Sepia">📜</button>
+                        </div>
+                    </div>
+                    <div class="intent-setting-group">
+                        <label>Font</label>
+                        <select id="intentFontSelect" class="intent-select">
+                            <option value="system">System (Default)</option>
+                            <option value="serif">Serif (Georgia)</option>
+                            <option value="mono">Monospace</option>
+                            <option value="dyslexic">OpenDyslexic</option>
+                        </select>
+                    </div>
+                    <div class="intent-setting-group">
+                        <label>Line Height</label>
+                        <input type="range" id="intentLineHeight" class="intent-slider" min="1.4" max="2.4" step="0.1" value="${intent.lineHeight}">
+                        <span class="intent-slider-value" id="intentLineHeightValue">${intent.lineHeight}</span>
+                    </div>
+                    <div class="intent-setting-group">
+                        <label>Letter Spacing</label>
+                        <input type="range" id="intentLetterSpacing" class="intent-slider" min="0" max="0.1" step="0.01" value="0.01">
+                        <span class="intent-slider-value" id="intentLetterSpacingValue">0.01em</span>
+                    </div>
                 </div>
             </div>
             
@@ -657,18 +694,114 @@ if (window.__INTENT_MODE_LOADED__) {
         document.getElementById('intentClose')?.addEventListener('click', deactivateIntentMode);
         document.getElementById('intentExitIso')?.addEventListener('click', deactivateIntentMode);
 
-        // Link Visibility Toggle
+        // Link Disable Toggle
         document.getElementById('intentToggleLinks')?.addEventListener('click', () => {
             const container = document.getElementById('intentModeContainer');
-            container.classList.toggle('intent-hide-links');
+            const content = document.getElementById('intentContent');
             const btn = document.getElementById('intentToggleLinks');
-            // Visual feedback: Opacity 1 if links are visible (default), 0.6 if hidden
-            if (btn) btn.style.opacity = container.classList.contains('intent-hide-links') ? '0.6' : '1';
+            const isDisabled = container.classList.toggle('intent-links-disabled');
+
+            if (isDisabled && content) {
+                // Disable links
+                content.querySelectorAll('a').forEach(link => {
+                    const href = link.getAttribute('href') || '';
+                    const text = link.textContent.trim();
+
+                    // Check if link text is just a URL
+                    const isPlainUrl = /^(https?:\/\/|www\.)/i.test(text) || text === href;
+
+                    if (isPlainUrl) {
+                        // Plain URL link - hide completely
+                        link.style.display = 'none';
+                        link.dataset.intentHidden = 'true';
+                    } else {
+                        // Text link - convert to plain text span
+                        link.dataset.intentOriginalHref = href;
+                        link.removeAttribute('href');
+                        link.style.color = 'inherit';
+                        link.style.cursor = 'text';
+                        link.style.textDecoration = 'none';
+                        link.style.pointerEvents = 'none';
+                    }
+                });
+            } else if (content) {
+                // Restore links
+                content.querySelectorAll('a').forEach(link => {
+                    if (link.dataset.intentHidden === 'true') {
+                        link.style.display = '';
+                        delete link.dataset.intentHidden;
+                    }
+                    if (link.dataset.intentOriginalHref) {
+                        link.setAttribute('href', link.dataset.intentOriginalHref);
+                        link.style.color = '';
+                        link.style.cursor = '';
+                        link.style.textDecoration = '';
+                        link.style.pointerEvents = '';
+                        delete link.dataset.intentOriginalHref;
+                    }
+                });
+            }
+
+            if (btn) btn.style.opacity = isDisabled ? '0.5' : '1';
         });
 
         // Font size controls
         document.getElementById('intentFontDecrease')?.addEventListener('click', () => adjustFontSize(-2));
         document.getElementById('intentFontIncrease')?.addEventListener('click', () => adjustFontSize(2));
+
+        // Settings panel toggle
+        document.getElementById('intentSettingsToggle')?.addEventListener('click', () => {
+            document.getElementById('intentSettingsPanel')?.classList.toggle('open');
+        });
+        document.getElementById('intentSettingsClose')?.addEventListener('click', () => {
+            document.getElementById('intentSettingsPanel')?.classList.remove('open');
+        });
+
+        // Theme buttons
+        document.querySelectorAll('.intent-theme-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const theme = btn.dataset.theme;
+                const container = document.getElementById('intentModeContainer');
+
+                // Remove all theme classes
+                container.classList.remove('intent-theme-light', 'intent-theme-sepia');
+
+                // Apply selected theme
+                if (theme === 'light') container.classList.add('intent-theme-light');
+                if (theme === 'sepia') container.classList.add('intent-theme-sepia');
+
+                // Update active state
+                document.querySelectorAll('.intent-theme-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        // Font select
+        document.getElementById('intentFontSelect')?.addEventListener('change', (e) => {
+            const font = e.target.value;
+            const container = document.getElementById('intentModeContainer');
+
+            container.classList.remove('intent-font-serif', 'intent-font-mono', 'intent-font-dyslexic');
+            if (font === 'serif') container.classList.add('intent-font-serif');
+            if (font === 'mono') container.classList.add('intent-font-mono');
+            if (font === 'dyslexic') container.classList.add('intent-font-dyslexic');
+        });
+
+        // Line height slider
+        document.getElementById('intentLineHeight')?.addEventListener('input', (e) => {
+            const value = e.target.value;
+            const container = document.getElementById('intentModeContainer');
+            container.style.setProperty('--intent-line-height', value);
+            document.getElementById('intentLineHeightValue').textContent = value;
+        });
+
+        // Letter spacing slider
+        document.getElementById('intentLetterSpacing')?.addEventListener('input', (e) => {
+            const value = e.target.value;
+            const container = document.getElementById('intentModeContainer');
+            container.style.setProperty('--intent-letter-spacing', value + 'em');
+            document.getElementById('intentLetterSpacingValue').textContent = value + 'em';
+        });
 
         // TOC toggle
         document.getElementById('intentTocToggle')?.addEventListener('click', toggleToc);
