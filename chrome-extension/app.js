@@ -721,12 +721,20 @@ function handleSearch(e) {
 
 // Quick Calculator - evaluate math expressions
 function evaluateMathExpression(query) {
-    // Check if it looks like a math expression
-    const mathPattern = /^[\d\s+\-*/().^%sqrtpielogsincostan]+$/i;
-    if (!mathPattern.test(query)) return null;
+    // Trim and check if empty
+    query = query.trim();
+    if (!query) return null;
 
-    // Must contain at least one operator or function
-    if (!/[+\-*/^%()]|sqrt|sin|cos|tan|log|pi|e/i.test(query)) return null;
+    // Check if it looks like a math expression (numbers, operators, functions, parentheses)
+    // Allow: digits, spaces, operators (+, -, *, /, ^, %), parentheses, decimal points
+    // Also allow function names: sqrt, sin, cos, tan, log, ln, pi, e
+    const mathPattern = /^[\d\s+\-*/().^%]+$|^[\d\s+\-*/().^%]*(sqrt|sin|cos|tan|log|ln|pi|e)[\d\s+\-*/().^%]*/i;
+
+    // Must start with a number, opening paren, or function name
+    if (!/^[\d(]|^(sqrt|sin|cos|tan|log|ln|pi|e)/i.test(query)) return null;
+
+    // Must contain at least one operator
+    if (!/[+\-*/^%]/.test(query) && !/^(sqrt|sin|cos|tan|log|ln)\(/i.test(query)) return null;
 
     try {
         // Replace common math functions with JS equivalents
@@ -741,8 +749,8 @@ function evaluateMathExpression(query) {
             .replace(/\bpi\b/gi, 'Math.PI')
             .replace(/\be\b/gi, 'Math.E');
 
-        // Security: only allow safe characters
-        if (/[^0-9+\-*/().%\s]/.test(expr.replace(/Math\.\w+/g, ''))) {
+        // Security: only allow safe characters after replacements
+        if (/[^0-9+\-*/().%\s]/.test(expr.replace(/Math\.\w+/g, '').replace(/\*\*/g, ''))) {
             return null;
         }
 
