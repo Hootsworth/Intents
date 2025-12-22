@@ -362,7 +362,21 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
         details.url.startsWith('about:') ||
         details.url === 'about:blank') return;
 
-    // Get tab info for title
+    // 1. Handle Automatic Dark Mode (Injection if granted)
+    const settings = await chrome.storage.local.get(['forceDarkMode']);
+    if (settings.forceDarkMode) {
+        // We attempt to inject. If we don't have permission for this site, it will fail silently.
+        try {
+            await chrome.scripting.executeScript({
+                target: { tabId: details.tabId },
+                files: ['content.js']
+            });
+        } catch (e) {
+            // Silently fail if no permission for this host
+        }
+    }
+
+    // 2. Get tab info for title (Footsteps)
     try {
         const tab = await chrome.tabs.get(details.tabId);
         await addFootstep({
@@ -373,7 +387,6 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
             transitionType: details.transitionType
         });
     } catch (e) {
-        // Tab might not exist anymore
         console.log('Footsteps: Could not get tab info', e);
     }
 });

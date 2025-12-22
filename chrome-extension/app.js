@@ -497,7 +497,19 @@ function initEventListeners() {
     });
 
     // Force Dark Mode toggle
-    document.getElementById('forceDarkMode')?.addEventListener('change', (e) => {
+    document.getElementById('forceDarkMode')?.addEventListener('change', async (e) => {
+        if (e.target.checked) {
+            // Request permission only when turning it on
+            const granted = await chrome.permissions.request({
+                origins: ["<all_urls>"]
+            });
+
+            if (!granted) {
+                e.target.checked = false;
+                return;
+            }
+        }
+
         state.settings.forceDarkMode = e.target.checked;
         saveSettings();
 
@@ -507,7 +519,7 @@ function initEventListeners() {
                 chrome.tabs.sendMessage(tab.id, {
                     action: 'toggleDarkMode',
                     enabled: e.target.checked
-                }).catch(() => { }); // Ignore errors for tabs where content script isn't loaded
+                }).catch(() => { });
             });
         });
     });
