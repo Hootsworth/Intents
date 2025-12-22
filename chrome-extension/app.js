@@ -1072,7 +1072,7 @@ const COMMANDS = [
     { id: 'chatgpt', name: 'Open ChatGPT', desc: 'Open ChatGPT in new tab', icon: '🤖', action: () => window.open('https://chatgpt.com', '_blank') },
     { id: 'claude', name: 'Open Claude', desc: 'Open Claude AI in new tab', icon: '🧠', action: () => window.open('https://claude.ai', '_blank') },
     { id: 'gemini', name: 'Open Gemini', desc: 'Open Google Gemini', icon: '✨', action: () => window.open('https://gemini.google.com', '_blank') },
-    { id: 'thoughts', name: 'Toggle Thoughts', desc: 'Show or hide saved thoughts', icon: '💭', shortcut: ['Ctrl', 'Shift', 'T'], action: () => document.getElementById('thoughtsPanel')?.classList.toggle('active') },
+    { id: 'thoughts', name: 'Toggle Thoughts', desc: 'Show or hide saved thoughts', icon: '💭', shortcut: ['Ctrl', 'Shift', 'H'], action: () => document.getElementById('thoughtsPanel')?.classList.toggle('active') },
     { id: 'settings', name: 'Open Settings', desc: 'Open extension settings', icon: '⚙️', action: () => document.getElementById('settingsModal')?.classList.add('active') },
     { id: 'addlink', name: 'Add Quick Link', desc: 'Add a new quick link', icon: '🔗', action: () => document.getElementById('addLinkModal')?.classList.add('active') },
     { id: 'github', name: 'Open GitHub', desc: 'Go to GitHub', icon: '🐙', action: () => window.open('https://github.com', '_blank') },
@@ -1231,8 +1231,8 @@ function initGlobalShortcuts() {
             return;
         }
 
-        // Ctrl+Shift+T - Toggle Thoughts
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'T') {
+        // Ctrl+Shift+H - Toggle Thoughts (H for Hold That Thought)
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'H') {
             e.preventDefault();
             document.getElementById('thoughtsPanel')?.classList.toggle('active');
             return;

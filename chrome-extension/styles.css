@@ -4674,3 +4674,93 @@ body.page-exit-active {
     text-align: center;
     color: rgba(255, 255, 255, 0.4);
 }
+
+/* Command Palette - Light Theme */
+[data-theme="light"] .command-palette {
+    background: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="light"] .command-palette-container {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 25px 80px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .command-palette-header {
+    border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .command-palette-header svg {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .command-palette-input {
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .command-palette-input::placeholder {
+    color: rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="light"] .command-item:hover,
+[data-theme="light"] .command-item.selected {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .command-item-icon {
+    background: rgba(0, 0, 0, 0.04);
+    color: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="light"] .command-item-name {
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .command-item-desc {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .command-item-shortcut kbd {
+    background: rgba(0, 0, 0, 0.05);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .command-palette-footer {
+    border-top-color: rgba(0, 0, 0, 0.08);
+    color: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .command-palette-footer kbd {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="light"] .command-palette-empty {
+    color: rgba(0, 0, 0, 0.4);
+}
+
+/* Calc result light theme */
+[data-theme="light"] .calc-result {
+    background: rgba(255, 255, 255, 0.98);
+    border-color: rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .calc-expression {
+    color: rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="light"] .calc-answer {
+    color: #1a1a1a;
+}
+
+[data-theme="light"] .calc-copy {
+    background: rgba(0, 0, 0, 0.04);
+    border-color: rgba(0, 0, 0, 0.1);
+    color: rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="light"] .calc-copy:hover {
+    background: rgba(0, 0, 0, 0.08);
+    color: #1a1a1a;
+}
