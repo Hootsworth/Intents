@@ -4282,39 +4282,6 @@ select:focus {
     }
 }
 
-.quick-link {
-    animation: fadeSlideUp 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-}
-
-/* Stagger delays for first few items to create flow */
-.quick-link:nth-child(1) {
-    animation-delay: 0.05s;
-}
-
-.quick-link:nth-child(2) {
-    animation-delay: 0.1s;
-}
-
-.quick-link:nth-child(3) {
-    animation-delay: 0.15s;
-}
-
-.quick-link:nth-child(4) {
-    animation-delay: 0.2s;
-}
-
-.quick-link:nth-child(5) {
-    animation-delay: 0.25s;
-}
-
-.quick-link:nth-child(6) {
-    animation-delay: 0.3s;
-}
-
-.quick-link:nth-child(n+7) {
-    animation-delay: 0.35s;
-}
-
 /* Custom Scrollbar for global page (except when hidden) */
 ::-webkit-scrollbar {
     width: 6px;
