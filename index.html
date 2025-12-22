@@ -4,26 +4,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intents — The Stoic New Tab Experience</title>
-    <meta name="description"
-        content="Intents is a minimal, focused search experience for Chrome. Features include Hold That Thought and Intent-based search.">
+    <title>Intents — Minimalist Search Engine</title>
+    <meta name="description" content="A minimal, distraction-free search experience for Chrome.">
 
-    <!-- Google Fonts -->
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;700;900&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
         :root {
-            --bg-dark: #0a0a0b;
-            --bg-card: rgba(255, 255, 255, 0.03);
-            --text-main: #fcfcfc;
-            --text-dim: #a1a1aa;
-            --accent-primary: #ffffff;
-            --border-glass: rgba(255, 255, 255, 0.08);
-            --transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            --bg-primary: #0f0f10;
+            --bg-secondary: rgba(255, 255, 255, 0.03);
+            --bg-tertiary: rgba(255, 255, 255, 0.05);
+            --text-primary: rgba(255, 255, 255, 0.85);
+            --text-secondary: rgba(255, 255, 255, 0.5);
+            --text-muted: rgba(255, 255, 255, 0.3);
+            --accent-primary: rgba(255, 255, 255, 0.85);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-radius: 12px;
+            --shadow: 0 15px 40px -10px rgba(0, 0, 0, 0.4);
+            --transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", system-ui, sans-serif;
         }
 
         * {
@@ -33,54 +35,107 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background-color: var(--bg-dark);
-            color: var(--text-main);
-            overflow-x: hidden;
-            line-height: 1.6;
+            font-family: var(--font-display);
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+            width: 100vw;
         }
 
-        /* ----- Background Effects ----- */
-        .ambient-glow {
+        /* ----- Background Overlay ----- */
+        .desktop-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             background:
-                radial-gradient(circle at 20% 30%, rgba(124, 58, 237, 0.05) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(59, 130, 246, 0.05) 0%, transparent 40%);
+                radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.02) 0%, transparent 70%),
+                linear-gradient(135deg, #0f0f10 0%, #1a1a1c 100%);
             z-index: -1;
-            pointer-events: none;
         }
 
-        /* ----- Navigation ----- */
-        nav {
-            padding: 2rem;
+        /* ----- Interactive Demo Container ----- */
+        .stage {
+            flex: 1;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
-            max-width: 1200px;
-            margin: 0 auto;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            backdrop-filter: blur(8px);
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
         }
 
-        .nav-logo {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            letter-spacing: 0.1em;
-            font-size: 1.25rem;
+        /* ----- Simulated Browser Interface ----- */
+        .browser-mockup {
+            width: 100%;
+            max-width: 800px;
+            background: rgba(30, 30, 32, 0.7);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 60px 40px;
+            position: relative;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .browser-dots {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot.red {
+            background: #ff5f56;
+        }
+
+        .dot.yellow {
+            background: #ffbd2e;
+        }
+
+        .dot.green {
+            background: #27c93f;
+        }
+
+        /* ----- Content ----- */
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 300;
+            letter-spacing: -0.02em;
+            text-align: center;
+            margin-bottom: 2rem;
             background: linear-gradient(90deg, #FF5F6D, #FFC371, #FFD700, #4CD964, #5AC8FA, #007AFF, #A259FF);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-size: 200% auto;
-            animation: gradientMove 3s linear infinite;
+            animation: shimmer 3s linear infinite;
         }
 
-        @keyframes gradientMove {
+        @keyframes shimmer {
             0% {
                 background-position: 0% 50%;
             }
@@ -90,324 +145,307 @@
             }
         }
 
-        .nav-links {
-            display: flex;
-            gap: 2rem;
-        }
-
-        .nav-links a {
-            color: var(--text-dim);
-            text-decoration: none;
-            font-size: 0.9rem;
-            font-weight: 500;
-            transition: var(--transition);
-        }
-
-        .nav-links a:hover {
-            color: var(--text-main);
-        }
-
-        /* ----- Hero Section ----- */
-        .hero {
-            padding: 8rem 2rem 4rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 2.5rem;
-        }
-
-        .hero h1 {
-            font-size: clamp(3rem, 8vw, 6rem);
-            font-weight: 900;
-            letter-spacing: -0.04em;
-            line-height: 1;
-            max-width: 14ch;
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-dim);
-            max-width: 60ch;
-        }
-
-        .cta-button {
-            padding: 1rem 2.5rem;
-            background: var(--text-main);
-            color: var(--bg-dark);
-            border-radius: 100px;
-            font-weight: 700;
-            font-size: 1.1rem;
-            text-decoration: none;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: var(--transition);
-            box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
-            border: 2px solid transparent;
-        }
-
-        .cta-button:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 20px 40px -10px rgba(255, 255, 255, 0.2);
-        }
-
-        .cta-button-rainbow {
-            background: var(--bg-dark);
-            color: var(--text-main);
-            position: relative;
-            z-index: 1;
-        }
-
-        .cta-button-rainbow::before {
-            content: '';
-            position: absolute;
-            top: -2px;
-            left: -2px;
-            right: -2px;
-            bottom: -2px;
-            background: linear-gradient(90deg, #FF5F6D, #FFC371, #FFD700, #4CD964, #5AC8FA, #007AFF, #A259FF);
-            z-index: -1;
-            border-radius: 100px;
-            background-size: 200% auto;
-            animation: gradientMove 3s linear infinite;
-        }
-
-        /* ----- Showcase ----- */
-        .showcase {
-            max-width: 1000px;
-            margin: 4rem auto;
-            padding: 2rem;
-            perspective: 1000px;
-        }
-
-        .showcase-inner {
-            border: 1px solid var(--border-glass);
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 40px 100px -30px rgba(0, 0, 0, 0.8);
-            transform: rotateX(5deg) translateY(0px);
-            transition: var(--transition);
-            background: var(--bg-card);
-            backdrop-filter: blur(20px);
-        }
-
-        .showcase-inner:hover {
-            transform: rotateX(0deg) translateY(-10px);
-        }
-
-        .showcase img {
+        /* ----- Interactive Search Bar ----- */
+        .search-container {
             width: 100%;
-            display: block;
-            border-radius: 24px;
+            max-width: 500px;
+            margin: 0 auto;
+            position: relative;
         }
 
-        /* ----- Features Grid ----- */
-        .features {
-            max-width: 1200px;
-            margin: 8rem auto;
-            padding: 2rem;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-        }
-
-        .feature-card {
-            padding: 3rem;
-            background: var(--bg-card);
-            border: 1px solid var(--border-glass);
-            border-radius: 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+        .search-bar {
+            width: 100%;
+            padding: 16px 24px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            outline: none;
             transition: var(--transition);
         }
 
-        .feature-card:hover {
+        .search-bar:focus {
             background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.2);
-            transform: translateY(-8px);
+            border-color: rgba(255, 255, 255, 0.12);
         }
 
-        .feature-icon {
-            font-size: 2.5rem;
-            margin-bottom: 0.5rem;
-        }
-
-        .feature-card h3 {
-            font-size: 1.75rem;
-            font-weight: 700;
-        }
-
-        .feature-card p {
-            color: var(--text-dim);
-            font-size: 1.1rem;
-        }
-
-        /* ----- Footer ----- */
-        footer {
-            padding: 8rem 2rem 4rem;
-            text-align: center;
-            border-top: 1px solid var(--border-glass);
-            margin-top: 4rem;
-        }
-
-        .footer-logo {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            color: var(--text-dim);
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 0.2em;
-            margin-bottom: 2rem;
-        }
-
-        .footer-links {
+        /* ----- Intent Toggles ----- */
+        .intent-row {
             display: flex;
             justify-content: center;
-            gap: 2rem;
-            margin-bottom: 3rem;
+            gap: 12px;
+            margin-top: 24px;
         }
 
-        .footer-links a {
-            color: var(--text-dim);
-            text-decoration: none;
-            font-size: 0.85rem;
-        }
-
-        .copyright {
-            color: var(--text-dim);
+        .intent-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 100px;
+            color: var(--text-secondary);
             font-size: 0.8rem;
-            opacity: 0.6;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
         }
 
-        /* ----- Button Icon ----- */
-        .chrome-icon {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
+        .intent-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.04);
         }
 
-        /* ----- Animations ----- */
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            animation: revealOnLoad 1s forwards;
+        .intent-btn.active {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
         }
 
-        @keyframes revealOnLoad {
+        /* ----- Side Sidebar (Thoughts Panel) ----- */
+        .thoughts-panel {
+            position: absolute;
+            right: 0;
+            top: 0;
+            bottom: 0;
+            width: 300px;
+            background: rgba(20, 20, 22, 0.8);
+            backdrop-filter: blur(50px);
+            -webkit-backdrop-filter: blur(50px);
+            border-left: 1px solid var(--border-color);
+            padding: 24px;
+            transform: translateX(100%);
+            transition: var(--transition);
+        }
+
+        .thoughts-panel.open {
+            transform: translateX(0);
+        }
+
+        .thoughts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .thought-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            animation: slideIn 0.3s var(--transition);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+
             to {
+                transform: translateX(0);
                 opacity: 1;
-                transform: translateY(0);
             }
         }
 
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 3.5rem;
-            }
+        /* ----- Floating UI Elements ----- */
+        .thought-hint {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-align: center;
+        }
 
-            .nav-links {
-                display: none;
-            }
+        kbd {
+            background: var(--bg-tertiary);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
 
-            .feature-card {
-                padding: 2rem;
-            }
+        /* ----- Footer Actions ----- */
+        .actions {
+            position: fixed;
+            bottom: 40px;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .chrome-btn {
+            background: white;
+            color: black;
+            padding: 12px 24px;
+            border-radius: 100px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .chrome-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+        }
+
+        .privacy-link {
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+
+        .privacy-link:hover {
+            color: var(--text-primary);
+        }
+
+        /* ----- Selection Demo ----- */
+        .selection-demo {
+            margin-top: 40px;
+            max-width: 400px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .highlightable {
+            padding: 4px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .highlightable::selection {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ----- Notifications ----- */
+        .notif {
+            position: fixed;
+            top: 30px;
+            right: 30px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            display: none;
+            z-index: 1000;
         }
     </style>
 </head>
 
 <body>
-    <div class="ambient-glow"></div>
+    <div class="desktop-bg"></div>
 
-    <nav>
-        <div class="nav-logo">INTENTS</div>
-        <div class="nav-links">
-            <a href="#features">Features</a>
-            <a href="#about">About</a>
-            <a href="https://github.com" target="_blank">GitHub</a>
+    <div class="stage">
+        <div class="browser-mockup">
+            <div class="browser-dots">
+                <div class="dot red"></div>
+                <div class="dot yellow"></div>
+                <div class="dot green"></div>
+            </div>
+
+            <h1 class="logo">INTENTS</h1>
+
+            <div class="search-container">
+                <input type="text" class="search-bar" placeholder="Try searching..." id="demoInput">
+                <div class="intent-row">
+                    <button class="intent-btn active" onclick="setIntent(this)">Search</button>
+                    <button class="intent-btn" onclick="setIntent(this)">Learn</button>
+                    <button class="intent-btn" onclick="setIntent(this)">Build</button>
+                    <button class="intent-btn" onclick="setIntent(this)">Chill</button>
+                </div>
+            </div>
+
+            <div class="selection-demo">
+                <p>Interactive Demo: Try selecting or clicking this text snippet.</p>
+                <p class="highlightable" onclick="saveThought('Your workspace deserves better.')">"Your workspace
+                    deserves a better start. Minimal by design, powerful by choice."</p>
+            </div>
+
+            <p class="thought-hint">Select text above or click it to see <kbd>Alt + T</kbd> in action.</p>
         </div>
-    </nav>
 
-    <main>
-        <section class="hero reveal">
-            <h1>Search with Intent, not just Queries.</h1>
-            <p>A stoic new tab experience for Chrome that bridges the gap between thoughts and findings. Minimal by
-                design, powerful by choice.</p>
-            <a href="#" class="cta-button cta-button-rainbow">
-                <svg class="chrome-icon" viewBox="0 0 24 24">
-                    <path
-                        d="M12,0C5.37,0,0,5.37,0,12c0,6.63,5.37,12,12,12s12-5.37,12-12C24,5.37,18.63,0,12,0z M12,22C6.48,22,2,17.52,2,12 C2,6.48,6.48,2,12,2s10,4.48,10,10C22,17.52,17.52,22,12,22z M12,4.64L6.34,14.45L12,17.72l5.66-3.27L12,4.64z M7.79,13.62l4.21-7.29 l4.21,7.29L12,16.05L7.79,13.62z" />
-                </svg>
-                Add to Google Chrome
-            </a>
-        </section>
-
-        <section class="showcase reveal" style="animation-delay: 0.2s;">
-            <div class="showcase-inner">
-                <!-- Using the generated high-end mockup -->
-                <img src="https://antigravity-artifacts.s3.amazonaws.com/intents_hero_mockup_1766401501582.png"
-                    alt="Intents Extension UI Mockup">
-            </div>
-        </section>
-
-        <section class="features" id="features">
-            <div class="feature-card reveal" style="animation-delay: 0.3s;">
-                <div class="feature-icon">💭</div>
-                <h3>Hold That Thought</h3>
-                <p>Found a gem? Save text snippets from any page instantly with Alt+T. Access them all from your new
-                    tab, organized by importance and category.</p>
-            </div>
-            <div class="feature-card reveal" style="animation-delay: 0.4s;">
-                <div class="feature-icon">🧠</div>
-                <h3>Intent Mode</h3>
-                <p>Not all searches are equal. Choose your intent—Learn, Build, Fix, or Chill—and get curated multi-API
-                    results tailored to your exact need.</p>
-            </div>
-            <div class="feature-card reveal" style="animation-delay: 0.5s;">
-                <div class="feature-icon">✨</div>
-                <h3>Stoic Design</h3>
-                <p>Zero distractions. No ads. No tracking. Just a beautiful, ultra-fast interface that respects your
-                    focus and delights your eyes.</p>
-            </div>
-        </section>
-
-        <section class="hero reveal" style="padding-top: 4rem;">
-            <h2>Your workspace deserves a better start.</h2>
-            <p style="margin-top: 1rem;">Join thousands of thinkers who use Intents to keep their flow unbroken.</p>
-            <a href="#" class="cta-button" style="margin-top: 2rem;">Get Started Free</a>
-        </section>
-    </main>
-
-    <footer>
-        <div class="footer-logo">Intents — Search with Purpose</div>
-        <div class="footer-links">
-            <a href="#">Security</a>
-            <a href="#">Privacy</a>
-            <a href="#">Terms</a>
-            <a href="https://github.com">GitHub</a>
+        <div class="actions">
+            <a href="#" class="chrome-btn">Add to Chrome</a>
+            <a href="https://www.notion.so/Privacy-Policy-Intents-2d12a4994b9780b09a74f880934d86ce?source=copy_link"
+                class="privacy-link" target="_blank">Privacy Policy</a>
         </div>
-        <p class="copyright">&copy; 2025 Intents Extension. All rights reserved.</p>
-    </footer>
+    </div>
+
+    <!-- Thoughts Sidebar -->
+    <div class="thoughts-panel" id="thoughtsPanel">
+        <div class="thoughts-header">
+            <h2 style="font-size: 1rem; font-weight: 600;">💭 Thoughts</h2>
+            <button onclick="togglePanel()" style="color: var(--text-muted); font-size: 1.2rem;">&times;</button>
+        </div>
+        <div id="thoughtList">
+            <!-- Saved thoughts appear here -->
+            <p id="emptyMsg" style="color: var(--text-muted); font-size: 0.8rem; text-align: center; margin-top: 40px;">
+                No thoughts saved yet.</p>
+        </div>
+    </div>
+
+    <div class="notif" id="notif">Thought saved to your new tab!</div>
 
     <script>
-        // Smooth reveal on scroll
-        const observerOptions = {
-            threshold: 0.1
-        };
+        function setIntent(btn) {
+            document.querySelectorAll('.intent-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
 
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                }
-            });
-        }, observerOptions);
+            const input = document.getElementById('demoInput');
+            if (btn.textContent === 'Search') {
+                input.placeholder = "Try searching...";
+            } else {
+                input.placeholder = `Searching with intent: ${btn.textContent.toLowerCase()}...`;
+            }
+        }
 
-        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        function saveThought(text) {
+            const panel = document.getElementById('thoughtsPanel');
+            const list = document.getElementById('thoughtList');
+            const emptyMsg = document.getElementById('emptyMsg');
+            const notif = document.getElementById('notif');
+
+            if (emptyMsg) emptyMsg.remove();
+
+            const card = document.createElement('div');
+            card.className = 'thought-card';
+            card.textContent = text;
+            list.prepend(card);
+
+            panel.classList.add('open');
+
+            // Show notification
+            notif.style.display = 'block';
+            setTimeout(() => { notif.style.display = 'none'; }, 2000);
+        }
+
+        function togglePanel() {
+            document.getElementById('thoughtsPanel').classList.toggle('open');
+        }
+
+        // Handle text selection "Alt + T" simulation
+        document.addEventListener('mouseup', () => {
+            const selection = window.getSelection().toString().trim();
+            if (selection && selection.length > 5) {
+                // In a real site we would wait for Alt+T, but here we'll just show a hint
+                console.log("Selected:", selection);
+            }
+        });
+
+        // Open panel after a small delay to showcase
+        setTimeout(() => {
+            saveThought("Bridge the gap between thoughts and findings.");
+        }, 3000);
     </script>
 </body>
 
