@@ -174,7 +174,7 @@ select {
     background-position: center;
     background-repeat: no-repeat;
     z-index: -2;
-    transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+    transition: opacity 1.2s cubic-bezier(0.16, 1, 0.3, 1), transform 1.2s cubic-bezier(0.16, 1, 0.3, 1);
     opacity: 0;
 }
 
@@ -182,7 +182,28 @@ select {
     opacity: 1;
 }
 
-/* Vignette overlay for better contrast */
+/* Animated Stoic Flow */
+.wallpaper.animated {
+    background: linear-gradient(-45deg, #0f0f10, #1a1a1c, #2a2a2d, #0f0f10);
+    background-size: 400% 400%;
+    animation: stoicFlow 15s ease infinite;
+}
+
+@keyframes stoicFlow {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+/* Vignette overlay */
 .wallpaper::after {
     content: '';
     position: absolute;
@@ -190,7 +211,7 @@ select {
     left: 0;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.4) 100%);
+    background: radial-gradient(circle at center, transparent 0%, rgba(0, 0, 0, 0.3) 100%);
     pointer-events: none;
 }
 
@@ -208,13 +229,14 @@ select {
 
 .bg-btn {
     aspect-ratio: 16/10;
-    border-radius: 8px;
-    border: 2px solid transparent;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
     overflow: hidden;
     padding: 0;
     background: var(--bg-secondary);
-    transition: all 0.2s ease;
+    transition: all 0.4s var(--ease-comfort);
     cursor: pointer;
+    position: relative;
 }
 
 .bg-btn img,
@@ -223,30 +245,68 @@ select {
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform 0.6s var(--ease-comfort);
 }
 
 .bg-preview.none {
-    background: linear-gradient(135deg, #111 0%, #333 100%);
+    background: #000;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .bg-preview.none::after {
-    content: 'None';
+    content: 'Default';
     font-size: 10px;
     color: white;
-    opacity: 0.6;
+    opacity: 0.4;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.bg-preview.animated-preview {
+    background: linear-gradient(-45deg, #222, #444, #222);
+    background-size: 200% 200%;
+    animation: stoicFlow 5s ease infinite;
 }
 
 .bg-btn:hover {
-    transform: scale(1.05);
-    border-color: var(--accent-primary);
+    border-color: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+}
+
+.bg-btn:hover img {
+    transform: scale(1.1);
 }
 
 .bg-btn.active {
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 10px rgba(255, 255, 0, 0.3);
+    border-color: var(--text-primary);
+}
+
+/* Indicator dot for active */
+.bg-btn.active::after {
+    content: '';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 6px;
+    height: 6px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+    animation: fadeInDot 0.4s var(--ease-comfort) both;
+}
+
+@keyframes fadeInDot {
+    from {
+        opacity: 0;
+        transform: scale(0);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .container {

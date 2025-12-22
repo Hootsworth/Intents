@@ -110,11 +110,21 @@ function applyBackground() {
 
     const bgId = state.settings.customBackground;
 
+    // Clear previous state
+    wp.classList.remove('animated');
+
     if (bgId === 'none' || !bgId) {
         wp.classList.remove('active');
         setTimeout(() => {
             wp.style.backgroundImage = 'none';
         }, 600);
+        return;
+    }
+
+    if (bgId === 'animated-stoic-flow') {
+        wp.style.backgroundImage = 'none';
+        wp.classList.add('animated');
+        wp.classList.add('active');
         return;
     }
 
