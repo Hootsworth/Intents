@@ -587,8 +587,15 @@ if (window.__INTENT_MODE_LOADED__) {
                     <span class="intent-reading-time">${extracted.readingTime} min read</span>
                 </div>
                 <div class="intent-topbar-right">
-                    <button type="button" class="intent-btn" id="intentToggleLinks" title="Disable Links">🔗</button>
-                    <button type="button" class="intent-btn" id="intentSettingsToggle" title="Typography Settings">⚙️</button>
+                    <button type="button" class="intent-btn intent-btn-icon" id="intentToggleLinks" title="Disable Links">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    </button>
+                    <button type="button" class="intent-btn intent-btn-icon" id="intentToggleImages" title="Hide Images">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                    </button>
+                    <button type="button" class="intent-btn intent-btn-icon" id="intentSettingsToggle" title="Typography Settings">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    </button>
                     <button type="button" class="intent-btn" id="intentFontDecrease" title="Decrease font size">A−</button>
                     <button type="button" class="intent-btn" id="intentFontIncrease" title="Increase font size">A+</button>
                     <button type="button" class="close-btn-mac" id="intentClose" title="${isIsolate ? 'Exit Isolation' : 'Exit Intent Mode (Esc)'}" style="width: 20px; height: 20px;">
@@ -603,15 +610,25 @@ if (window.__INTENT_MODE_LOADED__) {
             <div class="intent-settings-panel" id="intentSettingsPanel">
                 <div class="intent-settings-header">
                     <span>Reading Preferences</span>
-                    <button type="button" class="intent-settings-close" id="intentSettingsClose">×</button>
+                    <button type="button" class="close-btn-mac intent-settings-close-mac" id="intentSettingsClose" style="width: 16px; height: 16px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="intent-settings-body">
                     <div class="intent-setting-group">
                         <label>Theme</label>
                         <div class="intent-theme-options">
-                            <button class="intent-theme-btn active" data-theme="dark" title="Dark">🌙</button>
-                            <button class="intent-theme-btn" data-theme="light" title="Light">☀️</button>
-                            <button class="intent-theme-btn" data-theme="sepia" title="Sepia">📜</button>
+                            <button class="intent-theme-btn active" data-theme="dark" title="Dark">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                            </button>
+                            <button class="intent-theme-btn" data-theme="light" title="Light">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                            </button>
+                            <button class="intent-theme-btn" data-theme="sepia" title="Sepia">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                            </button>
                         </div>
                     </div>
                     <div class="intent-setting-group">
@@ -748,6 +765,28 @@ if (window.__INTENT_MODE_LOADED__) {
         // Font size controls
         document.getElementById('intentFontDecrease')?.addEventListener('click', () => adjustFontSize(-2));
         document.getElementById('intentFontIncrease')?.addEventListener('click', () => adjustFontSize(2));
+
+        // Hide images toggle
+        document.getElementById('intentToggleImages')?.addEventListener('click', () => {
+            const container = document.getElementById('intentModeContainer');
+            const content = document.getElementById('intentContent');
+            const btn = document.getElementById('intentToggleImages');
+            const isHidden = container.classList.toggle('intent-images-hidden');
+
+            if (isHidden && content) {
+                content.querySelectorAll('img, figure, picture, video, iframe').forEach(el => {
+                    el.style.display = 'none';
+                    el.dataset.intentImageHidden = 'true';
+                });
+            } else if (content) {
+                content.querySelectorAll('[data-intent-image-hidden]').forEach(el => {
+                    el.style.display = '';
+                    delete el.dataset.intentImageHidden;
+                });
+            }
+
+            if (btn) btn.style.opacity = isHidden ? '0.5' : '1';
+        });
 
         // Settings panel toggle
         document.getElementById('intentSettingsToggle')?.addEventListener('click', () => {
