@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Intents New Tab",
-  "version": "4.2.1",
+  "version": "4.2.2",
   "description": "Replace your new tab page with Intents - a minimal, distraction-free search experience with innovative features",
   "permissions": [
     "contextMenus",
@@ -57,14 +57,6 @@
         "mac": "Alt+B"
       },
       "description": "Footsteps - View browsing trail"
-    },
-    "contextualize": {
-      "suggested_key": {
-        "default": "Ctrl+Shift+X",
-        "windows": "Ctrl+Shift+X",
-        "mac": "Command+Shift+X"
-      },
-      "description": "Contextualize - Look up selected text"
     }
   },
   "action": {

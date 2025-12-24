@@ -32,7 +32,12 @@
         }
 
         if (request.action === 'showAIBar') {
-            createAIBar();
+            const selection = window.getSelection().toString().trim();
+            if (selection) {
+                showContextualizePopup(selection);
+            } else {
+                createAIBar();
+            }
         }
 
         if (request.action === 'showFootstepsPanel') {
@@ -300,7 +305,7 @@
         });
     }
 
-    function createAIBar() {
+    function createAIBar(initialContext = '') {
         if (document.getElementById('htt-ai-overlay')) return;
 
         // Check for API Key first
@@ -308,7 +313,7 @@
             if (!res || !res.hasKey) {
                 showKeyInput();
             } else {
-                showAIQueryOverlay();
+                showAIQueryOverlay(initialContext);
             }
         });
     }
@@ -361,11 +366,11 @@
         });
     }
 
-    function showAIQueryOverlay() {
+    function showAIQueryOverlay(passedContext = '') {
         if (document.getElementById('htt-ai-overlay')) return;
 
         const selection = window.getSelection().toString().trim();
-        const context = selection ? selection.substring(0, 300) : '';
+        const context = passedContext || (selection ? selection.substring(0, 300) : '');
 
         const overlay = document.createElement('div');
         overlay.id = 'htt-ai-overlay';
@@ -770,7 +775,7 @@
         // Footer with shortcut hint
         const footer = document.createElement('div');
         footer.className = 'footsteps-footer';
-        footer.innerHTML = `<span class="footsteps-hint">alt+b to toggle</span>`;
+        footer.innerHTML = `<span class="footsteps-hint">browsing trail</span>`;
 
         // Assemble panel
         panel.appendChild(header);
@@ -848,27 +853,7 @@
     let savedContext = null;
     let isMinimized = false;
 
-    // Keyboard shortcut: Ctrl+Shift+X (or Cmd+Shift+X on Mac)
-    document.addEventListener('keydown', (e) => {
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'x') {
-            e.preventDefault();
-
-            // If minimized, restore
-            if (isMinimized && savedContext) {
-                restoreContextPopup();
-                return;
-            }
-
-            const selection = window.getSelection().toString().trim();
-            if (selection) {
-                showContextualizePopup(selection);
-            } else if (savedContext) {
-                restoreContextPopup();
-            } else {
-                showNotification('Select some text first!');
-            }
-        }
-    });
+    // Keyboard shortcut moved to manifest (Alt+Q for Smart AI / Contextualize)
 
     // Fetch from Simple English Wikipedia for ELI5
     async function fetchSimpleWikipedia(searchTerm) {
@@ -1141,6 +1126,16 @@
                     display: flex;
                     gap: 8px;
                 }
+                .ctx-learn-btn {
+                    background: linear-gradient(135deg, rgba(16, 163, 127, 0.15) 0%, rgba(10, 130, 100, 0.15) 100%);
+                    border-color: rgba(16, 163, 127, 0.3);
+                    color: #5eead4;
+                }
+                .ctx-learn-btn:hover {
+                    background: linear-gradient(135deg, rgba(16, 163, 127, 0.25) 0%, rgba(10, 130, 100, 0.25) 100%);
+                    color: #99f6e4;
+                    border-color: rgba(16, 163, 127, 0.5);
+                }
             </style>
             <div class="ctx-header" id="ctx-header">
                 <div class="ctx-controls">
@@ -1266,6 +1261,9 @@
                         </svg>
                     </a>
                     <div class="ctx-footer-btns">
+                        <button class="ctx-action-btn ctx-learn-btn" id="ctx-learn" title="Learn further with AI">
+                            🪄 Learn further
+                        </button>
                         <button class="ctx-action-btn ctx-eli5-btn" id="ctx-eli5" title="Explain Like I'm 5">
                             🧒 ELI5
                         </button>
@@ -1279,6 +1277,18 @@
                     </div>
                 `;
                 popup.appendChild(footer);
+
+                // Learn Further functionality
+                footer.querySelector('#ctx-learn').addEventListener('click', () => {
+                    const originalText = term;
+                    const summary = result.extract;
+                    const combinedContext = `Selection: "${originalText}"\n\nWikipedia Summary: "${summary}"`;
+
+                    close();
+                    setTimeout(() => {
+                        createAIBar(combinedContext);
+                    }, 300);
+                });
 
                 // Copy functionality
                 footer.querySelector('#ctx-copy').addEventListener('click', () => {

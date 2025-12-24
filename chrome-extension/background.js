@@ -21,14 +21,19 @@ function createContextMenus() {
             contexts: ['page']
         });
 
+        // Footsteps
+        chrome.contextMenus.create({
+            id: 'footsteps',
+            title: '👣 Footsteps Trail',
+            contexts: ['page']
+        });
+
         // Isolate Mode
         chrome.contextMenus.create({
             id: 'isolate-text',
             title: '🔍 Isolate this section',
             contexts: ['selection']
         });
-
-        console.log('Context menus created successfully');
     });
 }
 
@@ -97,6 +102,12 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
             action: 'activateIntentMode',
             intent: 'read'
         }, ['intent-mode.css'], ['intent-mode.js']);
+        return;
+    }
+
+    // Handle Footsteps
+    if (info.menuItemId === 'footsteps') {
+        sendMessageOrInject(tab, { action: 'showFootstepsPanel' }, ['thought-popup.css'], ['content.js']);
     }
 });
 
@@ -142,8 +153,8 @@ chrome.commands.onCommand.addListener(async (command) => {
         sendMessageOrInject(tab, { action: 'showAIBar' }, ['thought-popup.css'], ['content.js']);
     }
 
-    if (command === 'contextualize') {
-        sendMessageOrInject(tab, { action: 'triggerContextualize' }, ['thought-popup.css'], ['content.js']);
+    if (command === 'footsteps') {
+        sendMessageOrInject(tab, { action: 'showFootstepsPanel' }, ['thought-popup.css'], ['content.js']);
     }
 });
 
@@ -484,12 +495,3 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 });
 
-// Handle footsteps keyboard shortcut
-chrome.commands.onCommand.addListener(async (command) => {
-    if (command === 'footsteps') {
-        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-        if (!tab || !tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) return;
-
-        sendMessageOrInject(tab, { action: 'showFootstepsPanel' }, ['thought-popup.css'], ['content.js']);
-    }
-});
