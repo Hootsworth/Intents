@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Intents New Tab",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "Replace your new tab page with Intents - a minimal, distraction-free search experience with innovative features",
   "permissions": [
     "contextMenus",
@@ -17,6 +17,7 @@
     "https://api.duckduckgo.com/*",
     "https://duckduckgo.com/*",
     "https://en.wikipedia.org/*",
+    "https://simple.wikipedia.org/*",
     "https://export.arxiv.org/*",
     "https://api.stackexchange.com/*",
     "https://api.github.com/*"
@@ -24,24 +25,6 @@
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://*.google.com/*",
-        "https://*.duckduckgo.com/*",
-        "https://*.bing.com/*",
-        "https://search.brave.com/*"
-      ],
-      "js": [
-        "content.js",
-        "intent-mode.js"
-      ],
-      "css": [
-        "thought-popup.css",
-        "intent-mode.css"
-      ]
-    }
-  ],
   "commands": {
     "hold-that-thought": {
       "suggested_key": {

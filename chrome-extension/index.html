@@ -76,37 +76,7 @@
                         </svg>
                     </button>
                 </div>
-                <!-- Recent Searches Dropdown -->
                 <div class="recent-searches" id="recentSearches"></div>
-
-                <!-- Search Engine (Default) -->
-                <div class="engine-selector">
-                    <label class="engine-option">
-                        <input type="radio" name="engine" value="google" checked>
-                        <span class="engine-label">Google</span>
-                    </label>
-                    <label class="engine-option">
-                        <input type="radio" name="engine" value="duckduckgo">
-                        <span class="engine-label">DuckDuckGo</span>
-                    </label>
-                    <label class="engine-option">
-                        <input type="radio" name="engine" value="bing">
-                        <span class="engine-label">Bing</span>
-                    </label>
-                    <label class="engine-option">
-                        <input type="radio" name="engine" value="brave">
-                        <span class="engine-label">Brave</span>
-                    </label>
-                </div>
-
-                <!-- Intent Mode (Secondary - Curated Results) -->
-                <div class="intent-group">
-                    <span class="intent-label">with intent</span>
-                    <div class="intent-toggles">
-                        <button class="intent-btn" data-intent="learn" type="button">Learn</button>
-                        <button class="intent-btn" data-intent="build" type="button">Build</button>
-                    </div>
-                </div>
             </form>
 
             <!-- Quick Links -->
@@ -150,11 +120,24 @@
             </div>
         </main>
 
+        <!-- Daily Stats Widget -->
+        <div class="daily-stats" id="dailyStats">
+            <div class="stat-item">
+                <span class="stat-value" id="searchCount">0</span>
+                <span class="stat-label">searches today</span>
+            </div>
+            <div class="stat-divider"></div>
+            <div class="stat-item">
+                <span class="stat-value" id="thoughtCount">0</span>
+                <span class="stat-label">thoughts saved</span>
+            </div>
+        </div>
+
         <!-- Time & Date Widget -->
         <div class="time-widget">
             <div class="time" id="currentTime"></div>
             <div class="date" id="currentDate"></div>
-            <button class="version-badge" id="versionBtn" title="Release Notes">v4.0</button>
+            <button class="version-badge" id="versionBtn" title="Release Notes">v4.2</button>
         </div>
 
         <!-- Keyboard Shortcuts Info -->
@@ -162,6 +145,7 @@
             <kbd>/</kbd> focus search
         </div>
     </div>
+
 
     <!-- Settings Modal -->
     <div class="modal" id="settingsModal">
@@ -182,82 +166,126 @@
                         <button class="theme-btn" data-theme="light">Light</button>
                     </div>
                 </div>
-                <div class="setting-group">
-                    <label class="setting-label">Default Search Engine</label>
-                    <select class="setting-select" id="defaultEngine">
-                        <option value="google">Google</option>
-                        <option value="duckduckgo">DuckDuckGo</option>
-                        <option value="bing">Bing</option>
-                        <option value="brave">Brave</option>
-                    </select>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Show Quick Links</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="showQuickLinks" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Open in New Tab</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="newTabResults">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Show AI Taskbar</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="showAITaskbar" checked>
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Show Daily Quote</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="showQuote">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Force Dark Mode</label>
-                    <label class="toggle">
-                        <input type="checkbox" id="forceDarkMode">
-                        <span class="toggle-slider"></span>
-                    </label>
-                </div>
-                <div class="setting-group">
-                    <label class="setting-label">Wallpaper</label>
-                    <div class="bg-options" id="bgOptions">
-                        <button class="bg-btn active" data-bg="none" title="Default">
-                            <div class="bg-preview none"></div>
-                        </button>
-                        <!-- Minimalist Photographic Backgrounds -->
-                        <button class="bg-btn" data-bg="photo-1506905925346-21bda4d32df4" title="Misty Mountains">
-                            <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=150&q=60"
-                                alt="">
-                        </button>
-                        <button class="bg-btn" data-bg="photo-1518837695005-2083093ee35b" title="Calm Ocean">
-                            <img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=150&q=60"
-                                alt="">
-                        </button>
-                        <button class="bg-btn" data-bg="photo-1478760329108-5c3ed9d495a0" title="Night Sky">
-                            <img src="https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=150&q=60"
-                                alt="">
-                        </button>
-                        <button class="bg-btn" data-bg="photo-1475924156734-496f6cac6ec1" title="Foggy Forest">
-                            <img src="https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?auto=format&fit=crop&w=150&q=60"
-                                alt="">
-                        </button>
-                        <button class="bg-btn" data-bg="animated-stoic-flow" title="Animated Flow">
-                            <div class="bg-preview animated-preview"></div>
-                        </button>
-                        <button class="bg-btn" data-bg="photo-1507400492013-162706c8c05e" title="Lone Tree">
-                            <img src="https://images.unsplash.com/photo-1507400492013-162706c8c05e?auto=format&fit=crop&w=150&q=60"
-                                alt="">
-                        </button>
+
+                <!-- Display Settings Section -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Display</h3>
+                    <div class="setting-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label class="setting-label">Show Quick Links</label>
+                                <span class="setting-desc">Display shortcut links below search</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="showQuickLinks" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label class="setting-label">Show AI Taskbar</label>
+                                <span class="setting-desc">Quick access to AI tools</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="showAITaskbar" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label class="setting-label">Show Daily Quote</label>
+                                <span class="setting-desc">Inspirational quote on new tab</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="showQuote">
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label class="setting-label">Show Daily Stats</label>
+                                <span class="setting-desc">Searches and thoughts count</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="showDailyStats" checked>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
                     </div>
                 </div>
+
+                <!-- Behavior Settings Section -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Behavior</h3>
+                    <div class="setting-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label class="setting-label">Open Results in New Tab</label>
+                                <span class="setting-desc">Search results open in new tab</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="newTabResults">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label class="setting-label">Force Dark Mode</label>
+                                <span class="setting-desc">Apply dark mode to all websites</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="forceDarkMode">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wallpaper Section -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Wallpaper</h3>
+                    <div class="setting-group">
+                        <div class="bg-options" id="bgOptions">
+                            <button class="bg-btn active" data-bg="none" title="Default">
+                                <div class="bg-preview none"></div>
+                            </button>
+                            <button class="bg-btn" data-bg="photo-1506905925346-21bda4d32df4" title="Misty Mountains">
+                                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=150&q=60"
+                                    alt="">
+                            </button>
+                            <button class="bg-btn" data-bg="photo-1518837695005-2083093ee35b" title="Calm Ocean">
+                                <img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?auto=format&fit=crop&w=150&q=60"
+                                    alt="">
+                            </button>
+                            <button class="bg-btn" data-bg="photo-1478760329108-5c3ed9d495a0" title="Night Sky">
+                                <img src="https://images.unsplash.com/photo-1478760329108-5c3ed9d495a0?auto=format&fit=crop&w=150&q=60"
+                                    alt="">
+                            </button>
+                            <button class="bg-btn" data-bg="photo-1475924156734-496f6cac6ec1" title="Foggy Forest">
+                                <img src="https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?auto=format&fit=crop&w=150&q=60"
+                                    alt="">
+                            </button>
+                            <button class="bg-btn" data-bg="minimal-gradient" title="Minimal Gradient">
+                                <div class="bg-preview gradient-preview"></div>
+                            </button>
+                            <button class="bg-btn" data-bg="minimal-mesh" title="Subtle Mesh">
+                                <div class="bg-preview mesh-preview"></div>
+                            </button>
+                            <button class="bg-btn" data-bg="photo-1507400492013-162706c8c05e" title="Lone Tree">
+                                <img src="https://images.unsplash.com/photo-1507400492013-162706c8c05e?auto=format&fit=crop&w=150&q=60"
+                                    alt="">
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="setting-divider"></div>
                 <button class="setting-btn" id="showCommandsBtn">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -323,6 +351,18 @@
                             <kbd>Alt</kbd> + <kbd>A</kbd>
                         </div>
                     </div>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">Contextualize (Wikipedia lookup)</span>
+                        <div class="shortcut-keys">
+                            <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>X</kbd>
+                        </div>
+                    </div>
+                    <div class="shortcut-row">
+                        <span class="shortcut-desc">Footsteps (browsing trail)</span>
+                        <div class="shortcut-keys">
+                            <kbd>Alt</kbd> + <kbd>B</kbd>
+                        </div>
+                    </div>
                 </div>
                 <div class="shortcuts-section">
                     <h3 class="shortcuts-heading">Context Menu (Right-click)</h3>
@@ -330,17 +370,14 @@
                         <span class="shortcut-desc">💭 Hold That Thought</span>
                         <span class="shortcut-note">On selected text</span>
                     </div>
-                    <div class="shortcut-row">
-                        <span class="shortcut-desc">🧠 Intent Mode</span>
-                        <span class="shortcut-note">On any page</span>
-                    </div>
-                    <div class="shortcut-row">
-                        <span class="shortcut-desc">🔍 Isolate Section</span>
-                        <span class="shortcut-note">On selected text</span>
-                    </div>
+                </div>
+                <div class="shortcut-row">
+                    <span class="shortcut-desc">🔍 Isolate Section</span>
+                    <span class="shortcut-note">On selected text</span>
                 </div>
             </div>
         </div>
+    </div>
     </div>
 
     <!-- Add Link Modal -->
@@ -381,52 +418,51 @@
             </div>
             <div class="modal-body">
                 <div class="release-version-header">
-                    <span class="release-version">v4.1.0</span>
+                    <span class="release-version">v4.2.0</span>
                     <span class="release-date">December 2025</span>
                     <span class="release-tag">Latest</span>
                 </div>
 
                 <div class="release-section">
-                    <h3 class="release-section-title">🎯 Quality of Life</h3>
+                    <h3 class="release-section-title">📖 Contextualize Feature</h3>
                     <ul class="release-list">
-                        <li><span class="release-badge new">New</span> Quick Calculator in Search Bar</li>
-                        <li><span class="release-badge new">New</span> Command Palette (<kbd>Ctrl+K</kbd>)</li>
-                        <li><span class="release-badge new">New</span> Global Keyboard Shortcuts</li>
-                        <li><span class="release-badge new">New</span> Reading Progress Memory</li>
-                        <li><span class="release-badge new">New</span> Dyslexia-Friendly Mode</li>
+                        <li><span class="release-badge new">New</span> Instant Wikipedia lookup
+                            (<kbd>Ctrl+Shift+X</kbd>)</li>
+                        <li><span class="release-badge new">New</span> ELI5 button - Simple English explanations</li>
+                        <li><span class="release-badge new">New</span> Mac-style controls (minimize, close)</li>
+                        <li><span class="release-badge new">New</span> Draggable popup window</li>
+                        <li><span class="release-badge new">New</span> One-click copy functionality</li>
                     </ul>
                 </div>
 
                 <div class="release-section">
-                    <h3 class="release-section-title">📖 Reader Mode Enhancements</h3>
+                    <h3 class="release-section-title">⚙️ Settings Redesign</h3>
                     <ul class="release-list">
-                        <li><span class="release-badge new">New</span> Typography Settings Panel</li>
-                        <li><span class="release-badge new">New</span> Theme Options (Dark, Light, Sepia)</li>
-                        <li><span class="release-badge new">New</span> Font Selection (including OpenDyslexic)</li>
-                        <li><span class="release-badge new">New</span> Disable Links Toggle</li>
-                        <li><span class="release-badge new">New</span> Hide Images Toggle</li>
-                        <li><span class="release-badge new">New</span> Resume Reading Prompt</li>
+                        <li><span class="release-badge improved">Improved</span> Premium organized sections</li>
+                        <li><span class="release-badge improved">Improved</span> Settings rows with descriptions</li>
+                        <li><span class="release-badge new">New</span> Daily Stats widget (toggleable)</li>
+                        <li><span class="release-badge fixed">Fixed</span> Restored Quick Links toggle</li>
+                        <li><span class="release-badge fixed">Fixed</span> Restored New Tab Results toggle</li>
                     </ul>
                 </div>
 
                 <div class="release-section">
-                    <h3 class="release-section-title">⌨️ Keyboard Shortcuts</h3>
+                    <h3 class="release-section-title">🎨 Wallpaper & UI</h3>
                     <ul class="release-list">
+                        <li><span class="release-badge new">New</span> Minimal Gradient wallpaper</li>
+                        <li><span class="release-badge new">New</span> Subtle Mesh wallpaper</li>
+                        <li><span class="release-badge improved">Improved</span> Wallpaper preview buttons</li>
+                        <li><span class="release-badge improved">Improved</span> Hover effects with shadows</li>
+                        <li><span class="release-badge fixed">Fixed</span> Black screen wallpaper bug</li>
+                    </ul>
+                </div>
+
+                <div class="release-section">
+                    <h3 class="release-section-title">⌨️ New Shortcuts</h3>
+                    <ul class="release-list">
+                        <li><kbd>Ctrl+Shift+X</kbd> — Contextualize selected text</li>
+                        <li><kbd>Alt+B</kbd> — Footsteps (browsing trail)</li>
                         <li><kbd>Ctrl+K</kbd> — Command Palette</li>
-                        <li><kbd>/</kbd> — Focus Search</li>
-                        <li><kbd>Ctrl+Shift+H</kbd> — Toggle Thoughts</li>
-                        <li><kbd>Escape</kbd> — Close Modals</li>
-                    </ul>
-                </div>
-
-                <div class="release-section">
-                    <h3 class="release-section-title">🎨 UI Improvements</h3>
-                    <ul class="release-list">
-                        <li><span class="release-badge improved">Improved</span> Command Palette follows theme</li>
-                        <li><span class="release-badge improved">Improved</span> SVG icons replace emojis</li>
-                        <li><span class="release-badge improved">Improved</span> Enhanced microanimations</li>
-                        <li><span class="release-badge fixed">Fixed</span> Quick Links toggle animation</li>
-                        <li><span class="release-badge fixed">Fixed</span> Dropdown visibility in dark mode</li>
                     </ul>
                 </div>
 

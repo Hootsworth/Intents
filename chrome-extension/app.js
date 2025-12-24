@@ -2,16 +2,10 @@
  * Intents Search - Home Page JavaScript
  */
 
-const SEARCH_ENGINES = {
-    google: { name: 'Google', url: 'https://www.google.com/search?q=' },
-    duckduckgo: { name: 'DuckDuckGo', url: 'https://duckduckgo.com/?q=' },
-    bing: { name: 'Bing', url: 'https://www.bing.com/search?q=' },
-    brave: { name: 'Brave', url: 'https://search.brave.com/search?q=' }
-};
+const GOOGLE_SEARCH_URL = 'https://www.google.com/search?q=';
 
 const state = {
     settings: {
-        defaultEngine: 'google',
         style: 'subtle',  // Standard Stoic Style
         theme: 'dark',    // 'dark' or 'light'
         showQuickLinks: true,
@@ -19,9 +13,17 @@ const state = {
         showAITaskbar: true,
         forceDarkMode: false,
         showQuote: false,  // Opt-in daily quote
+        showGreeting: true,
+        showFocusGoal: true,
+        showDailyStats: true,
         customBackground: 'none' // Curated background ID or 'none'
     },
-    quickLinks: []
+    quickLinks: [],
+    stats: {
+        searchesToday: 0,
+        thoughtsCount: 0,
+        lastDate: null
+    }
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -29,6 +31,8 @@ document.addEventListener('DOMContentLoaded', () => {
     loadQuickLinks();
     initTimeWidget();
     initGreeting();
+    initFocusGoal();
+    initDailyStats();
     initRecentSearches();
     initThoughtsPanel();
     initEventListeners();
@@ -43,9 +47,27 @@ function loadSettings() {
     if (saved) {
         try { state.settings = { ...state.settings, ...JSON.parse(saved) }; } catch (e) { }
     }
-    document.getElementById('defaultEngine').value = state.settings.defaultEngine;
-    document.getElementById('showQuickLinks').checked = state.settings.showQuickLinks;
-    document.getElementById('newTabResults').checked = state.settings.newTabResults;
+
+    // Quick Links
+    const showQuickLinksEl = document.getElementById('showQuickLinks');
+    if (showQuickLinksEl) {
+        showQuickLinksEl.checked = state.settings.showQuickLinks;
+        showQuickLinksEl.addEventListener('change', (e) => {
+            state.settings.showQuickLinks = e.target.checked;
+            document.querySelector('.quick-links')?.classList.toggle('hidden', !e.target.checked);
+            saveSettings();
+        });
+    }
+
+    // New Tab Results
+    const newTabResultsEl = document.getElementById('newTabResults');
+    if (newTabResultsEl) {
+        newTabResultsEl.checked = state.settings.newTabResults;
+        newTabResultsEl.addEventListener('change', (e) => {
+            state.settings.newTabResults = e.target.checked;
+            saveSettings();
+        });
+    }
 
     // AI Taskbar
     const aiTaskbarCheckbox = document.getElementById('showAITaskbar');
@@ -74,9 +96,46 @@ function loadSettings() {
         });
     }
 
+    // Greeting
+    const showGreetingCheckbox = document.getElementById('showGreeting');
+    if (showGreetingCheckbox) {
+        showGreetingCheckbox.checked = state.settings.showGreeting;
+        showGreetingCheckbox.addEventListener('change', (e) => {
+            state.settings.showGreeting = e.target.checked;
+            document.getElementById('greetingSection')?.classList.toggle('hidden', !e.target.checked);
+            saveSettings();
+        });
+    }
+
+    // Focus Goal
+    const showFocusGoalCheckbox = document.getElementById('showFocusGoal');
+    if (showFocusGoalCheckbox) {
+        showFocusGoalCheckbox.checked = state.settings.showFocusGoal;
+        showFocusGoalCheckbox.addEventListener('change', (e) => {
+            state.settings.showFocusGoal = e.target.checked;
+            document.getElementById('focusGoalWidget')?.classList.toggle('hidden', !e.target.checked);
+            saveSettings();
+        });
+    }
+
+    // Daily Stats
+    const showDailyStatsCheckbox = document.getElementById('showDailyStats');
+    if (showDailyStatsCheckbox) {
+        showDailyStatsCheckbox.checked = state.settings.showDailyStats;
+        showDailyStatsCheckbox.addEventListener('change', (e) => {
+            state.settings.showDailyStats = e.target.checked;
+            document.getElementById('dailyStats')?.classList.toggle('hidden', !e.target.checked);
+            saveSettings();
+        });
+    }
 
     const aiTaskbar = document.getElementById('aiTaskbar');
     if (aiTaskbar) aiTaskbar.style.display = state.settings.showAITaskbar ? 'flex' : 'none';
+
+    // Apply initial visibility
+    document.getElementById('greetingSection')?.classList.toggle('hidden', !state.settings.showGreeting);
+    document.getElementById('focusGoalWidget')?.classList.toggle('hidden', !state.settings.showFocusGoal);
+    document.getElementById('dailyStats')?.classList.toggle('hidden', !state.settings.showDailyStats);
 
     // Style buttons removal handled in HTML
     document.documentElement.setAttribute('data-style', 'subtle');
@@ -124,7 +183,7 @@ function applyBackground() {
     }
 
     // Clear previous state
-    wp.classList.remove('animated');
+    wp.classList.remove('minimal-gradient', 'minimal-mesh');
 
     if (!hasWallpaper) {
         wp.classList.remove('active');
@@ -134,13 +193,22 @@ function applyBackground() {
         return;
     }
 
-    if (bgId === 'animated-stoic-flow') {
+    // Handle flat minimal backgrounds
+    if (bgId === 'minimal-gradient') {
         wp.style.backgroundImage = 'none';
-        wp.classList.add('animated');
+        wp.classList.add('minimal-gradient');
         wp.classList.add('active');
         return;
     }
 
+    if (bgId === 'minimal-mesh') {
+        wp.style.backgroundImage = 'none';
+        wp.classList.add('minimal-mesh');
+        wp.classList.add('active');
+        return;
+    }
+
+    // Unsplash images
     const imgUrl = `https://images.unsplash.com/${bgId}?auto=format&fit=crop&w=1920&q=80`;
 
     // Predownload for smooth transition
@@ -230,23 +298,117 @@ function updateTime() {
 
 // Time-based greeting
 function initGreeting() {
-    const greetingEl = document.getElementById('greeting');
+    const greetingEl = document.getElementById('greetingText');
     if (!greetingEl) return;
 
     const hour = new Date().getHours();
     let greeting = '';
 
     if (hour >= 5 && hour < 12) {
-        greeting = 'Good morning';
+        greeting = 'Good morning ☀️';
     } else if (hour >= 12 && hour < 17) {
-        greeting = 'Good afternoon';
+        greeting = 'Good afternoon 🌤️';
     } else if (hour >= 17 && hour < 21) {
-        greeting = 'Good evening';
+        greeting = 'Good evening 🌅';
     } else {
-        greeting = 'Good night';
+        greeting = 'Good night 🌙';
     }
 
     greetingEl.textContent = greeting;
+}
+
+// Focus Goal Widget
+function initFocusGoal() {
+    const widget = document.getElementById('focusGoalWidget');
+    const input = document.getElementById('focusInput');
+    const display = document.getElementById('focusDisplay');
+    const focusText = document.getElementById('focusText');
+    const clearBtn = document.getElementById('focusClear');
+
+    if (!widget || !input || !display || !focusText || !clearBtn) return;
+
+    // Load saved focus for today
+    const today = new Date().toDateString();
+    const savedFocus = localStorage.getItem('intents-focus');
+    const savedDate = localStorage.getItem('intents-focus-date');
+
+    if (savedFocus && savedDate === today) {
+        focusText.textContent = savedFocus;
+        input.classList.add('hidden');
+        display.classList.add('active');
+    }
+
+    // Save focus on enter
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && input.value.trim()) {
+            const focus = input.value.trim();
+            focusText.textContent = focus;
+            localStorage.setItem('intents-focus', focus);
+            localStorage.setItem('intents-focus-date', today);
+            input.classList.add('hidden');
+            display.classList.add('active');
+        }
+    });
+
+    // Clear focus
+    clearBtn.addEventListener('click', () => {
+        localStorage.removeItem('intents-focus');
+        localStorage.removeItem('intents-focus-date');
+        focusText.textContent = '';
+        input.value = '';
+        input.classList.remove('hidden');
+        display.classList.remove('active');
+        input.focus();
+    });
+}
+
+// Daily Stats Widget
+function initDailyStats() {
+    const searchCountEl = document.getElementById('searchCount');
+    const thoughtCountEl = document.getElementById('thoughtCount');
+
+    if (!searchCountEl || !thoughtCountEl) return;
+
+    // Load stats
+    const today = new Date().toDateString();
+    const savedStats = localStorage.getItem('intents-stats');
+
+    if (savedStats) {
+        try {
+            const stats = JSON.parse(savedStats);
+            if (stats.date === today) {
+                state.stats.searchesToday = stats.searches || 0;
+            } else {
+                // Reset for new day
+                state.stats.searchesToday = 0;
+                localStorage.setItem('intents-stats', JSON.stringify({ date: today, searches: 0 }));
+            }
+        } catch (e) {
+            state.stats.searchesToday = 0;
+        }
+    }
+
+    // Get thoughts count
+    const thoughts = localStorage.getItem('hold-that-thought-items');
+    if (thoughts) {
+        try {
+            state.stats.thoughtsCount = JSON.parse(thoughts).length;
+        } catch (e) {
+            state.stats.thoughtsCount = 0;
+        }
+    }
+
+    searchCountEl.textContent = state.stats.searchesToday;
+    thoughtCountEl.textContent = state.stats.thoughtsCount;
+}
+
+// Increment search count
+function incrementSearchCount() {
+    const today = new Date().toDateString();
+    state.stats.searchesToday++;
+    localStorage.setItem('intents-stats', JSON.stringify({ date: today, searches: state.stats.searchesToday }));
+    const searchCountEl = document.getElementById('searchCount');
+    if (searchCountEl) searchCountEl.textContent = state.stats.searchesToday;
 }
 
 // Daily Quote Feature
@@ -330,9 +492,24 @@ function initRecentSearches() {
         }
     });
 
-    // Filter as you type
+    // Filter as you type + Calculator trigger
     searchInput.addEventListener('input', () => {
-        const query = searchInput.value.toLowerCase();
+        const value = searchInput.value;
+        const query = value.toLowerCase();
+
+        // Real-time calculator trigger on '='
+        if (value.includes('=')) {
+            const expr = value.split('=')[0];
+            const result = evaluateMathExpression(expr);
+            if (result !== null) {
+                showCalcResult(expr, result);
+                return;
+            }
+        } else {
+            // Hide result if = is removed
+            document.getElementById('calcResult')?.remove();
+        }
+
         if (query === '' && recentSearches.length > 0) {
             renderRecentSearches();
             recentDropdown.style.display = 'block';
@@ -671,7 +848,7 @@ function initEventListeners() {
     });
 }
 
-// Handle search - engines are default, intents are secondary
+// Handle search - Google only
 function handleSearch(e) {
     e.preventDefault();
 
@@ -688,53 +865,29 @@ function handleSearch(e) {
     // Save to recent searches
     saveRecentSearch(query);
 
-    // Check if using intent-based search
-    const activeIntentBtn = document.querySelector('.intent-btn.active');
-    if (activeIntentBtn) {
-        const intent = activeIntentBtn.dataset.intent;
-        const resultsUrl = `results.html?q=${encodeURIComponent(query)}&intent=${intent}`;
-        if (state.settings.newTabResults) {
-            window.open(resultsUrl, '_blank');
-        } else {
-            document.body.classList.add('page-exit-active');
-            setTimeout(() => {
-                window.location.href = resultsUrl;
-            }, 300); // 300ms matches CSS transition
-        }
-        return;
-    }
-
-    // Default: Use search engine
-    const engineRadio = document.querySelector('input[name="engine"]:checked');
-    const engine = engineRadio ? engineRadio.value : state.settings.defaultEngine;
-    const url = SEARCH_ENGINES[engine].url + encodeURIComponent(query);
-
-    if (state.settings.newTabResults) {
-        window.open(url, '_blank');
-    } else {
-        document.body.classList.add('page-exit-active');
-        setTimeout(() => {
-            window.location.href = url;
-        }, 300);
-    }
+    // Search with Google
+    const url = GOOGLE_SEARCH_URL + encodeURIComponent(query);
+    document.body.classList.add('page-exit-active');
+    setTimeout(() => {
+        window.location.href = url;
+    }, 300);
 }
 
 // Quick Calculator - evaluate math expressions
 function evaluateMathExpression(query) {
-    // Trim and check if empty
-    query = query.trim();
+    // Trim and handle trailing =
+    query = query.replace(/=$/, '').trim();
     if (!query) return null;
 
-    // Check if it looks like a math expression (numbers, operators, functions, parentheses)
-    // Allow: digits, spaces, operators (+, -, *, /, ^, %), parentheses, decimal points
-    // Also allow function names: sqrt, sin, cos, tan, log, ln, pi, e
-    const mathPattern = /^[\d\s+\-*/().^%]+$|^[\d\s+\-*/().^%]*(sqrt|sin|cos|tan|log|ln|pi|e)[\d\s+\-*/().^%]*/i;
+    // Check if it looks like a math expression
+    const mathPattern = /^[0-9\s+*/().^%\.-]+$|^[0-9\s+*/().^%\.-]*(sqrt|sin|cos|tan|log|ln|pi|e)[0-9\s+*/().^%\.-]*/i;
+    if (!mathPattern.test(query)) return null;
 
     // Must start with a number, opening paren, or function name
-    if (!/^[\d(]|^(sqrt|sin|cos|tan|log|ln|pi|e)/i.test(query)) return null;
+    if (!/^[0-9(]|^(sqrt|sin|cos|tan|log|ln|pi|e)/i.test(query)) return null;
 
-    // Must contain at least one operator
-    if (!/[+\-*/^%]/.test(query) && !/^(sqrt|sin|cos|tan|log|ln)\(/i.test(query)) return null;
+    // Must contain at least one operator or math function
+    if (!/[+*/^%\.-]/.test(query) && !/(sqrt|sin|cos|tan|log|ln)\(/i.test(query)) return null;
 
     try {
         // Replace common math functions with JS equivalents
@@ -750,7 +903,8 @@ function evaluateMathExpression(query) {
             .replace(/\be\b/gi, 'Math.E');
 
         // Security: only allow safe characters after replacements
-        if (/[^0-9+\-*/().%\s]/.test(expr.replace(/Math\.\w+/g, '').replace(/\*\*/g, ''))) {
+        const sanitized = expr.replace(/Math\.\w+/g, '').replace(/\*\*/g, '');
+        if (/[^0-9+*/().%\s\.-]/.test(sanitized)) {
             return null;
         }
 
@@ -772,7 +926,7 @@ function showCalcResult(expression, result) {
     // Remove existing result
     document.getElementById('calcResult')?.remove();
 
-    const searchBar = document.querySelector('.search-container');
+    const searchBar = document.getElementById('searchForm');
     const resultEl = document.createElement('div');
     resultEl.id = 'calcResult';
     resultEl.className = 'calc-result';
@@ -1077,9 +1231,11 @@ if (typeof chrome !== 'undefined' && chrome.storage) {
 // ========== COMMAND PALETTE ==========
 const COMMANDS = [
     { id: 'search', name: 'Focus Search', desc: 'Jump to search bar', icon: '🔍', action: () => document.getElementById('searchInput')?.focus() },
+    { id: 'contextualize', name: 'Contextualize', desc: 'Look up selected text (Ctrl+Shift+X)', icon: '📖', shortcut: ['Ctrl', 'Shift', 'X'], action: () => showNotification('Select text on any page, then press Ctrl+Shift+X') },
     { id: 'chatgpt', name: 'Open ChatGPT', desc: 'Open ChatGPT in new tab', icon: '🤖', action: () => window.open('https://chatgpt.com', '_blank') },
     { id: 'claude', name: 'Open Claude', desc: 'Open Claude AI in new tab', icon: '🧠', action: () => window.open('https://claude.ai', '_blank') },
     { id: 'gemini', name: 'Open Gemini', desc: 'Open Google Gemini', icon: '✨', action: () => window.open('https://gemini.google.com', '_blank') },
+    { id: 'perplexity', name: 'Open Perplexity', desc: 'Open Perplexity AI', icon: '🔮', action: () => window.open('https://perplexity.ai', '_blank') },
     { id: 'thoughts', name: 'Toggle Thoughts', desc: 'Show or hide saved thoughts', icon: '💭', shortcut: ['Ctrl', 'Shift', 'H'], action: () => document.getElementById('thoughtsPanel')?.classList.toggle('active') },
     { id: 'settings', name: 'Open Settings', desc: 'Open extension settings', icon: '⚙️', action: () => document.getElementById('settingsModal')?.classList.add('active') },
     { id: 'addlink', name: 'Add Quick Link', desc: 'Add a new quick link', icon: '🔗', action: () => document.getElementById('addLinkModal')?.classList.add('active') },
@@ -1087,6 +1243,7 @@ const COMMANDS = [
     { id: 'stackoverflow', name: 'Open Stack Overflow', desc: 'Go to Stack Overflow', icon: '📚', action: () => window.open('https://stackoverflow.com', '_blank') },
     { id: 'mdn', name: 'Open MDN Docs', desc: 'Mozilla Developer Network', icon: '📖', action: () => window.open('https://developer.mozilla.org', '_blank') },
     { id: 'commands', name: 'Show All Commands', desc: 'View keyboard shortcuts', icon: '⌨️', action: () => document.getElementById('commandsModal')?.classList.add('active') },
+    { id: 'releasenotes', name: 'Release Notes', desc: 'See what\'s new in this version', icon: '📋', action: () => document.getElementById('releaseModal')?.classList.add('active') },
 ];
 
 let selectedCommandIndex = 0;
@@ -1257,4 +1414,11 @@ function initGlobalShortcuts() {
             document.getElementById('calcResult')?.classList.remove('visible');
         }
     });
+}
+
+// Helper: Escape HTML to prevent XSS
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
