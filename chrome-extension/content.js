@@ -42,6 +42,23 @@
         if (request.action === 'toggleDarkMode') {
             toggleGlobalDarkMode(request.enabled);
         }
+
+        if (request.action === 'triggerContextualize') {
+            // Re-use logic for shortcut
+            if (isMinimized && savedContext) {
+                restoreContextPopup();
+                return;
+            }
+
+            const selection = window.getSelection().toString().trim();
+            if (selection) {
+                showContextualizePopup(selection);
+            } else if (savedContext) {
+                restoreContextPopup();
+            } else {
+                showNotification('Select some text first!');
+            }
+        }
     });
 
     function toggleGlobalDarkMode(enabled) {

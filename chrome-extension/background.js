@@ -141,6 +141,10 @@ chrome.commands.onCommand.addListener(async (command) => {
     if (command === 'quick-ai') {
         sendMessageOrInject(tab, { action: 'showAIBar' }, ['thought-popup.css'], ['content.js']);
     }
+
+    if (command === 'contextualize') {
+        sendMessageOrInject(tab, { action: 'triggerContextualize' }, ['thought-popup.css'], ['content.js']);
+    }
 });
 
 // Handle save thought from content script
