@@ -898,23 +898,25 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%) scale(0.9);
-            background: linear-gradient(145deg, #1e1e1e 0%, #141414 100%);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 16px;
+            background: rgba(28, 28, 30, 0.85);
+            backdrop-filter: blur(40px) saturate(190%);
+            -webkit-backdrop-filter: blur(40px) saturate(190%);
+            border: 0.5px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
             padding: 0;
             max-width: 520px;
             width: 90%;
-            max-height: 450px;
+            max-height: 480px;
             overflow: hidden;
             z-index: 999999;
             box-shadow: 
-                0 0 0 1px rgba(255, 255, 255, 0.05),
-                0 25px 50px -12px rgba(0, 0, 0, 0.8),
-                0 0 100px rgba(100, 100, 255, 0.05);
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            color: #e5e5e5;
+                0 0 0 0.5px rgba(255, 255, 255, 0.05),
+                0 30px 60px -12px rgba(0, 0, 0, 0.9),
+                0 0 0 1px rgba(0, 0, 0, 0.2);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+            color: rgba(255, 255, 255, 0.85);
             opacity: 0;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
         `;
 
         popup.innerHTML = `
@@ -934,22 +936,21 @@
                 .ctx-header {
                     display: flex;
                     align-items: center;
-                    justify-content: space-between;
-                    padding: 14px 18px;
-                    background: rgba(255, 255, 255, 0.02);
-                    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+                    padding: 12px 16px;
+                    background: rgba(255, 255, 255, 0.03);
+                    border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
                     cursor: grab;
                     user-select: none;
                 }
                 .ctx-header:active { cursor: grabbing; }
                 .ctx-controls {
                     display: flex;
-                    gap: 10px;
-                    order: 2;
+                    gap: 8px;
+                    margin-right: 16px;
                 }
                 .ctx-btn {
-                    width: 18px;
-                    height: 18px;
+                    width: 12px;
+                    height: 12px;
                     border-radius: 50%;
                     border: none;
                     cursor: pointer;
@@ -999,20 +1000,18 @@
                     flex: 1;
                     display: flex;
                     align-items: center;
-                    gap: 10px;
-                }
-                .ctx-title-icon {
-                    font-size: 1.2em;
-                    animation: ctx-pulse 2s ease-in-out infinite;
+                    justify-content: center;
+                    margin-right: 52px; /* Offset for centered look */
                 }
                 .ctx-title-text {
-                    font-size: 0.95em;
-                    font-weight: 600;
-                    color: #fff;
+                    font-size: 0.85em;
+                    font-weight: 500;
+                    color: rgba(255, 255, 255, 0.5);
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     max-width: 300px;
+                    letter-spacing: 0.02em;
                 }
                 .ctx-body {
                     padding: 20px 22px;
@@ -1127,13 +1126,12 @@
                 }
             </style>
             <div class="ctx-header" id="ctx-header">
-                <div class="ctx-title">
-                    <span class="ctx-title-icon">📖</span>
-                    <span class="ctx-title-text">"${escapeHtml(term.length > 60 ? term.substring(0, 60) + '...' : term)}"</span>
-                </div>
                 <div class="ctx-controls">
-                    <button class="ctx-btn ctx-btn-minimize" id="ctx-minimize" title="Minimize"></button>
                     <button class="ctx-btn ctx-btn-close" id="ctx-close" title="Close"></button>
+                    <button class="ctx-btn ctx-btn-minimize" id="ctx-minimize" title="Minimize"></button>
+                </div>
+                <div class="ctx-title">
+                    <span class="ctx-title-text">${escapeHtml(term.length > 40 ? term.substring(0, 40) + '...' : term)}</span>
                 </div>
             </div>
             <div class="ctx-body" id="ctx-body">

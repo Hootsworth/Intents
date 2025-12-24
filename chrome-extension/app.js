@@ -12,7 +12,6 @@ const state = {
         newTabResults: false,
         showAITaskbar: true,
         forceDarkMode: false,
-        showQuote: false,  // Opt-in daily quote
         showGreeting: true,
         showFocusGoal: true,
         showDailyStats: true,
@@ -37,7 +36,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initThoughtsPanel();
     initEventListeners();
     applyStyles();
-    initDailyQuote();
     initCommandPalette();
     initGlobalShortcuts();
 });
@@ -85,16 +83,6 @@ function loadSettings() {
         forceDarkCheckbox.checked = state.settings.forceDarkMode;
     }
 
-    // Daily Quote
-    const showQuoteCheckbox = document.getElementById('showQuote');
-    if (showQuoteCheckbox) {
-        showQuoteCheckbox.checked = state.settings.showQuote;
-        showQuoteCheckbox.addEventListener('change', (e) => {
-            state.settings.showQuote = e.target.checked;
-            saveSettings();
-            initDailyQuote();
-        });
-    }
 
     // Greeting
     const showGreetingCheckbox = document.getElementById('showGreeting');
@@ -411,64 +399,6 @@ function incrementSearchCount() {
     if (searchCountEl) searchCountEl.textContent = state.stats.searchesToday;
 }
 
-// Daily Quote Feature
-async function initDailyQuote() {
-    const container = document.getElementById('quoteContainer');
-    const textEl = document.getElementById('quoteText');
-    const authorEl = document.getElementById('quoteAuthor');
-
-    if (!container || !textEl || !authorEl) return;
-
-    // Check if feature is enabled
-    if (!state.settings.showQuote) {
-        container.style.display = 'none';
-        return;
-    }
-
-    container.style.display = 'block';
-
-    // Check cache first (refresh every 6 hours)
-    const cached = localStorage.getItem('intents-daily-quote');
-    const cacheTime = localStorage.getItem('intents-quote-time');
-    const now = Date.now();
-    const sixHours = 6 * 60 * 60 * 1000;
-
-    if (cached && cacheTime && (now - parseInt(cacheTime)) < sixHours) {
-        try {
-            const quote = JSON.parse(cached);
-            textEl.textContent = quote.text;
-            authorEl.textContent = quote.author;
-            return;
-        } catch (e) { }
-    }
-
-    // Fetch new quote
-    try {
-        const response = await fetch('https://quoteslate.vercel.app/api/quotes/random');
-        if (response.ok) {
-            const data = await response.json();
-            const quote = { text: data.quote, author: data.author };
-            textEl.textContent = quote.text;
-            authorEl.textContent = quote.author;
-            localStorage.setItem('intents-daily-quote', JSON.stringify(quote));
-            localStorage.setItem('intents-quote-time', now.toString());
-        } else {
-            throw new Error('API failed');
-        }
-    } catch (e) {
-        // Fallback quotes
-        const fallbacks = [
-            { text: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
-            { text: "Simplicity is the ultimate sophistication.", author: "Leonardo da Vinci" },
-            { text: "Focus on being productive instead of busy.", author: "Tim Ferriss" },
-            { text: "Less is more.", author: "Ludwig Mies van der Rohe" },
-            { text: "The secret of getting ahead is getting started.", author: "Mark Twain" }
-        ];
-        const fallback = fallbacks[Math.floor(Math.random() * fallbacks.length)];
-        textEl.textContent = fallback.text;
-        authorEl.textContent = fallback.author;
-    }
-}
 
 // Recent searches functionality
 let recentSearches = [];
