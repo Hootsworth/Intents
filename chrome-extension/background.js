@@ -218,6 +218,41 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         });
         return true;
     }
+
+    if (request.action === 'openInIntentMode') {
+        // Open the URL in a new tab and activate Intent Mode
+        chrome.tabs.create({ url: request.url }, async (tab) => {
+            // Wait for page to load, then inject Intent Mode
+            const onUpdated = (tabId, changeInfo) => {
+                if (tabId === tab.id && changeInfo.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(onUpdated);
+
+                    // Inject Intent Mode CSS and JS
+                    chrome.scripting.insertCSS({
+                        target: { tabId: tab.id },
+                        files: ['intent-mode.css']
+                    }).then(() => {
+                        return chrome.scripting.executeScript({
+                            target: { tabId: tab.id },
+                            files: ['intent-mode.js']
+                        });
+                    }).then(() => {
+                        // Activate Intent Mode with saved scroll position
+                        setTimeout(() => {
+                            chrome.tabs.sendMessage(tab.id, {
+                                action: 'activateIntentMode',
+                                intent: 'read',
+                                scrollTop: request.scrollTop
+                            });
+                        }, 300);
+                    }).catch(err => console.log('Intent Mode injection error:', err));
+                }
+            };
+            chrome.tabs.onUpdated.addListener(onUpdated);
+        });
+        sendResponse({ success: true });
+        return true;
+    }
 });
 
 // Alarm handler

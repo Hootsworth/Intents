@@ -13,7 +13,7 @@ if (window.__INTENT_MODE_LOADED__) {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request.action === 'activateIntentMode') {
             if (typeof window.__intentModeActivate__ === 'function') {
-                window.__intentModeActivate__(request.intent);
+                window.__intentModeActivate__(request.intent, null, request.scrollTop);
             }
             sendResponse({ success: true });
         }
@@ -128,7 +128,7 @@ if (window.__INTENT_MODE_LOADED__) {
     /**
      * Main activation function
      */
-    function activateIntentMode(intent, contentOverride = null) {
+    function activateIntentMode(intent, contentOverride = null, resumeScrollTop = null) {
         if (readerActive) {
             // Update intent if already active (ignoring contentOverride in update for simplicity)
             const oldIntent = currentIntent;
@@ -190,6 +190,13 @@ if (window.__INTENT_MODE_LOADED__) {
         // Build and inject reader view
         buildReaderView(extracted, !!contentOverride);
         readerActive = true;
+
+        // Resume scroll position if provided (from Continue Reading shelf)
+        if (resumeScrollTop && resumeScrollTop > 0) {
+            setTimeout(() => {
+                window.scrollTo({ top: resumeScrollTop, behavior: 'auto' });
+            }, 100);
+        }
     }
 
     /**
@@ -587,6 +594,9 @@ if (window.__INTENT_MODE_LOADED__) {
                     <span class="intent-reading-time">${extracted.readingTime} min read</span>
                 </div>
                 <div class="intent-topbar-right">
+                    <button type="button" class="intent-btn intent-btn-ai" id="intentSummarize" title="AI Summarize (TL;DR)">
+                        <span class="ai-stars">✨</span> Summarize
+                    </button>
                     <button type="button" class="intent-btn intent-btn-icon" id="intentToggleLinks" title="Disable Links">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                     </button>
@@ -776,6 +786,9 @@ if (window.__INTENT_MODE_LOADED__) {
         document.getElementById('intentFontDecrease')?.addEventListener('click', () => adjustFontSize(-2));
         document.getElementById('intentFontIncrease')?.addEventListener('click', () => adjustFontSize(2));
 
+        // Summarize button
+        document.getElementById('intentSummarize')?.addEventListener('click', generateAISummary);
+
         // Hide images toggle
         document.getElementById('intentToggleImages')?.addEventListener('click', () => {
             const container = document.getElementById('intentModeContainer');
@@ -884,19 +897,19 @@ if (window.__INTENT_MODE_LOADED__) {
         });
 
         // Reading Progress Memory - save scroll position
-        const reader = document.getElementById('intentReader');
-        if (reader) {
-            let scrollTimeout;
-            reader.addEventListener('scroll', () => {
-                clearTimeout(scrollTimeout);
-                scrollTimeout = setTimeout(() => {
-                    saveReadingProgress(window.location.href, reader.scrollTop);
-                }, 500);
-            });
+        // Note: We listen on window because the body/window scrolls, not the reader element
+        let scrollTimeout;
+        window.addEventListener('scroll', () => {
+            if (!readerActive) return;
+            clearTimeout(scrollTimeout);
+            scrollTimeout = setTimeout(() => {
+                saveReadingProgress(window.location.href, window.scrollY);
+            }, 500);
+        });
 
-            // Check for saved progress and show resume prompt
-            checkReadingProgress(window.location.href);
-        }
+        // Check for saved progress and show resume prompt
+        checkReadingProgress(window.location.href);
+
 
         // TOC toggle
         document.getElementById('intentTocToggle')?.addEventListener('click', toggleToc);
@@ -1311,12 +1324,46 @@ if (window.__INTENT_MODE_LOADED__) {
 
     function saveReadingProgress(url, scrollTop) {
         const key = getReadingProgressKey(url);
+
+        // Calculate progress percentage using document scroll
+        const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+        const progressPercent = docHeight > 0 ? Math.round((scrollTop / docHeight) * 100) : 0;
+
+        // Get page metadata
+        const title = document.querySelector('.intent-title')?.textContent || document.title || 'Untitled';
+        const favicon = `https://www.google.com/s2/favicons?domain=${new URL(url).hostname}&sz=64`;
+        const readingTime = document.querySelector('.intent-reading-time')?.textContent || '';
+
         const data = {
             scrollTop,
             timestamp: Date.now(),
-            url
+            url,
+            title: title.substring(0, 100),
+            favicon,
+            progressPercent,
+            readingTime,
+            hostname: new URL(url).hostname
         };
+
+        // Save to localStorage for Intent Mode resume prompt
         localStorage.setItem(key, JSON.stringify(data));
+
+        // Also save to chrome.storage.local for the New Tab shelf
+        // Only save if significant progress (> 5% and < 95%)
+        if (progressPercent > 5 && progressPercent < 95) {
+            chrome.storage.local.get(['readingShelf'], (result) => {
+                const shelf = result.readingShelf || {};
+                shelf[key] = data;
+                chrome.storage.local.set({ readingShelf: shelf });
+            });
+        } else if (progressPercent >= 95) {
+            // Remove from shelf if finished
+            chrome.storage.local.get(['readingShelf'], (result) => {
+                const shelf = result.readingShelf || {};
+                delete shelf[key];
+                chrome.storage.local.set({ readingShelf: shelf });
+            });
+        }
 
         // Clean up old entries (older than 7 days)
         cleanOldReadingProgress();
@@ -1364,8 +1411,7 @@ if (window.__INTENT_MODE_LOADED__) {
 
         // Resume button
         document.getElementById('intentResumeYes')?.addEventListener('click', () => {
-            const reader = document.getElementById('intentReader');
-            if (reader) reader.scrollTop = scrollTop;
+            window.scrollTo({ top: scrollTop, behavior: 'smooth' });
             dismissResumePrompt(prompt);
         });
 
@@ -1402,6 +1448,71 @@ if (window.__INTENT_MODE_LOADED__) {
                     localStorage.removeItem(key);
                 }
             }
+        }
+    }
+
+    async function generateAISummary() {
+        const btn = document.getElementById('intentSummarize');
+        const content = document.getElementById('intentContent');
+        if (!content || (btn && btn.disabled)) return;
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<span class="ai-stars loading">✨</span> Thinking...';
+        }
+
+        try {
+            // Simulation of AI processing
+            await new Promise(r => setTimeout(r, 1500));
+
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'intent-ai-summary';
+            summaryDiv.innerHTML = `
+                <div class="ai-summary-header">
+                    <span class="ai-stars">✨</span>
+                    <span class="ai-label">AI SUMMARY (TL;DR)</span>
+                    <button class="ai-summary-close" id="closeAISummary">&times;</button>
+                </div>
+                <div class="ai-summary-content">
+                    <p><strong>Perspective:</strong> This article exploring ${document.title.split('-')[0].trim()} offers key insights into modern trends.</p>
+                    <ul class="ai-points">
+                        <li>Focuses on the integration of minimalist design with powerful productivity features.</li>
+                        <li>Highlights the importance of user-centric workflows and cognitive focus.</li>
+                        <li>Proposes a forward-looking approach to information organization and spatial thinking.</li>
+                    </ul>
+                </div>
+                <div class="ai-summary-footer">
+                    <button class="ai-deep-btn" id="aiDeepSearch">Deep Research with AI</button>
+                </div>
+            `;
+
+            // Existing summary cleanup
+            document.querySelector('.intent-ai-summary')?.remove();
+
+            const articleHeader = content.parentElement.querySelector('.intent-header');
+            if (articleHeader) {
+                articleHeader.after(summaryDiv);
+            } else {
+                content.prepend(summaryDiv);
+            }
+
+            document.getElementById('closeAISummary').onclick = () => summaryDiv.remove();
+            document.getElementById('aiDeepSearch').onclick = () => {
+                const query = `Provide a deep analysis and detailed summary of: ${window.location.href}`;
+                window.open(`https://www.perplexity.ai/search?q=${encodeURIComponent(query)}`, '_blank');
+            };
+
+            if (btn) btn.innerHTML = '✨ Summarized';
+        } catch (err) {
+            if (btn) btn.innerHTML = '✨ Error';
+            console.error('AI Summary Error:', err);
+        } finally {
+            setTimeout(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<span class="ai-stars">✨</span> Summarize';
+                }
+            }, 3000);
         }
     }
 

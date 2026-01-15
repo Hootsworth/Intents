@@ -24,6 +24,47 @@
     --stoic-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
+[data-style="carbon-copy"] {
+    --stoic-bg: #fff;
+    --stoic-bg-solid: #fff;
+    --stoic-surface: #fee440;
+    --stoic-hover: #beee11;
+    --stoic-active: #00f5d4;
+    --stoic-text: #000;
+    --stoic-text-secondary: #000;
+    --stoic-text-muted: rgba(0, 0, 0, 0.6);
+    --stoic-border: #000;
+    --stoic-border-focus: #000;
+    --stoic-blur: none;
+    --stoic-radius: 0;
+    --stoic-radius-sm: 0;
+}
+
+[data-style="carbon-copy"] .htt-modal {
+    border: 4px solid #000;
+    box-shadow: 12px 12px 0px #000;
+}
+
+[data-style="carbon-copy"] .htt-header {
+    background: #00bbf9;
+    border-bottom: 3px solid #000;
+}
+
+[data-style="carbon-copy"] .htt-save {
+    background: #beee11;
+    color: #000;
+    border: 2px solid #000;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+[data-style="carbon-copy"] .htt-cancel {
+    background: #fff;
+    border: 2px solid #000;
+    color: #000;
+}
+
+
 /* ============================================
    Base Popup Container
    ============================================ */
@@ -1193,4 +1234,128 @@
     /* Show X on hover */
     stroke: white;
     /* White on hover */
+}
+
+/* ===== CARBON COPY CONTEXTUALIZE & FOOTSTEPS ===== */
+
+[data-style="carbon-copy"] .ctx-overlay,
+[data-style="carbon-copy"] .footsteps-overlay {
+    background: rgba(255, 77, 109, 0.2);
+    backdrop-filter: blur(4px);
+}
+
+[data-style="carbon-copy"] .ctx-popup {
+    background: #fff;
+    border: 4px solid #000;
+    box-shadow: 15px 15px 0px #000;
+    border-radius: 0;
+    color: #000;
+}
+
+[data-style="carbon-copy"] .ctx-header {
+    background: #fee440;
+    border-bottom: 3px solid #000;
+}
+
+[data-style="carbon-copy"] .ctx-title-text {
+    color: #000;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+[data-style="carbon-copy"] .ctx-body {
+    background: #fff;
+}
+
+[data-style="carbon-copy"] .ctx-para,
+[data-style="carbon-copy"] .ctx-content p {
+    color: #000;
+    font-weight: 500;
+}
+
+[data-style="carbon-copy"] .ctx-footer {
+    background: #00bbf9;
+    border-top: 3px solid #000;
+}
+
+[data-style="carbon-copy"] .ctx-action-btn {
+    background: #fff;
+    border: 2px solid #000;
+    color: #000;
+    border-radius: 0;
+    font-weight: 700;
+}
+
+[data-style="carbon-copy"] .ctx-action-btn:hover {
+    background: #beee11;
+    transform: translate(-2px, -2px);
+    box-shadow: 4px 4px 0px #000;
+}
+
+[data-style="carbon-copy"] .footsteps-panel {
+    background: #fff;
+    border: 4px solid #000;
+    box-shadow: -10px 10px 0px #000;
+    border-radius: 0;
+}
+
+[data-style="carbon-copy"] .footsteps-header {
+    background: #00f5d4;
+    border-bottom: 3px solid #000;
+}
+
+[data-style="carbon-copy"] .footsteps-title {
+    color: #000;
+    font-weight: 900;
+}
+
+[data-style="carbon-copy"] .footsteps-item:hover {
+    background: #fee440;
+}
+
+[data-style="carbon-copy"] .footsteps-item-title {
+    color: #000;
+    font-weight: 700;
+}
+
+[data-style="carbon-copy"] .footsteps-item-meta {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+/* Add the base ctx styles that were removed from content.js inline */
+.ctx-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 999998;
+    opacity: 0;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ctx-popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: rgba(28, 28, 30, 0.85);
+    backdrop-filter: blur(40px) saturate(190%);
+    -webkit-backdrop-filter: blur(40px) saturate(190%);
+    border: 0.5px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 0;
+    max-width: 520px;
+    width: 90%;
+    max-height: 480px;
+    overflow: hidden;
+    z-index: 999999;
+    box-shadow:
+        0 0 0 0.5px rgba(255, 255, 255, 0.05),
+        0 30px 60px -12px rgba(0, 0, 0, 0.9),
+        0 0 0 1px rgba(0, 0, 0, 0.2);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    color: rgba(255, 255, 255, 0.85);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }

@@ -22,6 +22,11 @@ const state = {
         searchesToday: 0,
         thoughtsCount: 0,
         lastDate: null
+    },
+    focus: {
+        active: false,
+        timeLeft: 1500, // 25 minutes
+        timer: null
     }
 };
 
@@ -38,6 +43,10 @@ document.addEventListener('DOMContentLoaded', () => {
     applyStyles();
     initCommandPalette();
     initGlobalShortcuts();
+    initReadingShelf();
+    initFocusTimer();
+    initThoughtCanvas();
+    initBackgroundCuration();
 });
 
 function loadSettings() {
@@ -106,27 +115,17 @@ function loadSettings() {
         });
     }
 
-    // Daily Stats
-    const showDailyStatsCheckbox = document.getElementById('showDailyStats');
-    if (showDailyStatsCheckbox) {
-        showDailyStatsCheckbox.checked = state.settings.showDailyStats;
-        showDailyStatsCheckbox.addEventListener('change', (e) => {
-            state.settings.showDailyStats = e.target.checked;
-            document.getElementById('dailyStats')?.classList.toggle('hidden', !e.target.checked);
-            saveSettings();
-        });
-    }
-
     const aiTaskbar = document.getElementById('aiTaskbar');
     if (aiTaskbar) aiTaskbar.style.display = state.settings.showAITaskbar ? 'flex' : 'none';
 
     // Apply initial visibility
     document.getElementById('greetingSection')?.classList.toggle('hidden', !state.settings.showGreeting);
     document.getElementById('focusGoalWidget')?.classList.toggle('hidden', !state.settings.showFocusGoal);
-    document.getElementById('dailyStats')?.classList.toggle('hidden', !state.settings.showDailyStats);
 
-    // Style buttons removal handled in HTML
-    document.documentElement.setAttribute('data-style', 'subtle');
+    // Style buttons visibility
+    document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.style === state.settings.style);
+    });
 
     // Custom Background
     if (state.settings.customBackground) {
@@ -196,8 +195,11 @@ function applyBackground() {
         return;
     }
 
-    // Unsplash images
-    const imgUrl = `https://images.unsplash.com/${bgId}?auto=format&fit=crop&w=1920&q=80`;
+    // Unsplash or Picsum images
+    let imgUrl = bgId;
+    if (!bgId.startsWith('http')) {
+        imgUrl = `https://images.unsplash.com/${bgId}?auto=format&fit=crop&w=1920&q=80`;
+    }
 
     // Predownload for smooth transition
     const tempImg = new Image();
@@ -348,6 +350,75 @@ function initFocusGoal() {
         display.classList.remove('active');
         input.focus();
     });
+}
+
+// Deep Focus Timer Logic
+function initFocusTimer() {
+    const focusToggle = document.getElementById('focusToggle');
+    const focusTime = document.getElementById('focusTime');
+    const focusBanner = document.getElementById('focusBanner');
+    const stopFocus = document.getElementById('stopFocus');
+
+    if (!focusToggle || !focusTime || !focusBanner || !stopFocus) return;
+
+    focusToggle.addEventListener('click', () => {
+        if (!state.focus.active) {
+            startFocusSession();
+        } else {
+            toggleFocusDisplay();
+        }
+    });
+
+    stopFocus.addEventListener('click', stopFocusSession);
+
+    function startFocusSession() {
+        state.focus.active = true;
+        state.focus.timeLeft = 1500; // 25 mins
+        focusBanner.style.display = 'flex';
+        document.body.classList.add('focus-active');
+
+        updateFocusDisplay();
+
+        state.focus.timer = setInterval(() => {
+            state.focus.timeLeft--;
+            updateFocusDisplay();
+
+            if (state.focus.timeLeft <= 0) {
+                stopFocusSession();
+                notifyFocusComplete();
+            }
+        }, 1000);
+    }
+
+    function stopFocusSession() {
+        state.focus.active = false;
+        clearInterval(state.focus.timer);
+        focusBanner.style.display = 'none';
+        document.body.classList.remove('focus-active');
+        state.focus.timeLeft = 1500;
+        updateFocusDisplay();
+    }
+
+    function updateFocusDisplay() {
+        const mins = Math.floor(state.focus.timeLeft / 60);
+        const secs = state.focus.timeLeft % 60;
+        const timeStr = `${mins}:${secs.toString().padStart(2, '0')}`;
+        focusTime.textContent = timeStr;
+    }
+
+    function toggleFocusDisplay() {
+        // Just a subtle bounce to show it's active
+        focusToggle.style.transform = 'scale(1.1)';
+        setTimeout(() => focusToggle.style.transform = 'scale(1)', 200);
+    }
+
+    function notifyFocusComplete() {
+        if (Notification.permission === "granted") {
+            new Notification("Intents Focus", { body: "Focus session complete! Take a break." });
+        } else if (Notification.permission !== "denied") {
+            Notification.requestPermission();
+        }
+    }
 }
 
 // Daily Stats Widget
@@ -700,7 +771,15 @@ function initEventListeners() {
         if (e.target === commandsModal) commandsModal.classList.remove('active');
     });
 
-    // Style changes removal handled in HTML
+    // Style changes
+    document.querySelectorAll('.style-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            state.settings.style = btn.dataset.style;
+            saveSettings();
+            applyStyles();
+            document.querySelectorAll('.style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === state.settings.style));
+        });
+    });
 
     // Theme buttons (Dark / Light)
     document.querySelectorAll('.theme-btn').forEach(btn => {
@@ -782,8 +861,17 @@ function initEventListeners() {
 function handleSearch(e) {
     e.preventDefault();
 
-    const query = document.getElementById('searchInput').value.trim();
+    let query = document.getElementById('searchInput').value.trim();
     if (!query) return;
+
+    // AI Omnibox handling
+    if (query.startsWith('/ai ')) {
+        const aiQuery = query.substring(4).trim();
+        const aiUrl = `https://www.perplexity.ai/search?q=${encodeURIComponent(aiQuery)}`;
+        saveRecentSearch(query);
+        window.location.href = aiUrl;
+        return;
+    }
 
     // Check for math expression first
     const calcResult = evaluateMathExpression(query);
@@ -1351,4 +1439,263 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+}
+
+// ========== CONTINUE READING SHELF ==========
+// ========== ECHOES (CONTINUE READING) ==========
+function initReadingShelf() {
+    const echoesSection = document.getElementById('echoesSection');
+    const echoesGrid = document.getElementById('echoesGrid');
+
+    if (!echoesSection || !echoesGrid) return;
+
+    chrome.storage.local.get(['readingShelf'], (result) => {
+        const shelf = result.readingShelf || {};
+        const items = Object.values(shelf);
+
+        // Filter out old items (> 7 days)
+        const sevenDays = 7 * 24 * 60 * 60 * 1000;
+        const validItems = items.filter(item => Date.now() - item.timestamp < sevenDays);
+
+        if (validItems.length > 0) {
+            echoesSection.style.display = 'block';
+            echoesGrid.innerHTML = '';
+            validItems.sort((a, b) => b.timestamp - a.timestamp);
+            validItems.slice(0, 3).forEach(item => {
+                echoesGrid.appendChild(createEchoCard(item));
+            });
+        } else {
+            echoesSection.style.display = 'none';
+        }
+    });
+}
+
+function createEchoCard(item) {
+    const card = document.createElement('div');
+    card.className = 'echo-card';
+    card.dataset.url = item.url;
+
+    card.innerHTML = `
+        <span class="echo-site">${item.hostname || 'Article'}</span>
+        <div class="echo-title">${escapeHtml(item.title || 'Untitled')}</div>
+        <div class="echo-progress-container">
+            <div class="echo-progress-bar" style="width: ${item.progressPercent || 0}%"></div>
+        </div>
+        <div class="echo-meta">
+            <span>${item.progressPercent || 0}% read</span>
+            <span>${item.readingTime || ''}</span>
+        </div>
+    `;
+
+    card.addEventListener('click', () => {
+        openShelfArticle(item);
+    });
+
+    return card;
+}
+
+function openShelfArticle(item) {
+    // Open the URL and send a message to activate Intent Mode with scroll position
+    chrome.runtime.sendMessage({
+        action: 'openInIntentMode',
+        url: item.url,
+        scrollTop: item.scrollTop
+    });
+}
+
+function removeShelfItem(url) {
+    const key = 'intent-reading-progress-' + hashString(url);
+    chrome.storage.local.get(['readingShelf'], (result) => {
+        const shelf = result.readingShelf || {};
+        delete shelf[key];
+        chrome.storage.local.set({ readingShelf: shelf });
+    });
+}
+
+// Simple hash function for URL keys
+function hashString(str) {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+        const char = str.charCodeAt(i);
+        hash = ((hash << 5) - hash) + char;
+        hash = hash & hash;
+    }
+    return Math.abs(hash).toString(36);
+}
+
+/**
+ * Thought Canvas - Spatial Organization
+ */
+function initThoughtCanvas() {
+    const openBtn = document.getElementById('openCanvasBtn');
+    const closeBtn = document.getElementById('closeCanvas');
+    const modal = document.getElementById('canvasModal');
+    const content = document.getElementById('canvasContent');
+    const resetBtn = document.getElementById('canvasReset');
+
+    if (!openBtn || !modal || !content) return;
+
+    openBtn.addEventListener('click', () => {
+        modal.classList.add('active');
+        renderCanvasThoughts();
+    });
+
+    closeBtn?.addEventListener('click', () => {
+        modal.classList.remove('active');
+    });
+
+    resetBtn?.addEventListener('click', () => {
+        chrome.storage.local.set({ 'thought-positions': {} }, () => {
+            renderCanvasThoughts();
+        });
+    });
+
+    function renderCanvasThoughts() {
+        chrome.storage.local.get(['thoughts', 'thought-positions'], (data) => {
+            const thoughts = data['thoughts'] || [];
+            const positions = data['thought-positions'] || {};
+
+            content.innerHTML = '';
+
+            thoughts.forEach((thought, index) => {
+                const id = thought.id || `thought-${index}`;
+                const card = document.createElement('div');
+                card.className = 'thought-card';
+                card.id = `canvas-${id}`;
+
+                // Get saved position or default to grid
+                const pos = positions[id] || {
+                    x: 100 + (index % 4) * 280,
+                    y: 100 + Math.floor(index / 4) * 200
+                };
+
+                card.style.left = `${pos.x}px`;
+                card.style.top = `${pos.y}px`;
+
+                card.innerHTML = `
+                    <div class="thought-card-title">${thought.pageTitle || 'Note'}</div>
+                    <div class="thought-card-text">${thought.text || ''}</div>
+                    <div class="thought-card-tag">${thought.tag || 'Idea'}</div>
+                `;
+
+                content.appendChild(card);
+                makeCanvasDraggable(card, id);
+            });
+        });
+    }
+
+    function makeCanvasDraggable(el, id) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+        el.onmousedown = dragMouseDown;
+
+        function dragMouseDown(e) {
+            e.preventDefault();
+            el.classList.add('dragging');
+            // get the mouse cursor position at startup:
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            document.onmouseup = closeDragElement;
+            // call a function whenever the cursor moves:
+            document.onmousemove = elementDrag;
+        }
+
+        function elementDrag(e) {
+            e.preventDefault();
+            // calculate the new cursor position:
+            pos1 = pos3 - e.clientX;
+            pos2 = pos4 - e.clientY;
+            pos3 = e.clientX;
+            pos4 = e.clientY;
+            // set the element's new position:
+            el.style.top = (el.offsetTop - pos2) + "px";
+            el.style.left = (el.offsetLeft - pos1) + "px";
+        }
+
+        function closeDragElement() {
+            el.classList.remove('dragging');
+            // stop moving when mouse button is released:
+            document.onmouseup = null;
+            document.onmousemove = null;
+
+            // Save position
+            saveThoughtPosition(id, parseInt(el.style.left), parseInt(el.style.top));
+        }
+    }
+
+    function saveThoughtPosition(id, x, y) {
+        chrome.storage.local.get(['thought-positions'], (data) => {
+            const positions = data['thought-positions'] || {};
+            positions[id] = { x, y };
+            chrome.storage.local.set({ 'thought-positions': positions });
+        });
+    }
+}
+
+/**
+ * Background Curation - Unsplash Integration
+ */
+function initBackgroundCuration() {
+    const randomBtn = document.getElementById('randomBgBtn');
+    const searchBtn = document.getElementById('bgSearchBtn');
+    const searchInput = document.getElementById('bgSearchInput');
+
+    if (!randomBtn || !searchBtn || !searchInput) return;
+
+    randomBtn.addEventListener('click', async () => {
+        randomBtn.disabled = true;
+        randomBtn.style.opacity = '0.5';
+
+        try {
+            // Switch to Picsum for high reliability and 100% uptime
+            // source.unsplash.com is deprecated/unstable for free tier
+            state.settings.customBackground = `https://picsum.photos/1920/1080?random=${Date.now()}`;
+
+            saveSettings();
+            applyBackground();
+
+            // Update UI active state
+            document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
+            randomBtn.classList.add('active');
+        } catch (err) {
+            console.error('BG Random Error:', err);
+        } finally {
+            setTimeout(() => {
+                randomBtn.disabled = false;
+                randomBtn.style.opacity = '1';
+            }, 1000);
+        }
+    });
+
+    searchBtn.addEventListener('click', () => {
+        const query = searchInput.value.trim();
+        if (!query) return;
+
+        searchBtn.disabled = true;
+        searchBtn.textContent = '...';
+
+        // Use direct Unsplash Image source which is more stable than Source API
+        // Fallback to picsum if that fails, but for now we'll use a curated query
+        state.settings.customBackground = `https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1920&q=80&q_search=${encodeURIComponent(query)}`;
+
+        // Note: For real search we'd need an API key. 
+        // For this demo, we'll append a query param to salt the cache and use a beautiful landscape.
+        // In a real app, this would fetch from a serverless function with an Unsplash API Key.
+
+        saveSettings();
+        applyBackground();
+
+        // Update UI
+        document.querySelectorAll('.bg-btn').forEach(b => b.classList.remove('active'));
+
+        setTimeout(() => {
+            searchBtn.disabled = false;
+            searchBtn.textContent = 'Search';
+        }, 1000);
+    });
+
+    // Enter key for search
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchBtn.click();
+    });
 }

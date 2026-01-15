@@ -11,6 +11,7 @@
     let currentSelection = '';
     let currentPageTitle = '';
     let currentPageUrl = '';
+    let currentStyle = 'subtle';
 
     // Listen for messages from background script
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -122,11 +123,32 @@
     }
 
     // Check initial state
-    chrome.storage.local.get(['forceDarkMode'], (result) => {
+    chrome.storage.local.get(['forceDarkMode', 'style'], (result) => {
         if (result.forceDarkMode) {
             toggleGlobalDarkMode(true);
         }
+        if (result.style) {
+            currentStyle = result.style;
+            applyStyleToDocument();
+        }
     });
+
+    // Listen for storage changes to sync style
+    chrome.storage.onChanged.addListener((changes, area) => {
+        if (area === 'local') {
+            if (changes.style) {
+                currentStyle = changes.style.newValue;
+                applyStyleToDocument();
+            }
+            if (changes.forceDarkMode) {
+                toggleGlobalDarkMode(changes.forceDarkMode.newValue);
+            }
+        }
+    });
+
+    function applyStyleToDocument() {
+        document.documentElement.setAttribute('data-style', currentStyle);
+    }
 
     // ... (rest of code) ...
 
@@ -460,6 +482,9 @@
             wrapper.style.opacity = '0';
             if (contextEl) contextEl.style.opacity = '0';
 
+            // Apply Aurora morph state
+            container.classList.add('aurora-entrance');
+
             setTimeout(() => {
                 wrapper.style.display = 'none';
                 if (contextEl) contextEl.style.display = 'none';
@@ -482,6 +507,9 @@
                 // Calculate natural height
                 const approxHeight = Math.min(600, 150 + (text.length / 2));
                 container.style.height = approxHeight + 'px';
+
+                // Add staggered entrance to response parts
+                responseContent.style.animation = 'auroraWave 1.4s var(--ease-comfort) forwards';
 
                 requestAnimationFrame(() => {
                     responseContent.style.opacity = '1';
@@ -881,45 +909,13 @@
         // Create overlay
         const overlay = document.createElement('div');
         overlay.id = 'ctx-overlay';
-        overlay.style.cssText = `
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(8px);
-            -webkit-backdrop-filter: blur(8px);
-            z-index: 999998;
-            opacity: 0;
-            transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-        `;
+        overlay.className = 'ctx-overlay';
 
         // Create popup with premium styling
         const popup = document.createElement('div');
         popup.id = 'ctx-popup';
-        popup.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.9);
-            background: rgba(28, 28, 30, 0.85);
-            backdrop-filter: blur(40px) saturate(190%);
-            -webkit-backdrop-filter: blur(40px) saturate(190%);
-            border: 0.5px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
-            padding: 0;
-            max-width: 520px;
-            width: 90%;
-            max-height: 480px;
-            overflow: hidden;
-            z-index: 999999;
-            box-shadow: 
-                0 0 0 0.5px rgba(255, 255, 255, 0.05),
-                0 30px 60px -12px rgba(0, 0, 0, 0.9),
-                0 0 0 1px rgba(0, 0, 0, 0.2);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
-            color: rgba(255, 255, 255, 0.85);
-            opacity: 0;
-            transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-        `;
+        popup.className = 'ctx-popup';
+
 
         popup.innerHTML = `
             <style>

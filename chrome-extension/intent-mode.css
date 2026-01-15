@@ -720,6 +720,68 @@
     pointer-events: auto;
 }
 
+/* ==================== CARBON COPY THEME ==================== */
+[data-style="carbon-copy"] .intent-mode-container {
+    --intent-bg: #ff4d6d;
+    --intent-surface: #fff;
+    --intent-border: #000;
+    --intent-text: #000;
+    --intent-text-muted: rgba(0, 0, 0, 0.7);
+    --intent-accent: #00bbf9;
+    --intent-accent-soft: #fee440;
+    --intent-progress: #beee11;
+
+    font-family: 'Inter', system-ui, sans-serif;
+}
+
+[data-style="carbon-copy"] .intent-topbar {
+    background: #fee440;
+    border-bottom: 3px solid #000;
+}
+
+[data-style="carbon-copy"] .intent-badge {
+    background: #000;
+    color: #fff;
+    border-radius: 0;
+    animation: none;
+    border: 2px solid #000;
+}
+
+[data-style="carbon-copy"] .intent-btn {
+    background: #fff;
+    border: 2px solid #000;
+    border-radius: 0;
+    color: #000;
+}
+
+[data-style="carbon-copy"] .intent-btn:hover {
+    background: #beee11;
+    box-shadow: 4px 4px 0px #000;
+}
+
+[data-style="carbon-copy"] .intent-article {
+    background: #fff;
+    padding: 40px;
+    border: 4px solid #000;
+    box-shadow: 15px 15px 0px #000;
+    transform: rotate(0.5deg);
+}
+
+[data-style="carbon-copy"] .intent-title {
+    color: #000;
+    font-weight: 900;
+    text-transform: uppercase;
+    font-family: 'Space Mono', monospace;
+}
+
+[data-style="carbon-copy"] .intent-content h1,
+[data-style="carbon-copy"] .intent-content h2,
+[data-style="carbon-copy"] .intent-content h3 {
+    color: #000;
+    text-transform: uppercase;
+}
+
+
 /* Force visible state if toggle is OFF (default is visible) */
 /* The class .intent-hide-links is ADDED to hide them. */
 
