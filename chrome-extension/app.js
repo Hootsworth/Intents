@@ -47,6 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initFocusTimer();
     initThoughtCanvas();
     initBackgroundCuration();
+    initQuickLinkShortcuts();
 });
 
 function loadSettings() {
@@ -237,7 +238,10 @@ function renderQuickLinks() {
         el.href = link.url;
         el.className = 'quick-link';
         el.target = '_blank';
-        el.innerHTML = `<span class="quick-link-name">${link.name}</span><button class="quick-link-delete" data-index="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`;
+        el.dataset.index = i;
+        // Add number badge for shortcuts 1-9
+        const numberBadge = i < 9 ? `<span class="quick-link-number">${i + 1}</span>` : '';
+        el.innerHTML = `${numberBadge}<span class="quick-link-name">${link.name}</span><button class="quick-link-delete" data-index="${i}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>`;
         grid.appendChild(el);
     });
 
@@ -264,6 +268,32 @@ function renderQuickLinks() {
             saveQuickLinks();
             renderQuickLinks();
         });
+    });
+}
+
+// Quick link keyboard shortcuts (1-9)
+function initQuickLinkShortcuts() {
+    document.addEventListener('keydown', (e) => {
+        // Don't trigger if typing in an input, textarea, or contenteditable
+        const active = document.activeElement;
+        const isTyping = active && (
+            active.tagName === 'INPUT' ||
+            active.tagName === 'TEXTAREA' ||
+            active.contentEditable === 'true'
+        );
+
+        // Don't trigger if any modifier keys are held (except for number pad)
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+        // Check for number keys 1-9
+        const num = parseInt(e.key);
+        if (!isTyping && num >= 1 && num <= 9) {
+            const linkIndex = num - 1;
+            if (state.quickLinks && state.quickLinks[linkIndex]) {
+                e.preventDefault();
+                window.open(state.quickLinks[linkIndex].url, '_blank');
+            }
+        }
     });
 }
 
@@ -482,8 +512,50 @@ function initRecentSearches() {
 
     const searchInput = document.getElementById('searchInput');
     const recentDropdown = document.getElementById('recentSearches');
+    const ghostText = document.getElementById('searchGhost');
+    const searchHint = document.getElementById('searchHint');
+
+    let currentSuggestion = '';
 
     if (!searchInput || !recentDropdown) return;
+
+    // Update ghost text based on input
+    function updateGhostText(value) {
+        if (!ghostText) return;
+
+        if (!value) {
+            ghostText.textContent = '';
+            searchHint?.classList.remove('visible');
+            currentSuggestion = '';
+            return;
+        }
+
+        // Find a matching recent search
+        const match = recentSearches.find(s =>
+            s.toLowerCase().startsWith(value.toLowerCase()) && s.toLowerCase() !== value.toLowerCase()
+        );
+
+        if (match) {
+            // Show the typed part + the rest as ghost
+            ghostText.textContent = match;
+            searchHint?.classList.add('visible');
+            currentSuggestion = match;
+        } else {
+            ghostText.textContent = '';
+            searchHint?.classList.remove('visible');
+            currentSuggestion = '';
+        }
+    }
+
+    // Tab to accept suggestion
+    searchInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Tab' && currentSuggestion) {
+            e.preventDefault();
+            searchInput.value = currentSuggestion;
+            updateGhostText('');
+            recentDropdown.style.display = 'none';
+        }
+    });
 
     // Show recent searches on focus if empty
     searchInput.addEventListener('focus', () => {
@@ -493,10 +565,13 @@ function initRecentSearches() {
         }
     });
 
-    // Filter as you type + Calculator trigger
+    // Filter as you type + Calculator trigger + Ghost text
     searchInput.addEventListener('input', () => {
         const value = searchInput.value;
         const query = value.toLowerCase();
+
+        // Update ghost text autocomplete
+        updateGhostText(value);
 
         // Real-time calculator trigger on '='
         if (value.includes('=')) {
@@ -524,7 +599,10 @@ function initRecentSearches() {
 
     // Hide on blur (with delay to allow click)
     searchInput.addEventListener('blur', () => {
-        setTimeout(() => { recentDropdown.style.display = 'none'; }, 200);
+        setTimeout(() => {
+            recentDropdown.style.display = 'none';
+            // Keep ghost visible if there's input
+        }, 200);
     });
 }
 
@@ -600,40 +678,6 @@ function renderRecentSearches(filter = '') {
     document.getElementById('closeRecent')?.addEventListener('click', (e) => {
         e.stopPropagation();
         recentDropdown.style.display = 'none';
-    });
-
-    // DRAG LOGIC
-    const header = recentDropdown.querySelector('.recent-header');
-    header.addEventListener('mousedown', (e) => {
-        e.preventDefault(); // Prevent text selection
-        header.style.cursor = 'grabbing';
-
-        const rect = recentDropdown.getBoundingClientRect();
-
-        // Switch to fixed positioning for smooth dragging
-        recentDropdown.style.position = 'fixed';
-        recentDropdown.style.width = rect.width + 'px';
-        recentDropdown.style.left = rect.left + 'px';
-        recentDropdown.style.top = rect.top + 'px';
-        recentDropdown.style.zIndex = '1000';
-        recentDropdown.style.margin = '0'; // Remove margins that might affect position
-
-        const offsetX = e.clientX - rect.left;
-        const offsetY = e.clientY - rect.top;
-
-        function onMouseMove(moveEvent) {
-            recentDropdown.style.left = (moveEvent.clientX - offsetX) + 'px';
-            recentDropdown.style.top = (moveEvent.clientY - offsetY) + 'px';
-        }
-
-        function onMouseUp() {
-            header.style.cursor = 'grab';
-            document.removeEventListener('mousemove', onMouseMove);
-            document.removeEventListener('mouseup', onMouseUp);
-        }
-
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
     });
 }
 
@@ -1060,50 +1104,14 @@ function renderThoughts(thoughts) {
     const list = document.getElementById('thoughtsList');
     if (!list) return;
 
-    // Group by URL to find duplicates
-    const grouped = {};
-    const urlOrder = [];
-
-    thoughts.forEach(t => {
-        if (!grouped[t.pageUrl]) {
-            grouped[t.pageUrl] = [];
-            urlOrder.push(t.pageUrl);
-        }
-        grouped[t.pageUrl].push(t);
-    });
-
-    list.innerHTML = urlOrder.map(url => {
-        const group = grouped[url];
-        if (group.length === 1) {
-            return renderThoughtCard(group[0]);
-        } else {
-            // Render group
-            const ids = group.map(t => t.id).join(',');
-            return `
-                <div class="thought-group">
-                    <div class="thought-group-header">
-                        <span>Similar thoughts found</span>
-                        <button class="merge-btn" data-ids="${ids}">Merge All</button>
-                    </div>
-                    ${group.map(renderThoughtCard).join('')}
-                </div>
-            `;
-        }
-    }).join('');
+    // Render all thoughts individually (no grouping)
+    list.innerHTML = thoughts.map(thought => renderThoughtCard(thought)).join('');
 
     // Delete handlers
     list.querySelectorAll('.thought-delete').forEach(btn => {
         btn.addEventListener('click', (e) => {
             e.stopPropagation();
             deleteThought(btn.dataset.id);
-        });
-    });
-
-    // Merge handlers
-    list.querySelectorAll('.merge-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            handleMerge(btn.dataset.ids);
         });
     });
 }
@@ -1524,112 +1532,557 @@ function hashString(str) {
 }
 
 /**
- * Thought Canvas - Spatial Organization
+ * Thought Canvas - Spatial Organization with Basket, Connectors, Zoom
  */
 function initThoughtCanvas() {
     const openBtn = document.getElementById('openCanvasBtn');
     const closeBtn = document.getElementById('closeCanvas');
     const modal = document.getElementById('canvasModal');
+    const workspace = document.getElementById('canvasWorkspace');
     const content = document.getElementById('canvasContent');
     const resetBtn = document.getElementById('canvasReset');
+    const connectorsLayer = document.getElementById('canvasConnectors');
+    const basketEl = document.getElementById('thoughtBasket');
+    const basketThoughts = document.getElementById('basketThoughts');
+    const basketCount = document.getElementById('basketCount');
+
+    // Toolbar buttons
+    const connectModeBtn = document.getElementById('connectModeBtn');
+    const addNoteBtn = document.getElementById('addNoteBtn');
+    const zoomInBtn = document.getElementById('zoomInBtn');
+    const zoomOutBtn = document.getElementById('zoomOutBtn');
+    const zoomResetBtn = document.getElementById('zoomResetBtn');
+    const zoomLevelEl = document.getElementById('zoomLevel');
 
     if (!openBtn || !modal || !content) return;
 
+    // Canvas state
+    let canvasState = {
+        zoom: 1,
+        panX: 0,
+        panY: 0,
+        connectMode: false,
+        connectSource: null,
+        connections: [],
+        canvasThoughts: [], // Thoughts placed on canvas
+        isPanning: false,
+        panStartX: 0,
+        panStartY: 0
+    };
+
+    // Open canvas
     openBtn.addEventListener('click', () => {
         modal.classList.add('active');
-        renderCanvasThoughts();
+        loadCanvasState();
     });
 
+    // Close canvas
     closeBtn?.addEventListener('click', () => {
         modal.classList.remove('active');
     });
 
+    // Clear canvas
     resetBtn?.addEventListener('click', () => {
-        chrome.storage.local.set({ 'thought-positions': {} }, () => {
-            renderCanvasThoughts();
+        if (confirm('Clear all thoughts from canvas? They will return to the basket.')) {
+            canvasState.canvasThoughts = [];
+            canvasState.connections = [];
+            saveCanvasState();
+            renderCanvas();
+        }
+    });
+
+    // Connect mode toggle
+    connectModeBtn?.addEventListener('click', () => {
+        canvasState.connectMode = !canvasState.connectMode;
+        connectModeBtn.classList.toggle('active', canvasState.connectMode);
+        workspace.classList.toggle('connect-mode', canvasState.connectMode);
+        canvasState.connectSource = null;
+        content.querySelectorAll('.thought-card').forEach(c => {
+            c.classList.remove('connect-selected', 'connect-candidate');
+            if (canvasState.connectMode) c.classList.add('connect-candidate');
         });
     });
 
-    function renderCanvasThoughts() {
-        chrome.storage.local.get(['thoughts', 'thought-positions'], (data) => {
-            const thoughts = data['thoughts'] || [];
-            const positions = data['thought-positions'] || {};
+    // Add note
+    addNoteBtn?.addEventListener('click', () => {
+        const noteId = `note-${Date.now()}`;
+        const note = {
+            id: noteId,
+            type: 'note',
+            text: 'New note...',
+            x: 300 + Math.random() * 200,
+            y: 200 + Math.random() * 200
+        };
+        canvasState.canvasThoughts.push(note);
+        saveCanvasState();
+        renderCanvas();
+    });
 
-            content.innerHTML = '';
+    // Zoom controls
+    zoomInBtn?.addEventListener('click', () => setZoom(canvasState.zoom + 0.1));
+    zoomOutBtn?.addEventListener('click', () => setZoom(canvasState.zoom - 0.1));
+    zoomResetBtn?.addEventListener('click', () => {
+        canvasState.zoom = 1;
+        canvasState.panX = 0;
+        canvasState.panY = 0;
+        applyTransform();
+    });
 
-            thoughts.forEach((thought, index) => {
-                const id = thought.id || `thought-${index}`;
-                const card = document.createElement('div');
-                card.className = 'thought-card';
-                card.id = `canvas-${id}`;
+    // Mouse wheel zoom
+    workspace?.addEventListener('wheel', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.1 : 0.1;
+            setZoom(canvasState.zoom + delta);
+        }
+    }, { passive: false });
 
-                // Get saved position or default to grid
-                const pos = positions[id] || {
-                    x: 100 + (index % 4) * 280,
-                    y: 100 + Math.floor(index / 4) * 200
-                };
+    // Pan with middle mouse or space+drag
+    let spacePressed = false;
+    document.addEventListener('keydown', (e) => {
+        if (e.code === 'Space' && modal.classList.contains('active')) {
+            spacePressed = true;
+            workspace.style.cursor = 'grab';
+        }
+    });
+    document.addEventListener('keyup', (e) => {
+        if (e.code === 'Space') {
+            spacePressed = false;
+            workspace.style.cursor = '';
+        }
+    });
 
-                card.style.left = `${pos.x}px`;
-                card.style.top = `${pos.y}px`;
+    workspace?.addEventListener('mousedown', (e) => {
+        if ((e.button === 1 || spacePressed) && e.target === workspace || e.target.classList.contains('canvas-grid-bg')) {
+            canvasState.isPanning = true;
+            canvasState.panStartX = e.clientX - canvasState.panX;
+            canvasState.panStartY = e.clientY - canvasState.panY;
+            workspace.classList.add('panning');
+            e.preventDefault();
+        }
+    });
 
-                card.innerHTML = `
-                    <div class="thought-card-title">${thought.pageTitle || 'Note'}</div>
-                    <div class="thought-card-text">${thought.text || ''}</div>
-                    <div class="thought-card-tag">${thought.tag || 'Idea'}</div>
-                `;
+    document.addEventListener('mousemove', (e) => {
+        if (canvasState.isPanning) {
+            canvasState.panX = e.clientX - canvasState.panStartX;
+            canvasState.panY = e.clientY - canvasState.panStartY;
+            applyTransform();
+        }
+    });
 
-                content.appendChild(card);
-                makeCanvasDraggable(card, id);
-            });
+    document.addEventListener('mouseup', () => {
+        if (canvasState.isPanning) {
+            canvasState.isPanning = false;
+            workspace.classList.remove('panning');
+        }
+    });
+
+    function setZoom(newZoom) {
+        canvasState.zoom = Math.max(0.25, Math.min(2, newZoom));
+        applyTransform();
+    }
+
+    function applyTransform() {
+        content.style.transform = `translate(${canvasState.panX}px, ${canvasState.panY}px) scale(${canvasState.zoom})`;
+        connectorsLayer.style.transform = `translate(${canvasState.panX}px, ${canvasState.panY}px) scale(${canvasState.zoom})`;
+        zoomLevelEl.textContent = Math.round(canvasState.zoom * 100) + '%';
+    }
+
+    // Load canvas state
+    function loadCanvasState() {
+        chrome.storage.local.get(['canvas-state', 'thoughts'], (data) => {
+            const saved = data['canvas-state'] || {};
+            canvasState.canvasThoughts = saved.thoughts || [];
+            canvasState.connections = saved.connections || [];
+            canvasState.zoom = saved.zoom || 1;
+            canvasState.panX = saved.panX || 0;
+            canvasState.panY = saved.panY || 0;
+
+            applyTransform();
+            renderCanvas();
+            renderBasket(data.thoughts || []);
         });
     }
 
-    function makeCanvasDraggable(el, id) {
-        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+    // Save canvas state
+    function saveCanvasState() {
+        const stateToSave = {
+            thoughts: canvasState.canvasThoughts,
+            connections: canvasState.connections,
+            zoom: canvasState.zoom,
+            panX: canvasState.panX,
+            panY: canvasState.panY
+        };
+        chrome.storage.local.set({ 'canvas-state': stateToSave });
+    }
 
-        el.onmousedown = dragMouseDown;
+    // Render basket with available thoughts
+    function renderBasket(allThoughts) {
+        // Filter out thoughts already on canvas
+        const canvasIds = canvasState.canvasThoughts.filter(t => t.type !== 'note').map(t => t.id);
+        const availableThoughts = allThoughts.filter(t => !canvasIds.includes(t.id));
+
+        basketCount.textContent = availableThoughts.length;
+        basketCount.style.display = availableThoughts.length > 0 ? 'flex' : 'none';
+
+        basketThoughts.innerHTML = '';
+
+        availableThoughts.slice(0, 6).forEach((thought, idx) => {
+            const el = document.createElement('div');
+            el.className = 'basket-thought-preview';
+            el.dataset.id = thought.id;
+            el.draggable = true;
+            el.innerHTML = `
+                <div class="basket-thought-title">${escapeHtml(thought.pageTitle || 'Note')}</div>
+                <div class="basket-thought-text">${escapeHtml(thought.text || '')}</div>
+            `;
+
+            // Drag from basket
+            el.addEventListener('dragstart', (e) => {
+                e.dataTransfer.setData('thought-id', thought.id);
+                e.dataTransfer.setData('thought-data', JSON.stringify(thought));
+                el.classList.add('dragging');
+            });
+
+            el.addEventListener('dragend', () => {
+                el.classList.remove('dragging');
+            });
+
+            basketThoughts.appendChild(el);
+        });
+    }
+
+    // Drop zone on canvas
+    content.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        content.classList.add('drag-over');
+    });
+
+    content.addEventListener('dragleave', () => {
+        content.classList.remove('drag-over');
+    });
+
+    content.addEventListener('drop', (e) => {
+        e.preventDefault();
+        content.classList.remove('drag-over');
+
+        const thoughtData = e.dataTransfer.getData('thought-data');
+        if (!thoughtData) return;
+
+        const thought = JSON.parse(thoughtData);
+        const rect = content.getBoundingClientRect();
+        const x = (e.clientX - rect.left - canvasState.panX) / canvasState.zoom;
+        const y = (e.clientY - rect.top - canvasState.panY) / canvasState.zoom;
+
+        // Add to canvas
+        canvasState.canvasThoughts.push({
+            ...thought,
+            x: x,
+            y: y
+        });
+
+        saveCanvasState();
+
+        // Re-render
+        chrome.storage.local.get(['thoughts'], (data) => {
+            renderCanvas();
+            renderBasket(data.thoughts || []);
+        });
+    });
+
+    // Render canvas thoughts and notes
+    function renderCanvas() {
+        content.innerHTML = '';
+
+        // Add gradient definition for connectors
+        connectorsLayer.innerHTML = `
+            <defs>
+                <linearGradient id="connectorGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#64c896;stop-opacity:0.8" />
+                    <stop offset="100%" style="stop-color:#4aa373;stop-opacity:0.8" />
+                </linearGradient>
+            </defs>
+        `;
+
+        canvasState.canvasThoughts.forEach((item) => {
+            if (item.type === 'note') {
+                createStickyNote(item);
+            } else {
+                createThoughtCard(item);
+            }
+        });
+
+        // Render connections
+        renderConnections();
+    }
+
+    function createThoughtCard(thought) {
+        const card = document.createElement('div');
+        card.className = 'thought-card';
+        card.id = `canvas-${thought.id}`;
+        card.dataset.thoughtId = thought.id;
+        card.style.left = `${thought.x || 100}px`;
+        card.style.top = `${thought.y || 100}px`;
+
+        if (canvasState.connectMode) {
+            card.classList.add('connect-candidate');
+        }
+
+        card.innerHTML = `
+            <button class="close-btn-mac close-btn-sm" title="Remove from canvas">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+            <div class="thought-card-title">${escapeHtml(thought.pageTitle || 'Note')}</div>
+            <div class="thought-card-text">${escapeHtml(thought.text || '')}</div>
+            <div class="thought-card-tag">${thought.tag || 'Idea'}</div>
+        `;
+
+        // Remove button
+        card.querySelector('.close-btn-mac').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeFromCanvas(thought.id);
+        });
+
+        // Connect mode click
+        card.addEventListener('click', (e) => {
+            if (!canvasState.connectMode) return;
+            e.stopPropagation();
+            handleConnectClick(thought.id, card);
+        });
+
+        content.appendChild(card);
+        makeCanvasDraggable(card, thought.id);
+    }
+
+    function createStickyNote(note) {
+        const el = document.createElement('div');
+        el.className = 'canvas-sticky-note';
+        el.id = `canvas-${note.id}`;
+        el.dataset.noteId = note.id;
+        el.style.left = `${note.x || 100}px`;
+        el.style.top = `${note.y || 100}px`;
+        el.style.transform = `rotate(${(Math.random() - 0.5) * 4}deg)`;
+
+        el.innerHTML = `
+            <button class="close-btn-mac close-btn-sm" title="Delete note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+            <textarea class="canvas-sticky-note-content">${escapeHtml(note.text || '')}</textarea>
+        `;
+
+        // Remove button
+        el.querySelector('.close-btn-mac').addEventListener('click', (e) => {
+            e.stopPropagation();
+            removeFromCanvas(note.id);
+        });
+
+        // Save on text change
+        const textarea = el.querySelector('textarea');
+        textarea.addEventListener('input', () => {
+            const item = canvasState.canvasThoughts.find(t => t.id === note.id);
+            if (item) {
+                item.text = textarea.value;
+                saveCanvasState();
+            }
+        });
+
+        textarea.addEventListener('focus', () => el.classList.add('editing'));
+        textarea.addEventListener('blur', () => el.classList.remove('editing'));
+
+        content.appendChild(el);
+        makeCanvasDraggable(el, note.id, true);
+    }
+
+    function removeFromCanvas(id) {
+        // Remove connections involving this item
+        canvasState.connections = canvasState.connections.filter(
+            c => c.from !== id && c.to !== id
+        );
+
+        // Remove from canvas
+        canvasState.canvasThoughts = canvasState.canvasThoughts.filter(t => t.id !== id);
+        saveCanvasState();
+
+        // Re-render
+        chrome.storage.local.get(['thoughts'], (data) => {
+            renderCanvas();
+            renderBasket(data.thoughts || []);
+        });
+    }
+
+    function handleConnectClick(thoughtId, card) {
+        if (!canvasState.connectSource) {
+            // First click - select source
+            canvasState.connectSource = thoughtId;
+            card.classList.add('connect-selected');
+            card.classList.remove('connect-candidate');
+        } else if (canvasState.connectSource === thoughtId) {
+            // Clicked same - deselect
+            canvasState.connectSource = null;
+            card.classList.remove('connect-selected');
+            card.classList.add('connect-candidate');
+        } else {
+            // Second click - create connection
+            const exists = canvasState.connections.some(
+                c => (c.from === canvasState.connectSource && c.to === thoughtId) ||
+                    (c.from === thoughtId && c.to === canvasState.connectSource)
+            );
+
+            if (!exists) {
+                canvasState.connections.push({
+                    id: `conn-${Date.now()}`,
+                    from: canvasState.connectSource,
+                    to: thoughtId
+                });
+                saveCanvasState();
+                renderConnections();
+            }
+
+            // Reset selection
+            content.querySelectorAll('.thought-card').forEach(c => {
+                c.classList.remove('connect-selected');
+                c.classList.add('connect-candidate');
+            });
+            canvasState.connectSource = null;
+        }
+    }
+
+    function renderConnections() {
+        // Clear existing connections (keep defs)
+        const defs = connectorsLayer.querySelector('defs');
+        connectorsLayer.innerHTML = '';
+        if (defs) connectorsLayer.appendChild(defs);
+
+        canvasState.connections.forEach(conn => {
+            const fromEl = document.getElementById(`canvas-${conn.from}`);
+            const toEl = document.getElementById(`canvas-${conn.to}`);
+
+            if (!fromEl || !toEl) return;
+
+            const fromRect = fromEl.getBoundingClientRect();
+            const toRect = toEl.getBoundingClientRect();
+            const contentRect = content.getBoundingClientRect();
+
+            // Calculate center points relative to content
+            const x1 = (fromEl.offsetLeft + fromEl.offsetWidth / 2);
+            const y1 = (fromEl.offsetTop + fromEl.offsetHeight / 2);
+            const x2 = (toEl.offsetLeft + toEl.offsetWidth / 2);
+            const y2 = (toEl.offsetTop + toEl.offsetHeight / 2);
+
+            // Create start dot
+            const startDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            startDot.setAttribute('cx', x1);
+            startDot.setAttribute('cy', y1);
+            startDot.setAttribute('r', '4');
+            startDot.setAttribute('class', 'connector-dot connector-dot-start');
+            connectorsLayer.appendChild(startDot);
+
+            // Create end dot
+            const endDot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            endDot.setAttribute('cx', x2);
+            endDot.setAttribute('cy', y2);
+            endDot.setAttribute('r', '3');
+            endDot.setAttribute('class', 'connector-dot connector-dot-end');
+            connectorsLayer.appendChild(endDot);
+
+            // Create bezier curve
+            const midX = (x1 + x2) / 2;
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', `M ${x1} ${y1} Q ${midX} ${y1}, ${midX} ${(y1 + y2) / 2} T ${x2} ${y2}`);
+            path.setAttribute('class', 'canvas-connector');
+            path.setAttribute('stroke', 'url(#connectorGradient)');
+            path.dataset.connId = conn.id;
+
+            // Click to delete
+            path.style.pointerEvents = 'stroke';
+            path.addEventListener('click', () => {
+                path.classList.add('deleting');
+                setTimeout(() => {
+                    canvasState.connections = canvasState.connections.filter(c => c.id !== conn.id);
+                    saveCanvasState();
+                    renderConnections();
+                }, 300);
+            });
+
+            connectorsLayer.appendChild(path);
+        });
+    }
+
+    function makeCanvasDraggable(el, id, isNote = false) {
+        let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+        let isDragging = false;
+
+        el.addEventListener('mousedown', dragMouseDown);
 
         function dragMouseDown(e) {
+            // Don't drag if clicking remove button or textarea
+            if (e.target.closest('.close-btn-mac') || e.target.closest('.close-btn-sm') || e.target.tagName === 'TEXTAREA') return;
+            if (canvasState.connectMode && !isNote) return; // In connect mode, clicks are for connecting
+
             e.preventDefault();
+            isDragging = true;
             el.classList.add('dragging');
-            // get the mouse cursor position at startup:
             pos3 = e.clientX;
             pos4 = e.clientY;
-            document.onmouseup = closeDragElement;
-            // call a function whenever the cursor moves:
-            document.onmousemove = elementDrag;
+            document.addEventListener('mouseup', closeDragElement);
+            document.addEventListener('mousemove', elementDrag);
         }
 
         function elementDrag(e) {
+            if (!isDragging) return;
             e.preventDefault();
-            // calculate the new cursor position:
             pos1 = pos3 - e.clientX;
             pos2 = pos4 - e.clientY;
             pos3 = e.clientX;
             pos4 = e.clientY;
-            // set the element's new position:
-            el.style.top = (el.offsetTop - pos2) + "px";
-            el.style.left = (el.offsetLeft - pos1) + "px";
+
+            const newTop = el.offsetTop - pos2 / canvasState.zoom;
+            const newLeft = el.offsetLeft - pos1 / canvasState.zoom;
+
+            el.style.top = newTop + "px";
+            el.style.left = newLeft + "px";
+
+            // Update connections in real-time
+            renderConnections();
         }
 
         function closeDragElement() {
+            if (!isDragging) return;
+            isDragging = false;
             el.classList.remove('dragging');
-            // stop moving when mouse button is released:
-            document.onmouseup = null;
-            document.onmousemove = null;
+            document.removeEventListener('mouseup', closeDragElement);
+            document.removeEventListener('mousemove', elementDrag);
 
             // Save position
-            saveThoughtPosition(id, parseInt(el.style.left), parseInt(el.style.top));
+            const item = canvasState.canvasThoughts.find(t => t.id === id);
+            if (item) {
+                item.x = parseInt(el.style.left);
+                item.y = parseInt(el.style.top);
+                saveCanvasState();
+            }
         }
     }
 
-    function saveThoughtPosition(id, x, y) {
-        chrome.storage.local.get(['thought-positions'], (data) => {
-            const positions = data['thought-positions'] || {};
-            positions[id] = { x, y };
-            chrome.storage.local.set({ 'thought-positions': positions });
-        });
-    }
+    // Keyboard shortcuts for canvas
+    document.addEventListener('keydown', (e) => {
+        if (!modal.classList.contains('active')) return;
+
+        if (e.key === 'c' || e.key === 'C') {
+            connectModeBtn?.click();
+        } else if (e.key === 'n' || e.key === 'N') {
+            addNoteBtn?.click();
+        } else if (e.key === '+' || e.key === '=') {
+            zoomInBtn?.click();
+        } else if (e.key === '-') {
+            zoomOutBtn?.click();
+        } else if (e.key === '0') {
+            zoomResetBtn?.click();
+        }
+    });
 }
 
 /**

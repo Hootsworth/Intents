@@ -1572,8 +1572,6 @@ select {
     right: 80px;
     /* Space for canvas trigger */
     z-index: 100;
-    animation: floatCalm 7s ease-in-out infinite 1s;
-    /* Offset start */
 }
 
 .focus-toggle {
@@ -4470,6 +4468,16 @@ body:has(.thoughts-panel.open) .time-widget {
     flex: 1;
     overflow-y: auto;
     padding: var(--space-md);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+/* Ensure sidebar thought cards use relative positioning (not absolute from canvas) */
+.thoughts-list .thought-card {
+    position: relative !important;
+    margin-bottom: 0;
+    /* Using gap instead */
 }
 
 .thoughts-empty {
@@ -6436,18 +6444,24 @@ body.page-exit-active {
     display: grid;
     place-items: center;
     color: var(--text-secondary);
-    transition: all 0.3s var(--ease-comfort);
-    animation: floatCalm 9s ease-in-out infinite 0.5s;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    /* Removed floating animation - stays stationary */
 }
 
 .canvas-trigger:hover {
     color: var(--accent-primary);
-    transform: translateY(-2px);
+    box-shadow: 0 0 20px rgba(100, 200, 150, 0.2);
+    border-color: rgba(100, 200, 150, 0.3);
+    /* Removed translateY - no movement */
 }
 
 .canvas-modal .canvas-container {
-    width: 95vw;
-    height: 90vh;
+    width: 85vw;
+    height: 80vh;
+    min-width: 400px;
+    min-height: 300px;
+    max-width: 98vw;
+    max-height: 95vh;
     background: rgba(15, 15, 17, 0.8);
     backdrop-filter: blur(40px);
     border: 1px solid var(--border-glass);
@@ -6456,6 +6470,9 @@ body.page-exit-active {
     flex-direction: column;
     overflow: hidden;
     animation: modalSlideUp 0.5s var(--ease-comfort);
+    /* Resizable */
+    resize: both;
+    position: absolute;
 }
 
 .canvas-header {
@@ -6464,6 +6481,18 @@ body.page-exit-active {
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid var(--border-glass);
+    cursor: grab;
+    user-select: none;
+}
+
+.canvas-header:active {
+    cursor: grabbing;
+}
+
+/* Resize handle styling */
+.canvas-modal .canvas-container::-webkit-resizer {
+    background: linear-gradient(135deg, transparent 60%, rgba(100, 200, 150, 0.4) 60%);
+    border-radius: 0 0 24px 0;
 }
 
 .canvas-title {
@@ -6622,4 +6651,1208 @@ body.page-exit-active {
     background: var(--accent-primary);
     color: black;
     border-color: transparent;
+}
+
+/* ===== CANVAS TOOLBAR ===== */
+.canvas-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px 10px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 10px;
+    border: 1px solid var(--border-glass);
+}
+
+.canvas-tool-btn {
+    width: 32px;
+    height: 32px;
+    display: grid;
+    place-items: center;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.canvas-tool-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+}
+
+.canvas-tool-btn.active {
+    background: rgba(100, 200, 150, 0.2);
+    color: #64c896;
+}
+
+.canvas-tool-divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-glass);
+    margin: 0 4px;
+}
+
+.canvas-zoom-level {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    min-width: 40px;
+    text-align: center;
+}
+
+/* ===== CANVAS CONNECTORS (SVG) - ENHANCED ===== */
+.canvas-connectors {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.canvas-connector {
+    stroke: url(#connectorGradient);
+    stroke-width: 2;
+    fill: none;
+    pointer-events: stroke;
+    cursor: pointer;
+    stroke-linecap: round;
+    stroke-dasharray: 6 4;
+    opacity: 0.4;
+    animation: connectorFlow 2s linear infinite;
+    filter: drop-shadow(0 0 2px rgba(100, 200, 150, 0.2));
+    transition: stroke-width 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
+}
+
+.canvas-connector:hover {
+    stroke-width: 3;
+    opacity: 0.8;
+    filter: drop-shadow(0 0 6px rgba(100, 200, 150, 0.5));
+    animation-duration: 1s;
+}
+
+@keyframes connectorFlow {
+    0% {
+        stroke-dashoffset: 0;
+    }
+
+    100% {
+        stroke-dashoffset: -24;
+    }
+}
+
+.canvas-connector.deleting {
+    animation: connectorDelete 0.4s ease forwards;
+}
+
+@keyframes connectorDelete {
+    0% {
+        stroke-dashoffset: 0;
+        opacity: 1;
+        filter: drop-shadow(0 0 3px rgba(100, 200, 150, 0.4));
+    }
+
+    50% {
+        filter: drop-shadow(0 0 15px rgba(255, 100, 100, 0.8));
+    }
+
+    100% {
+        stroke-dashoffset: 100;
+        opacity: 0;
+        stroke-width: 0;
+    }
+}
+
+/* ===== THOUGHT BASKET - ENHANCED ===== */
+.thought-basket {
+    position: absolute;
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+}
+
+.basket-icon {
+    width: 72px;
+    height: 72px;
+    background: rgba(30, 25, 20, 0.6);
+    backdrop-filter: blur(20px);
+    border: 2px solid rgba(205, 133, 63, 0.4);
+    border-radius: 20px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.basket-svg {
+    transition: transform 0.3s ease;
+}
+
+.basket-handle {
+    transform-origin: center;
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.basket-body {
+    transition: transform 0.3s ease;
+}
+
+.basket-shine {
+    animation: basketShine 3s ease-in-out infinite;
+}
+
+@keyframes basketShine {
+
+    0%,
+    100% {
+        opacity: 0.15;
+    }
+
+    50% {
+        opacity: 0.3;
+    }
+}
+
+.basket-icon:hover {
+    transform: scale(1.1);
+    border-color: rgba(205, 133, 63, 0.7);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(222, 184, 135, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    animation: basketWiggle 0.6s ease-in-out;
+}
+
+.basket-icon:hover .basket-handle {
+    transform: translateY(-2px);
+}
+
+.basket-icon:hover .basket-svg {
+    transform: scale(1.05) rotate(-2deg);
+}
+
+@keyframes basketWiggle {
+
+    0%,
+    100% {
+        transform: scale(1.1) rotate(0deg);
+    }
+
+    20% {
+        transform: scale(1.1) rotate(-3deg);
+    }
+
+    40% {
+        transform: scale(1.1) rotate(2deg);
+    }
+
+    60% {
+        transform: scale(1.1) rotate(-1deg);
+    }
+
+    80% {
+        transform: scale(1.1) rotate(1deg);
+    }
+}
+
+/* Basket Glow Effect */
+.basket-glow {
+    position: absolute;
+    inset: -10px;
+    background: radial-gradient(circle, rgba(222, 184, 135, 0.3) 0%, transparent 70%);
+    border-radius: 30px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.thought-basket:hover .basket-glow {
+    opacity: 1;
+    animation: glowPulse 2s ease-in-out infinite;
+}
+
+@keyframes glowPulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.8;
+    }
+
+    50% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+}
+
+.basket-count {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    min-width: 24px;
+    height: 24px;
+    background: linear-gradient(135deg, #64c896, #4aa373);
+    color: #000;
+    font-size: 12px;
+    font-weight: 700;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 6px;
+    box-shadow: 0 2px 8px rgba(100, 200, 150, 0.5);
+    animation: countBounce 0.3s ease;
+}
+
+@keyframes countBounce {
+    0% {
+        transform: scale(0);
+    }
+
+    50% {
+        transform: scale(1.2);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.basket-count:empty,
+.basket-count[data-count="0"] {
+    display: none;
+}
+
+/* Thought Fan-Out Container */
+.basket-thoughts {
+    position: absolute;
+    left: 85px;
+    top: 50%;
+    transform-origin: left center;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.thought-basket:hover .basket-thoughts {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Individual Thought Cards - Fan Arc Effect */
+.basket-thought-preview {
+    width: 220px;
+    padding: 14px;
+    background: linear-gradient(135deg, rgba(40, 38, 45, 0.95), rgba(30, 28, 35, 0.9));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    cursor: grab;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+    transform: translateX(-40px) scale(0.8) rotate(-5deg);
+    opacity: 0;
+    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform-origin: left center;
+}
+
+.thought-basket:hover .basket-thought-preview {
+    transform: translateX(0) scale(1) rotate(0deg);
+    opacity: 1;
+}
+
+/* Staggered fan-out with arc positioning */
+.basket-thought-preview:nth-child(1) {
+    transition-delay: 0s;
+    --arc-offset: -8deg;
+}
+
+.basket-thought-preview:nth-child(2) {
+    transition-delay: 0.06s;
+    --arc-offset: -3deg;
+}
+
+.basket-thought-preview:nth-child(3) {
+    transition-delay: 0.12s;
+    --arc-offset: 0deg;
+}
+
+.basket-thought-preview:nth-child(4) {
+    transition-delay: 0.18s;
+    --arc-offset: 3deg;
+}
+
+.basket-thought-preview:nth-child(5) {
+    transition-delay: 0.24s;
+    --arc-offset: 6deg;
+}
+
+.basket-thought-preview:nth-child(6) {
+    transition-delay: 0.3s;
+    --arc-offset: 10deg;
+}
+
+.thought-basket:hover .basket-thought-preview:nth-child(1) {
+    transform: translateX(0) rotate(var(--arc-offset));
+}
+
+.thought-basket:hover .basket-thought-preview:nth-child(2) {
+    transform: translateX(5px) rotate(var(--arc-offset));
+}
+
+.thought-basket:hover .basket-thought-preview:nth-child(3) {
+    transform: translateX(8px) rotate(var(--arc-offset));
+}
+
+.thought-basket:hover .basket-thought-preview:nth-child(4) {
+    transform: translateX(5px) rotate(var(--arc-offset));
+}
+
+.thought-basket:hover .basket-thought-preview:nth-child(5) {
+    transform: translateX(0) rotate(var(--arc-offset));
+}
+
+.thought-basket:hover .basket-thought-preview:nth-child(6) {
+    transform: translateX(-5px) rotate(var(--arc-offset));
+}
+
+.basket-thought-preview:hover {
+    background: linear-gradient(135deg, rgba(60, 58, 65, 0.98), rgba(45, 43, 50, 0.95));
+    border-color: rgba(100, 200, 150, 0.4);
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(100, 200, 150, 0.15);
+    transform: translateX(15px) scale(1.05) rotate(0deg) !important;
+    z-index: 10;
+}
+
+.basket-thought-preview:active {
+    cursor: grabbing;
+}
+
+.basket-thought-preview.dragging {
+    opacity: 0.6;
+    transform: scale(0.95);
+}
+
+.basket-thought-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.basket-thought-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.4;
+}
+
+/* ===== CANVAS CARD ENHANCEMENTS ===== */
+/* Scoped to canvas only - sidebar thought cards use different styles */
+.canvas-content .thought-card {
+    position: absolute;
+    width: 240px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(var(--blur-strength));
+    border: 1px solid var(--border-glass);
+    border-radius: 12px;
+    padding: 16px;
+    cursor: move;
+    user-select: none;
+    transition: box-shadow 0.2s ease, transform 0.2s ease, border-color 0.2s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+.thought-card:hover {
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+    z-index: 1000;
+}
+
+.thought-card.connect-mode {
+    cursor: crosshair;
+}
+
+.thought-card.connect-candidate {
+    border-color: rgba(100, 200, 150, 0.5);
+    box-shadow: 0 0 20px rgba(100, 200, 150, 0.2);
+}
+
+.thought-card.connect-selected {
+    border-color: #64c896;
+    box-shadow: 0 0 25px rgba(100, 200, 150, 0.4);
+}
+
+/* Small close button variant for thought cards */
+.close-btn-sm {
+    width: 18px !important;
+    height: 18px !important;
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    opacity: 0;
+    z-index: 10;
+}
+
+.close-btn-sm svg {
+    width: 9px !important;
+    height: 9px !important;
+}
+
+.thought-card:hover .close-btn-sm,
+.canvas-sticky-note:hover .close-btn-sm {
+    opacity: 1;
+}
+
+.close-btn-sm:hover {
+    transform: scale(1.15) rotate(90deg) !important;
+}
+
+/* Canvas card drop indicator */
+.canvas-content.drag-over::after {
+    content: 'Drop here';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 20px 40px;
+    background: rgba(100, 200, 150, 0.1);
+    border: 2px dashed rgba(100, 200, 150, 0.4);
+    border-radius: 16px;
+    font-size: 14px;
+    font-weight: 500;
+    color: rgba(100, 200, 150, 0.8);
+    pointer-events: none;
+}
+
+/* ===== CONNECTOR DOTS ===== */
+.connector-dot {
+    fill: rgba(100, 200, 150, 0.3);
+    transition: all 0.2s ease;
+}
+
+.connector-dot-start {
+    fill: rgba(100, 200, 150, 0.5);
+}
+
+.connector-dot-end {
+    fill: rgba(100, 200, 150, 0.25);
+}
+
+/* ===== CANVAS STICKY NOTES - MODERN GLASS ===== */
+.canvas-sticky-note {
+    position: absolute;
+    width: 200px;
+    min-height: 100px;
+    background: linear-gradient(145deg, rgba(45, 42, 55, 0.95), rgba(35, 32, 45, 0.9));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-left: 3px solid rgba(255, 200, 100, 0.6);
+    border-radius: 12px;
+    padding: 14px 14px 14px 16px;
+    cursor: move;
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.6;
+    user-select: none;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.canvas-sticky-note::before {
+    content: '📝';
+    position: absolute;
+    top: -8px;
+    left: 12px;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.canvas-sticky-note:hover {
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.4),
+        0 0 20px rgba(255, 200, 100, 0.1);
+    border-left-color: rgba(255, 200, 100, 0.8);
+    transform: translateY(-2px);
+    z-index: 1000;
+}
+
+.canvas-sticky-note.editing {
+    cursor: text;
+    user-select: text;
+    border-left-color: rgba(100, 200, 150, 0.8);
+}
+
+.canvas-sticky-note-content {
+    width: 100%;
+    min-height: 60px;
+    border: none;
+    background: transparent;
+    resize: none;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    outline: none;
+    padding: 0;
+    margin-top: 4px;
+}
+
+.canvas-sticky-note-content::placeholder {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* ===== CONNECT MODE STYLES ===== */
+.canvas-workspace.connect-mode {
+    cursor: crosshair;
+}
+
+.canvas-workspace.connect-mode .thought-card {
+    cursor: crosshair;
+}
+
+/* Temporary line while drawing */
+.connector-temp-line {
+    stroke: rgba(100, 200, 150, 0.6);
+    stroke-width: 2;
+    stroke-dasharray: 5 5;
+    fill: none;
+    pointer-events: none;
+}
+
+/* ===== ZOOM & PAN ===== */
+.canvas-content {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 3000px;
+    height: 3000px;
+    transform-origin: 0 0;
+    transition: transform 0.1s ease-out;
+}
+
+.canvas-workspace.panning {
+    cursor: grabbing !important;
+}
+
+.canvas-workspace.panning * {
+    cursor: grabbing !important;
+}
+
+/* Light mode adjustments */
+[data-theme="light"] .canvas-toolbar {
+    background: rgba(0, 0, 0, 0.03);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .basket-icon {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .basket-thought-preview {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .thought-card {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Light Mode - Canvas Comprehensive Styles */
+[data-theme="light"] .canvas-modal {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+[data-theme="light"] .canvas-container {
+    background: rgba(245, 245, 247, 0.98);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .canvas-header {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .canvas-workspace {
+    background: rgba(250, 250, 252, 1);
+}
+
+[data-theme="light"] .canvas-grid-bg {
+    background-image:
+        linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+}
+
+[data-theme="light"] .canvas-toolbar {
+    background: rgba(255, 255, 255, 0.9);
+    border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .canvas-tool-btn {
+    background: rgba(0, 0, 0, 0.03);
+    color: #333;
+}
+
+[data-theme="light"] .canvas-tool-btn:hover {
+    background: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .canvas-sticky-note {
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(245, 245, 247, 0.95));
+    border-color: rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+[data-theme="light"] .canvas-sticky-note-content {
+    color: #333;
+}
+
+[data-theme="light"] .connector-dot {
+    fill: rgba(75, 150, 100, 0.4);
+}
+
+/* Recent Searches - More Translucent */
+.recent-searches {
+    background: rgba(20, 20, 22, 0.75) !important;
+    backdrop-filter: blur(20px);
+}
+
+[data-theme="light"] .recent-searches {
+    background: rgba(255, 255, 255, 0.85) !important;
+}
+
+/* ===== SEARCH AUTOCOMPLETE GHOST TEXT ===== */
+.search-wrapper {
+    position: relative;
+}
+
+.search-ghost {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    padding-left: 24px;
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    opacity: 0.4;
+    pointer-events: none;
+    white-space: nowrap;
+    overflow: hidden;
+    z-index: 1;
+    font-family: var(--font-sans);
+}
+
+.search-hint {
+    position: absolute;
+    right: 60px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 10px;
+    padding: 2px 6px;
+    background: rgba(100, 200, 150, 0.15);
+    border: 1px solid rgba(100, 200, 150, 0.3);
+    border-radius: 4px;
+    color: rgba(100, 200, 150, 0.8);
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.search-hint.visible {
+    opacity: 1;
+}
+
+/* Quick link number badges */
+.quick-link {
+    position: relative;
+}
+
+.quick-link-number {
+    position: absolute;
+    top: -6px;
+    left: -6px;
+    width: 18px;
+    height: 18px;
+    background: rgba(100, 200, 150, 0.2);
+    border: 1px solid rgba(100, 200, 150, 0.4);
+    border-radius: 4px;
+    font-size: 10px;
+    font-weight: 700;
+    color: rgba(100, 200, 150, 0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.quick-links:hover .quick-link-number,
+.quick-link-number.visible {
+    opacity: 1;
+}
+
+/* ====================================================
+   PREMIUM ANIMATION SYSTEM
+   Beautiful, cohesive animations across the UI
+   ==================================================== */
+
+/* Premium Easing Curves */
+:root {
+    --ease-elastic: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --ease-premium: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-snappy: cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* ===== MODAL ANIMATIONS ===== */
+.settings-modal,
+.thoughts-modal,
+.shortcuts-modal,
+.release-notes-modal,
+.add-link-modal,
+.canvas-modal {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s var(--ease-premium), visibility 0.3s;
+}
+
+.settings-modal .settings-container,
+.thoughts-modal .thoughts-container,
+.shortcuts-modal .shortcuts-container,
+.release-notes-modal .release-container,
+.add-link-modal .add-link-container,
+.canvas-modal .canvas-container {
+    transform: scale(0.92) translateY(20px);
+    opacity: 0;
+    transition: transform 0.4s var(--ease-elastic), opacity 0.3s var(--ease-smooth);
+}
+
+.settings-modal.active,
+.thoughts-modal.active,
+.shortcuts-modal.active,
+.release-notes-modal.active,
+.add-link-modal.active,
+.canvas-modal.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.settings-modal.active .settings-container,
+.thoughts-modal.active .thoughts-container,
+.shortcuts-modal.active .shortcuts-container,
+.release-notes-modal.active .release-container,
+.add-link-modal.active .add-link-container,
+.canvas-modal.active .canvas-container {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+}
+
+/* ===== BUTTON HOVER EFFECTS ===== */
+button,
+.btn,
+[role="button"] {
+    transition: all 0.25s var(--ease-elastic);
+}
+
+button:hover:not(:disabled),
+.btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+}
+
+button:active:not(:disabled),
+.btn:active:not(:disabled) {
+    transform: translateY(0) scale(0.98);
+    transition-duration: 0.1s;
+}
+
+/* ===== SEARCH INPUT FOCUS ===== */
+.search-input {
+    transition: all 0.3s var(--ease-elastic), box-shadow 0.3s ease;
+}
+
+.search-input:focus {
+    transform: scale(1.01);
+    box-shadow:
+        0 0 0 2px rgba(100, 200, 150, 0.15),
+        0 8px 32px rgba(0, 0, 0, 0.2),
+        0 0 60px rgba(100, 200, 150, 0.08);
+}
+
+/* Ensure search form and dropdown are above other elements */
+.search-form {
+    position: relative;
+    z-index: 100;
+}
+
+/* ===== QUICK LINKS STAGGER ANIMATION ===== */
+.links-grid {
+    opacity: 1;
+}
+
+.quick-link,
+.add-link-tile {
+    opacity: 0;
+    transform: translateY(15px) scale(0.95);
+    animation: quickLinkReveal 0.5s var(--ease-elastic) forwards;
+}
+
+.quick-link:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.quick-link:nth-child(2) {
+    animation-delay: 0.15s;
+}
+
+.quick-link:nth-child(3) {
+    animation-delay: 0.2s;
+}
+
+.quick-link:nth-child(4) {
+    animation-delay: 0.25s;
+}
+
+.quick-link:nth-child(5) {
+    animation-delay: 0.3s;
+}
+
+.quick-link:nth-child(6) {
+    animation-delay: 0.35s;
+}
+
+.quick-link:nth-child(7) {
+    animation-delay: 0.4s;
+}
+
+.quick-link:nth-child(8) {
+    animation-delay: 0.45s;
+}
+
+.quick-link:nth-child(9) {
+    animation-delay: 0.5s;
+}
+
+.add-link-tile {
+    animation-delay: 0.55s;
+}
+
+@keyframes quickLinkReveal {
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Quick Link Hover */
+.quick-link {
+    transition: all 0.3s var(--ease-elastic);
+}
+
+.quick-link:hover {
+    transform: translateY(-5px) scale(1.03);
+    box-shadow:
+        0 10px 30px rgba(0, 0, 0, 0.2),
+        0 0 20px rgba(100, 200, 150, 0.1);
+}
+
+.quick-link:active {
+    transform: translateY(-2px) scale(1);
+}
+
+/* ===== CARD HOVER EFFECTS ===== */
+.thought-item,
+.echo-card,
+.stat-card,
+.settings-card,
+.glass-panel {
+    transition: all 0.35s var(--ease-elastic);
+}
+
+.thought-item:hover,
+.echo-card:hover,
+.stat-card:hover,
+.settings-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+        0 15px 40px rgba(0, 0, 0, 0.25),
+        0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+/* ===== PAGE LOAD STAGGER ===== */
+.home-main .tagline,
+.home-main .search-form,
+.home-main .quick-links,
+.home-main .ai-taskbar {
+    opacity: 0;
+    animation: pageElementReveal 0.6s var(--ease-elastic) forwards;
+}
+
+.home-main .greeting {
+    animation-delay: 0s;
+    opacity: 0;
+    animation: pageElementReveal 0.6s var(--ease-elastic) forwards;
+}
+
+.home-main .tagline {
+    animation-delay: 0.08s;
+}
+
+.home-main .search-form {
+    animation-delay: 0.12s;
+}
+
+.home-main .quick-links {
+    animation-delay: 0.25s;
+}
+
+.home-main .ai-taskbar {
+    animation-delay: 0.35s;
+}
+
+@keyframes pageElementReveal {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== SIDEBAR WIDGETS ANIMATION ===== */
+/* Removed persistent movement animations - only on initial load */
+
+/* ===== TOOLTIP ANIMATION ===== */
+[title]:hover::after {
+    animation: tooltipFade 0.2s var(--ease-smooth) forwards;
+}
+
+@keyframes tooltipFade {
+    from {
+        opacity: 0;
+        transform: translateY(-5px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== FOCUS STATES ===== */
+*:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 2px var(--bg-primary),
+        0 0 0 4px rgba(100, 200, 150, 0.4);
+    transition: box-shadow 0.2s ease;
+}
+
+/* ===== RECENT SEARCHES DROPDOWN ===== */
+.recent-searches {
+    transform-origin: top center;
+    animation: dropdownReveal 0.25s var(--ease-elastic);
+}
+
+@keyframes dropdownReveal {
+    from {
+        opacity: 0;
+        transform: scaleY(0.8) translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: scaleY(1) translateY(0);
+    }
+}
+
+.recent-search-item {
+    transition: all 0.2s var(--ease-smooth);
+}
+
+.recent-search-item:hover {
+    background: rgba(100, 200, 150, 0.1);
+    padding-left: 16px;
+}
+
+/* ===== AI LINKS ANIMATION ===== */
+.ai-link {
+    transition: all 0.3s var(--ease-elastic);
+}
+
+.ai-link:hover {
+    transform: translateY(-4px) scale(1.05);
+}
+
+.ai-link:hover .ai-logo {
+    animation: aiGlow 1.5s ease-in-out infinite;
+}
+
+@keyframes aiGlow {
+
+    0%,
+    100% {
+        filter: drop-shadow(0 0 3px currentColor);
+    }
+
+    50% {
+        filter: drop-shadow(0 0 8px currentColor);
+    }
+}
+
+/* ===== SETTINGS TOGGLE ANIMATION ===== */
+#settingsToggle {
+    transition: all 0.3s var(--ease-elastic);
+}
+
+#settingsToggle:hover {
+    transform: rotate(45deg) scale(1.1);
+}
+
+#settingsToggle:hover svg {
+    filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+}
+
+/* ===== GLASS PANEL HOVER ===== */
+.glass-panel {
+    transition: box-shadow 0.35s var(--ease-elastic), border-color 0.35s ease;
+}
+
+.glass-panel:hover {
+    box-shadow:
+        0 12px 40px rgba(0, 0, 0, 0.25),
+        0 0 30px rgba(100, 200, 150, 0.05);
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* ===== CANVAS TRIGGER BUTTON ===== */
+.canvas-trigger {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.15s ease;
+}
+
+.canvas-trigger:hover {
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(100, 200, 150, 0.15);
+    border-color: rgba(100, 200, 150, 0.3);
+}
+
+.canvas-trigger:active {
+    transform: scale(0.95);
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.2),
+        0 0 30px rgba(100, 200, 150, 0.3);
+}
+
+/* ===== THOUGHTS PANEL TRIGGER ===== */
+.thoughts-trigger {
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.15s ease;
+}
+
+.thoughts-trigger:hover {
+    box-shadow:
+        0 8px 30px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(100, 200, 150, 0.15);
+    border-color: rgba(100, 200, 150, 0.3);
+}
+
+.thoughts-trigger:active {
+    transform: scale(0.95);
+    box-shadow:
+        0 4px 15px rgba(0, 0, 0, 0.2),
+        0 0 30px rgba(100, 200, 150, 0.3);
+}
+
+/* ===== VERSION BUTTON ===== */
+#versionBtn {
+    transition: all 0.3s var(--ease-elastic);
+}
+
+#versionBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* ===== SHIMMER EFFECT FOR LOADING ===== */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.loading-shimmer {
+    background: linear-gradient(90deg,
+            rgba(255, 255, 255, 0) 0%,
+            rgba(255, 255, 255, 0.05) 50%,
+            rgba(255, 255, 255, 0) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* ===== MICRO-INTERACTION: CLICK RIPPLE ===== */
+.ripple-effect {
+    position: relative;
+    overflow: hidden;
+}
+
+.ripple-effect::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.4s ease, height 0.4s ease, opacity 0.4s ease;
+    opacity: 0;
+}
+
+.ripple-effect:active::after {
+    width: 200px;
+    height: 200px;
+    opacity: 0;
 }

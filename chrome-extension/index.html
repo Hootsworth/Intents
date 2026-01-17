@@ -65,8 +65,10 @@
 
             <form class="search-form" id="searchForm">
                 <div class="search-wrapper">
+                    <span class="search-ghost" id="searchGhost" aria-hidden="true"></span>
                     <input type="text" name="q" class="search-input" placeholder="Search..." autocomplete="off"
                         autofocus id="searchInput">
+                    <span class="search-hint" id="searchHint">Tab to complete</span>
                     <button type="submit" class="search-btn">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2.5">
@@ -428,14 +430,54 @@
                     </svg>
                     <span>Thought Canvas</span>
                 </div>
-                <div class="canvas-actions">
-                    <button class="canvas-action-btn" id="canvasReset" title="Reset Layout">
+                <!-- Canvas Toolbar -->
+                <div class="canvas-toolbar">
+                    <button class="canvas-tool-btn" id="connectModeBtn" title="Connect Mode (C)">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2">
-                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path>
-                            <path d="M21 3v5h-5"></path>
-                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path>
-                            <path d="M3 21v-5h5"></path>
+                            <circle cx="5" cy="12" r="3" />
+                            <circle cx="19" cy="12" r="3" />
+                            <path d="M8 12h8" />
+                        </svg>
+                    </button>
+                    <button class="canvas-tool-btn" id="addNoteBtn" title="Add Note (N)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <path d="M12 8v8M8 12h8" />
+                        </svg>
+                    </button>
+                    <div class="canvas-tool-divider"></div>
+                    <button class="canvas-tool-btn" id="zoomOutBtn" title="Zoom Out (-)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="M21 21l-4.35-4.35M8 11h6" />
+                        </svg>
+                    </button>
+                    <span class="canvas-zoom-level" id="zoomLevel">100%</span>
+                    <button class="canvas-tool-btn" id="zoomInBtn" title="Zoom In (+)">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <circle cx="11" cy="11" r="8" />
+                            <path d="M21 21l-4.35-4.35M11 8v6M8 11h6" />
+                        </svg>
+                    </button>
+                    <button class="canvas-tool-btn" id="zoomResetBtn" title="Reset Zoom">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                            <path d="M21 3v5h-5" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="canvas-actions">
+                    <button class="canvas-action-btn" id="canvasReset" title="Clear Canvas">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path
+                                d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2">
+                            </path>
                         </svg>
                     </button>
                     <button class="close-btn-mac" id="closeCanvas" title="Close Canvas">
@@ -448,11 +490,58 @@
             </div>
             <div class="canvas-workspace" id="canvasWorkspace">
                 <div class="canvas-grid-bg"></div>
+                <!-- SVG Layer for Connectors -->
+                <svg class="canvas-connectors" id="canvasConnectors"></svg>
                 <div class="canvas-content" id="canvasContent">
                     <!-- Draggable thoughts injected here -->
                 </div>
+                <!-- Thought Basket -->
+                <div class="thought-basket" id="thoughtBasket">
+                    <div class="basket-icon">
+                        <!-- Woven Basket SVG -->
+                        <svg width="48" height="48" viewBox="0 0 48 48" fill="none" class="basket-svg">
+                            <!-- Basket Handle -->
+                            <path d="M12 18C12 10 18 6 24 6C30 6 36 10 36 18" stroke="url(#basketHandle)"
+                                stroke-width="3" stroke-linecap="round" fill="none" class="basket-handle" />
+                            <!-- Basket Body -->
+                            <path d="M8 20h32l-4 20H12L8 20z" fill="url(#basketBody)" class="basket-body" />
+                            <!-- Weave Lines Horizontal -->
+                            <path d="M9 24h30M10 28h28M11 32h26M12 36h24" stroke="rgba(139,90,43,0.5)"
+                                stroke-width="1.5" stroke-linecap="round" />
+                            <!-- Weave Lines Vertical -->
+                            <path d="M16 20v18M20 20v19M24 20v20M28 20v19M32 20v18" stroke="rgba(139,90,43,0.4)"
+                                stroke-width="1" stroke-dasharray="3 2" />
+                            <!-- Basket Rim -->
+                            <ellipse cx="24" cy="20" rx="16" ry="3" fill="url(#basketRim)" />
+                            <!-- Shine -->
+                            <ellipse cx="18" cy="26" rx="4" ry="2" fill="rgba(255,255,255,0.15)" class="basket-shine" />
+                            <!-- Definitions -->
+                            <defs>
+                                <linearGradient id="basketHandle" x1="12" y1="6" x2="36" y2="6">
+                                    <stop offset="0%" stop-color="#a0522d" />
+                                    <stop offset="50%" stop-color="#cd853f" />
+                                    <stop offset="100%" stop-color="#a0522d" />
+                                </linearGradient>
+                                <linearGradient id="basketBody" x1="8" y1="20" x2="8" y2="40">
+                                    <stop offset="0%" stop-color="#deb887" />
+                                    <stop offset="50%" stop-color="#d2a679" />
+                                    <stop offset="100%" stop-color="#b8860b" />
+                                </linearGradient>
+                                <linearGradient id="basketRim" x1="8" y1="17" x2="8" y2="23">
+                                    <stop offset="0%" stop-color="#8b4513" />
+                                    <stop offset="100%" stop-color="#a0522d" />
+                                </linearGradient>
+                            </defs>
+                        </svg>
+                        <span class="basket-count" id="basketCount">0</span>
+                        <div class="basket-glow"></div>
+                    </div>
+                    <div class="basket-thoughts" id="basketThoughts">
+                        <!-- Thought previews appear here on hover -->
+                    </div>
+                </div>
             </div>
-            <div class="canvas-hint">Drag thoughts to organize spatially · Use connectors to link ideas</div>
+            <div class="canvas-hint">Hover basket to see thoughts · Drag onto canvas · Connect with lines</div>
         </div>
     </div>
 
