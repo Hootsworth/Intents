@@ -4,10 +4,122 @@
 
 const GOOGLE_SEARCH_URL = 'https://www.google.com/search?q=';
 
+// ===== UTILITY FUNCTIONS =====
+function debounce(fn, delay) {
+    let timeout;
+    return (...args) => {
+        clearTimeout(timeout);
+        timeout = setTimeout(() => fn(...args), delay);
+    };
+}
+
+function throttle(fn, limit) {
+    let inThrottle;
+    return (...args) => {
+        if (!inThrottle) {
+            fn(...args);
+            inThrottle = true;
+            setTimeout(() => inThrottle = false, limit);
+        }
+    };
+}
+
+// ===== API CACHE =====
+const apiCache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
+function getCached(key) {
+    const item = apiCache.get(key);
+    if (item && Date.now() - item.timestamp < CACHE_DURATION) {
+        return item.data;
+    }
+    apiCache.delete(key);
+    return null;
+}
+
+function setCache(key, data) {
+    apiCache.set(key, { data, timestamp: Date.now() });
+}
+
+// ===== SOUND DESIGN =====
+const audioCtx = typeof AudioContext !== 'undefined' ? new AudioContext() : null;
+
+function playSound(type) {
+    if (!state.settings.enableSounds || !audioCtx) return;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    // Very subtle sounds
+    gain.gain.value = 0.08;
+
+    switch (type) {
+        case 'click':
+            osc.frequency.value = 600;
+            osc.type = 'sine';
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.08);
+            break;
+        case 'success':
+            osc.frequency.value = 523; // C5
+            osc.type = 'sine';
+            setTimeout(() => {
+                const osc2 = audioCtx.createOscillator();
+                const gain2 = audioCtx.createGain();
+                osc2.connect(gain2);
+                gain2.connect(audioCtx.destination);
+                osc2.frequency.value = 659; // E5
+                osc2.type = 'sine';
+                gain2.gain.value = 0.06;
+                gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+                osc2.start();
+                osc2.stop(audioCtx.currentTime + 0.15);
+            }, 80);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+            break;
+        case 'error':
+            osc.frequency.value = 200;
+            osc.type = 'triangle';
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.15);
+            break;
+        case 'pop':
+            osc.frequency.value = 800;
+            osc.type = 'sine';
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+            break;
+        case 'whoosh':
+            osc.frequency.value = 400;
+            osc.type = 'sine';
+            osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.1);
+            break;
+        case 'switch':
+            osc.frequency.value = 440;
+            osc.type = 'sine';
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.05);
+            break;
+    }
+}
+
+// ===== STATE =====
 const state = {
     settings: {
         style: 'subtle',  // Standard Stoic Style
         theme: 'dark',    // 'dark' or 'light'
+        themeAccent: 'default', // 'default', 'ocean', 'forest', 'sunset', 'midnight', 'lavender', or custom hex
         showQuickLinks: true,
         newTabResults: false,
         showAITaskbar: true,
@@ -15,7 +127,9 @@ const state = {
         showGreeting: true,
         showFocusGoal: true,
         showDailyStats: true,
-        customBackground: 'none' // Curated background ID or 'none'
+        customBackground: 'none', // Curated background ID or 'none'
+        enableSounds: false, // UI sounds (off by default)
+        reduceMotion: false  // Reduce animations (opt-in)
     },
     quickLinks: [],
     stats: {
@@ -48,6 +162,9 @@ document.addEventListener('DOMContentLoaded', () => {
     initThoughtCanvas();
     initBackgroundCuration();
     initQuickLinkShortcuts();
+    initShortcutLegend();
+    initDataSovereignty();
+    initSpotlight();
 });
 
 function loadSettings() {
@@ -134,6 +251,63 @@ function loadSettings() {
             btn.classList.toggle('active', btn.dataset.bg === state.settings.customBackground);
         });
         applyBackground();
+    }
+
+    // ===== v5.5.0 NEW SETTINGS =====
+
+    // Accent Color Picker
+    const accentOptions = document.getElementById('accentOptions');
+    if (accentOptions) {
+        // Apply saved accent
+        if (state.settings.themeAccent && state.settings.themeAccent !== 'default') {
+            document.body.setAttribute('data-accent', state.settings.themeAccent);
+        }
+        // Update button states
+        accentOptions.querySelectorAll('.accent-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.accent === state.settings.themeAccent);
+        });
+        // Add click handlers
+        accentOptions.addEventListener('click', (e) => {
+            const btn = e.target.closest('.accent-btn');
+            if (!btn) return;
+            const accent = btn.dataset.accent;
+            state.settings.themeAccent = accent;
+            // Apply to body
+            if (accent === 'default') {
+                document.body.removeAttribute('data-accent');
+            } else {
+                document.body.setAttribute('data-accent', accent);
+            }
+            // Update UI
+            accentOptions.querySelectorAll('.accent-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            saveSettings();
+            playSound('click');
+        });
+    }
+
+    // Enable Sounds Toggle
+    const enableSoundsEl = document.getElementById('enableSounds');
+    if (enableSoundsEl) {
+        enableSoundsEl.checked = state.settings.enableSounds;
+        enableSoundsEl.addEventListener('change', (e) => {
+            state.settings.enableSounds = e.target.checked;
+            saveSettings();
+            if (e.target.checked) playSound('success');
+        });
+    }
+
+    // Reduce Motion Toggle
+    const reduceMotionEl = document.getElementById('reduceMotion');
+    if (reduceMotionEl) {
+        reduceMotionEl.checked = state.settings.reduceMotion;
+        // Apply on load
+        document.body.classList.toggle('reduce-motion', state.settings.reduceMotion);
+        reduceMotionEl.addEventListener('change', (e) => {
+            state.settings.reduceMotion = e.target.checked;
+            document.body.classList.toggle('reduce-motion', e.target.checked);
+            saveSettings();
+        });
     }
 
     document.getElementById('quickLinks').style.display = state.settings.showQuickLinks ? 'block' : 'none';
@@ -408,6 +582,7 @@ function initFocusTimer() {
         document.body.classList.add('focus-active');
 
         updateFocusDisplay();
+        playSound('success');
 
         state.focus.timer = setInterval(() => {
             state.focus.timeLeft--;
@@ -427,6 +602,7 @@ function initFocusTimer() {
         document.body.classList.remove('focus-active');
         state.focus.timeLeft = 1500;
         updateFocusDisplay();
+        playSound('click');
     }
 
     function updateFocusDisplay() {
@@ -673,11 +849,13 @@ function renderRecentSearches(filter = '') {
         recentSearches = [];
         localStorage.removeItem('intents-recent-searches');
         recentDropdown.style.display = 'none';
+        playSound('pop');
     });
 
     document.getElementById('closeRecent')?.addEventListener('click', (e) => {
         e.stopPropagation();
         recentDropdown.style.display = 'none';
+        playSound('click');
     });
 }
 
@@ -699,22 +877,34 @@ function initEventListeners() {
     document.getElementById('searchForm')?.addEventListener('submit', handleSearch);
 
     // Settings modal
-    const settingsToggle = document.getElementById('settingsToggle');
     const settingsModal = document.getElementById('settingsModal');
-    settingsToggle?.addEventListener('click', () => settingsModal.classList.add('active'));
-    document.getElementById('closeSettings')?.addEventListener('click', () => settingsModal.classList.remove('active'));
-    settingsModal?.addEventListener('click', (e) => { if (e.target === settingsModal) settingsModal.classList.remove('active'); });
+    settingsToggle?.addEventListener('click', () => {
+        settingsModal.classList.add('active');
+        playSound('whoosh');
+    });
+    document.getElementById('closeSettings')?.addEventListener('click', () => {
+        settingsModal.classList.remove('active');
+        playSound('click');
+    });
+    settingsModal?.addEventListener('click', (e) => {
+        if (e.target === settingsModal) {
+            settingsModal.classList.remove('active');
+            playSound('click');
+        }
+    });
 
     // Shortcuts Modal
     const shortcutsModal = document.getElementById('shortcutsModal');
     if (document.getElementById('openShortcutsBtn')) {
         document.getElementById('openShortcutsBtn').addEventListener('click', () => {
             shortcutsModal.classList.add('active');
+            playSound('whoosh');
         });
     }
     if (document.getElementById('closeShortcuts')) {
         document.getElementById('closeShortcuts').addEventListener('click', () => {
             shortcutsModal.classList.remove('active');
+            playSound('click');
         });
     }
     shortcutsModal?.addEventListener('click', (e) => {
@@ -724,8 +914,14 @@ function initEventListeners() {
     // Release Notes Modal
     const releaseNotesModal = document.getElementById('releaseNotesModal');
     const versionBtn = document.getElementById('versionBtn');
-    versionBtn?.addEventListener('click', () => releaseNotesModal.classList.add('active'));
-    document.getElementById('closeReleaseNotes')?.addEventListener('click', () => releaseNotesModal.classList.remove('active'));
+    versionBtn?.addEventListener('click', () => {
+        releaseNotesModal.classList.add('active');
+        playSound('whoosh');
+    });
+    document.getElementById('closeReleaseNotes')?.addEventListener('click', () => {
+        releaseNotesModal.classList.remove('active');
+        playSound('click');
+    });
     releaseNotesModal?.addEventListener('click', (e) => {
         if (e.target === releaseNotesModal) releaseNotesModal.classList.remove('active');
     });
@@ -738,13 +934,20 @@ function initEventListeners() {
         addLinkModal.classList.add('active');
         document.getElementById('linkName').value = '';
         document.getElementById('linkUrl').value = '';
+        playSound('whoosh');
     });
-    document.getElementById('closeAddLink')?.addEventListener('click', () => addLinkModal.classList.remove('active'));
+    document.getElementById('closeAddLink')?.addEventListener('click', () => {
+        addLinkModal.classList.remove('active');
+        playSound('click');
+    });
     addLinkModal?.addEventListener('click', (e) => { if (e.target === addLinkModal) addLinkModal.classList.remove('active'); });
 
     document.getElementById('saveLink')?.addEventListener('click', () => {
         if (addQuickLink(document.getElementById('linkName').value.trim(), document.getElementById('linkUrl').value.trim())) {
             addLinkModal.classList.remove('active');
+            playSound('success');
+        } else {
+            playSound('error');
         }
     });
 
@@ -822,6 +1025,7 @@ function initEventListeners() {
             saveSettings();
             applyStyles();
             document.querySelectorAll('.style-btn').forEach(b => b.classList.toggle('active', b.dataset.style === state.settings.style));
+            playSound('switch');
         });
     });
 
@@ -832,6 +1036,7 @@ function initEventListeners() {
             saveSettings();
             applyStyles();
             document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme === state.settings.theme));
+            playSound('switch');
         });
     });
 
@@ -859,10 +1064,12 @@ function initEventListeners() {
                 btn.classList.add('active');
                 // Uncheck engine radios
                 document.querySelectorAll('input[name="engine"]').forEach(r => r.checked = false);
+                playSound('switch');
             } else {
                 // Re-select default engine if deselecting intent
                 const defaultEngineRadio = document.querySelector(`input[name="engine"][value="${state.settings.defaultEngine}"]`);
                 if (defaultEngineRadio) defaultEngineRadio.checked = true;
+                playSound('click');
             }
         });
     });
@@ -908,6 +1115,7 @@ function handleSearch(e) {
     let query = document.getElementById('searchInput').value.trim();
     if (!query) return;
 
+    playSound('whoosh');
     // AI Omnibox handling
     if (query.startsWith('/ai ')) {
         const aiQuery = query.substring(4).trim();
@@ -1173,6 +1381,7 @@ function handleMerge(idsString) {
                 setTimeout(() => {
                     loadThoughts();
                     loadThoughtsCount();
+                    playSound('success');
                 }, 400);
             } else {
                 // Revert animation on failure
@@ -1219,6 +1428,7 @@ function deleteThought(id) {
         chrome.runtime.sendMessage({ action: 'deleteThought', id }, () => {
             loadThoughts();
             loadThoughtsCount();
+            playSound('pop');
         });
     }
 }
@@ -1330,12 +1540,14 @@ function openCommandPalette() {
     selectedCommandIndex = 0;
     input.value = '';
     renderCommands();
+    playSound('whoosh');
 
     setTimeout(() => input?.focus(), 50);
 }
 
 function closeCommandPalette() {
     document.getElementById('commandPalette')?.classList.remove('active');
+    playSound('click');
 }
 
 function filterCommands(query) {
@@ -1398,6 +1610,7 @@ function executeSelectedCommand() {
     if (cmd) {
         closeCommandPalette();
         cmd.action();
+        playSound('success');
     }
 }
 
@@ -1438,6 +1651,7 @@ function initGlobalShortcuts() {
             document.getElementById('releaseModal')?.classList.remove('active');
             document.getElementById('thoughtsPanel')?.classList.remove('active');
             document.getElementById('calcResult')?.classList.remove('visible');
+            playSound('click');
         }
     });
 }
@@ -1497,6 +1711,7 @@ function createEchoCard(item) {
 
     card.addEventListener('click', () => {
         openShelfArticle(item);
+        playSound('click');
     });
 
     return card;
@@ -1574,11 +1789,13 @@ function initThoughtCanvas() {
     openBtn.addEventListener('click', () => {
         modal.classList.add('active');
         loadCanvasState();
+        playSound('whoosh');
     });
 
     // Close canvas
     closeBtn?.addEventListener('click', () => {
         modal.classList.remove('active');
+        playSound('click');
     });
 
     // Clear canvas
@@ -1588,6 +1805,7 @@ function initThoughtCanvas() {
             canvasState.connections = [];
             saveCanvasState();
             renderCanvas();
+            playSound('pop');
         }
     });
 
@@ -1601,6 +1819,7 @@ function initThoughtCanvas() {
             c.classList.remove('connect-selected', 'connect-candidate');
             if (canvasState.connectMode) c.classList.add('connect-candidate');
         });
+        playSound('switch');
     });
 
     // Add note
@@ -1616,6 +1835,7 @@ function initThoughtCanvas() {
         canvasState.canvasThoughts.push(note);
         saveCanvasState();
         renderCanvas();
+        playSound('pop');
     });
 
     // Zoom controls
@@ -1850,6 +2070,7 @@ function initThoughtCanvas() {
             if (!canvasState.connectMode) return;
             e.stopPropagation();
             handleConnectClick(thought.id, card);
+            playSound(canvasState.connectSource ? 'click' : 'success');
         });
 
         content.appendChild(card);
@@ -2001,6 +2222,7 @@ function initThoughtCanvas() {
             path.style.pointerEvents = 'stroke';
             path.addEventListener('click', () => {
                 path.classList.add('deleting');
+                playSound('pop');
                 setTimeout(() => {
                     canvasState.connections = canvasState.connections.filter(c => c.id !== conn.id);
                     saveCanvasState();
@@ -2150,5 +2372,235 @@ function initBackgroundCuration() {
     // Enter key for search
     searchInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') searchBtn.click();
+    });
+}
+
+// ===== MAGNETIC BUTTONS =====
+function initMagneticButtons() {
+    document.querySelectorAll('.magnetic-btn, [data-magnetic]').forEach(btn => {
+        btn.addEventListener('mousemove', (e) => {
+            const rect = btn.getBoundingClientRect();
+            const x = e.clientX - rect.left - rect.width / 2;
+            const y = e.clientY - rect.top - rect.height / 2;
+
+            // Subtle magnetic pull (5-10% of distance)
+            const pullStrength = 0.08;
+            btn.style.transform = `translate(${x * pullStrength}px, ${y * pullStrength}px)`;
+        });
+
+        btn.addEventListener('mouseleave', () => {
+            btn.style.transform = 'translate(0, 0)';
+        });
+    });
+}
+
+// Initialize magnetic buttons
+document.addEventListener('DOMContentLoaded', initMagneticButtons);
+
+// ===== ADAPTIVE ACCENT COLOR =====
+function extractDominantColor(imageUrl) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 50; // Small for performance
+            canvas.height = 50;
+
+            try {
+                ctx.drawImage(img, 0, 0, 50, 50);
+                const data = ctx.getImageData(0, 0, 50, 50).data;
+
+                // Sample pixels and find average color
+                let r = 0, g = 0, b = 0, count = 0;
+                for (let i = 0; i < data.length; i += 16) { // Sample every 4th pixel
+                    r += data[i];
+                    g += data[i + 1];
+                    b += data[i + 2];
+                    count++;
+                }
+
+                r = Math.round(r / count);
+                g = Math.round(g / count);
+                b = Math.round(b / count);
+
+                // Boost saturation slightly for accent color
+                const max = Math.max(r, g, b);
+                const boost = 1.2;
+                if (r === max) r = Math.min(255, Math.round(r * boost));
+                else if (g === max) g = Math.min(255, Math.round(g * boost));
+                else b = Math.min(255, Math.round(b * boost));
+
+                resolve(`rgb(${r}, ${g}, ${b})`);
+            } catch (e) {
+                reject(e);
+            }
+        };
+        img.onerror = reject;
+        img.src = imageUrl;
+    });
+}
+
+function applyAdaptiveAccent(imageUrl) {
+    if (!imageUrl || imageUrl === 'none') return;
+
+    extractDominantColor(imageUrl).then(color => {
+        // Only apply if not manually set to a preset
+        if (state.settings.themeAccent === 'default' || state.settings.themeAccent === 'adaptive') {
+            document.documentElement.style.setProperty('--accent-primary', color);
+            state.settings.themeAccent = 'adaptive';
+        }
+    }).catch(err => console.log('Color extraction failed:', err));
+}
+// ========== PHASE 5: FINAL MASTERY FLOWS ==========
+
+function initShortcutLegend() {
+    const legend = document.getElementById('shortcutLegend');
+    if (!legend) return;
+
+    // Toggle with ?
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '?' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+            e.preventDefault();
+            const isActive = legend.classList.toggle('active');
+            playSound(isActive ? 'whoosh' : 'click');
+        }
+
+        // Close with Escape
+        if (e.key === 'Escape' && legend.classList.contains('active')) {
+            legend.classList.remove('active');
+            playSound('click');
+        }
+    });
+
+    // Close on click outside
+    legend.addEventListener('click', (e) => {
+        if (e.target === legend) {
+            legend.classList.remove('active');
+            playSound('click');
+        }
+    });
+}
+
+function initDataSovereignty() {
+    const exportBtn = document.getElementById('exportData');
+    const importBtn = document.getElementById('importDataBtn');
+    const importFile = document.getElementById('importFile');
+
+    exportBtn?.addEventListener('click', exportData);
+    importBtn?.addEventListener('click', () => importFile?.click());
+    importFile?.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            try {
+                const data = JSON.parse(event.target.result);
+                importData(data);
+            } catch (err) {
+                alert('Invalid backup file. Please ensure it is a valid JSON.');
+                playSound('error');
+            }
+        };
+        reader.readAsText(file);
+    });
+}
+
+async function exportData() {
+    playSound('click');
+
+    // Gather all local storage data
+    const storage = {
+        settings: JSON.parse(localStorage.getItem('intents-settings') || '{}'),
+        quickLinks: JSON.parse(localStorage.getItem('intents-quick-links') || '[]'),
+        recentSearches: JSON.parse(localStorage.getItem('intents-recent-searches') || '[]'),
+        stats: JSON.parse(localStorage.getItem('intents-stats') || '{}'),
+        dismissedSpotlights: JSON.parse(localStorage.getItem('intents-dismissed-spotlights') || '[]'),
+        exportDate: new Date().toISOString(),
+        version: '5.5.0'
+    };
+
+    // Gather extension storage (thoughts/canvas)
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        const extData = await new Promise(resolve => {
+            chrome.storage.local.get(['hold-that-thought-items', 'canvas-state', 'echoes-data'], resolve);
+        });
+        storage.thoughts = extData['hold-that-thought-items'] || [];
+        storage.canvasState = extData['canvas-state'] || null;
+        storage.echoes = extData['echoes-data'] || [];
+    }
+
+    const blob = new Blob([JSON.stringify(storage, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `intents-backup-${new Date().toISOString().split('T')[0]}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    playSound('success');
+}
+
+async function importData(data) {
+    if (!confirm('This will overwrite your current settings and data. Continue?')) return;
+
+    try {
+        // Restore local storage
+        if (data.settings) localStorage.setItem('intents-settings', JSON.stringify(data.settings));
+        if (data.quickLinks) localStorage.setItem('intents-quick-links', JSON.stringify(data.quickLinks));
+        if (data.recentSearches) localStorage.setItem('intents-recent-searches', JSON.stringify(data.recentSearches));
+        if (data.stats) localStorage.setItem('intents-stats', JSON.stringify(data.stats));
+        if (data.dismissedSpotlights) localStorage.setItem('intents-dismissed-spotlights', JSON.stringify(data.dismissedSpotlights));
+
+        // Restore extension storage
+        if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+            await new Promise(resolve => {
+                chrome.storage.local.set({
+                    'hold-that-thought-items': data.thoughts || [],
+                    'canvas-state': data.canvasState || null,
+                    'echoes-data': data.echoes || []
+                }, resolve);
+            });
+        }
+
+        playSound('success');
+        setTimeout(() => window.location.reload(), 500);
+    } catch (err) {
+        alert('Restore failed: ' + err.message);
+        playSound('error');
+    }
+}
+
+function initSpotlight() {
+    const spotlights = [
+        { id: 'settings', el: document.querySelector('[data-spotlight="settings"]') },
+        { id: 'canvas', el: document.querySelector('[data-spotlight="canvas"]') }
+    ];
+
+    const dismissed = JSON.parse(localStorage.getItem('intents-dismissed-spotlights') || '[]');
+
+    spotlights.forEach(s => {
+        if (!s.el) return;
+
+        const badge = s.el.querySelector('.spotlight-badge');
+        if (!badge) return;
+
+        // Show if not dismissed
+        if (!dismissed.includes(s.id)) {
+            badge.classList.add('active');
+        }
+
+        // Dismiss on click
+        s.el.addEventListener('click', () => {
+            if (badge.classList.contains('active')) {
+                badge.classList.remove('active');
+                if (!dismissed.includes(s.id)) {
+                    dismissed.push(s.id);
+                    localStorage.setItem('intents-dismissed-spotlights', JSON.stringify(dismissed));
+                }
+            }
+        });
     });
 }

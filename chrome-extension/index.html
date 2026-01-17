@@ -6,9 +6,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Intents - Search</title>
     <meta name="description" content="Intents - A minimal search engine. No ads. No tracking. Just search.">
-    <link rel="stylesheet" href="styles.css">
+    <!-- Preconnect for performance -->
+    <link rel="preconnect" href="https://api.duckduckgo.com">
+    <link rel="preconnect" href="https://en.wikipedia.org">
+    <link rel="preconnect" href="https://api.github.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="styles.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@300;400;500;700;900&display=swap"
         rel="stylesheet">
@@ -43,13 +47,15 @@
 
     <div class="container">
         <!-- Settings Toggle -->
-        <button class="settings-toggle" id="settingsToggle" aria-label="Settings">
+        <button class="settings-toggle" id="settingsToggle" aria-label="Settings" data-magnetic
+            data-spotlight="settings">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="3"></circle>
                 <path
                     d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
                 </path>
             </svg>
+            <span class="spotlight-badge"></span>
         </button>
 
         <!-- Main Content -->
@@ -149,10 +155,12 @@
         </div>
 
         <!-- Thought Canvas Trigger -->
-        <button class="canvas-trigger glass-panel" id="openCanvasBtn" title="Thought Canvas (Spatial Map)">
+        <button class="canvas-trigger glass-panel" id="openCanvasBtn" title="Thought Canvas (Spatial Map)" data-magnetic
+            data-spotlight="canvas">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"></path>
             </svg>
+            <span class="spotlight-badge"></span>
         </button>
 
         <!-- Keyboard Shortcuts Info -->
@@ -257,6 +265,52 @@
                     </div>
                 </div>
 
+                <!-- Accessibility & Preferences Section -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Preferences</h3>
+                    <div class="setting-group">
+                        <label class="setting-label">Accent Color</label>
+                        <div class="accent-options" id="accentOptions">
+                            <button class="accent-btn active" data-accent="default" title="Default Blue"
+                                style="--accent-color: #007aff;"></button>
+                            <button class="accent-btn" data-accent="ocean" title="Ocean"
+                                style="--accent-color: #0ea5e9;"></button>
+                            <button class="accent-btn" data-accent="forest" title="Forest"
+                                style="--accent-color: #22c55e;"></button>
+                            <button class="accent-btn" data-accent="sunset" title="Sunset"
+                                style="--accent-color: #f97316;"></button>
+                            <button class="accent-btn" data-accent="midnight" title="Midnight"
+                                style="--accent-color: #8b5cf6;"></button>
+                            <button class="accent-btn" data-accent="lavender" title="Lavender"
+                                style="--accent-color: #ec4899;"></button>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label class="setting-label">Enable Sounds</label>
+                                <span class="setting-desc">Subtle UI feedback sounds</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="enableSounds">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="setting-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label class="setting-label">Reduce Animations</label>
+                                <span class="setting-desc">Minimize motion for accessibility</span>
+                            </div>
+                            <label class="toggle">
+                                <input type="checkbox" id="reduceMotion">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Wallpaper Section -->
                 <div class="settings-section">
                     <h3 class="settings-section-title">Wallpaper</h3>
@@ -297,6 +351,36 @@
                             <input type="text" id="bgSearchInput" class="setting-input"
                                 placeholder="e.g. 'Cyberpunk', 'Iceland'">
                             <button class="bg-search-btn" id="bgSearchBtn">Search</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Storage Section -->
+                <div class="settings-section">
+                    <h3 class="settings-section-title">Data Sovereignty</h3>
+                    <div class="setting-group">
+                        <div class="setting-row">
+                            <div class="setting-info">
+                                <label class="setting-label">Backup & Sync</label>
+                                <span class="setting-desc">Export or restore your thoughts and links</span>
+                            </div>
+                            <div class="storage-actions">
+                                <button class="storage-btn export" id="exportData" title="Export to JSON">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" />
+                                    </svg>
+                                    Export
+                                </button>
+                                <button class="storage-btn import" id="importDataBtn" title="Import from JSON">
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12" />
+                                    </svg>
+                                    Import
+                                </button>
+                                <input type="file" id="importFile" style="display: none" accept=".json">
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -558,40 +642,45 @@
             </div>
             <div class="modal-body">
                 <div class="release-version-header">
-                    <span class="release-version">v5.0.0</span>
+                    <span class="release-version">v5.5.0</span>
                     <span class="release-date">January 2026</span>
-                    <span class="release-tag">Aurora Update</span>
+                    <span class="release-tag">Mastery Update</span>
                 </div>
 
                 <div class="release-section">
-                    <h3 class="release-section-title">✨ Aurora Aesthetics</h3>
+                    <h3 class="release-section-title">💎 Visual Mastery</h3>
                     <ul class="release-list">
-                        <li><span class="release-badge new">New</span> Full **Glassmorphism** UI overhaul</li>
-                        <li><span class="release-badge new">New</span> Minimalist "Hairline" Branding</li>
-                        <li><span class="release-badge improved">Improved</span> Premium micro-animations & transitions
-                        </li>
-                        <li><span class="release-badge improved">Improved</span> Fluid Rainbow Shimmer effects</li>
+                        <li><span class="release-badge new">New</span> **Adaptive Accents**: Theme matches your
+                            wallpaper automatically</li>
+                        <li><span class="release-badge new">New</span> **Magnetic Buttons**: Subtle cursor-follow hover
+                            effects</li>
+                        <li><span class="release-badge new">New</span> **3D Parallax**: Perspective tilt on cards and
+                            widgets</li>
+                        <li><span class="release-badge improved">Improved</span> Refined Glassmorphism with noise
+                            texture</li>
                     </ul>
                 </div>
 
                 <div class="release-section">
-                    <h3 class="release-section-title">🧠 Thought Canvas (Spatial)</h3>
+                    <h3 class="release-section-title">🔊 Sensory Design</h3>
                     <ul class="release-list">
-                        <li><span class="release-badge new">New</span> Spatially organize your thoughts & research</li>
-                        <li><span class="release-badge new">New</span> Drag-and-drop workspace for saved items</li>
-                        <li><span class="release-badge new">New</span> Connect ideas visually for deep building</li>
+                        <li><span class="release-badge new">New</span> **UI Soundscape**: Subtle blips, whooshes, and
+                            pops for feedback</li>
+                        <li><span class="release-badge improved">Improved</span> Smooth theme transitions across the
+                            whole interface</li>
+                        <li><span class="release-badge new">New</span> Animated **Skeleton States** for all loading
+                            content</li>
                     </ul>
                 </div>
 
                 <div class="release-section">
-                    <h3 class="release-section-title">⚡ Intelligence & Performance</h3>
+                    <h3 class="release-section-title">🛡️ Data & Exploration</h3>
                     <ul class="release-list">
-                        <li><span class="release-badge new">New</span> **AI Omnibox**: Chat with GPT directly from
-                            search</li>
-                        <li><span class="release-badge improved">Improved</span> **Picsum API**: 100% stable random
-                            backgrounds</li>
-                        <li><span class="release-badge fixed">Fixed</span> Unsplash 503 errors resolved</li>
-                        <li><span class="release-badge improved">Improved</span> Deep Focus Timer with session logs</li>
+                        <li><span class="release-badge new">New</span> **Data Sovereignty**: Export/Import your entire
+                            setup via JSON</li>
+                        <li><span class="release-badge new">New</span> **Shortcut Legend**: Press <kbd>?</kbd> to
+                            discover all secrets</li>
+                        <li><span class="release-badge new">New</span> **Konami Code**: 🎮 ↑ ↑ ↓ ↓ ← → ← → B A</li>
                     </ul>
                 </div>
 
@@ -645,6 +734,40 @@
                 <span><kbd>Enter</kbd> Select</span>
                 <span><kbd>Esc</kbd> Close</span>
             </div>
+        </div>
+    </div>
+
+    <!-- Shortcut Legend Overlay -->
+    <div class="shortcut-legend" id="shortcutLegend">
+        <div class="legend-content glass-panel">
+            <div class="legend-header">
+                <h2>Discovery Legend</h2>
+                <span class="legend-hint">Press <kbd>?</kbd> to dismiss</span>
+            </div>
+            <div class="legend-grid">
+                <div class="legend-col">
+                    <h3>System</h3>
+                    <div class="legend-item"><kbd>?</kbd> Toggle Legend</div>
+                    <div class="legend-item"><kbd>/</kbd> Focus Search</div>
+                    <div class="legend-item"><kbd>Esc</kbd> Close All</div>
+                    <div class="legend-item"><kbd>Ctrl</kbd> + <kbd>K</kbd> Command Palette</div>
+                </div>
+                <div class="legend-col">
+                    <h3>Shortcuts</h3>
+                    <div class="legend-item"><kbd>1</kbd>-<kbd>9</kbd> Quick Open Links</div>
+                    <div class="legend-item"><kbd>Alt</kbd> + <kbd>T</kbd> Hold Thought</div>
+                    <div class="legend-item"><kbd>Alt</kbd> + <kbd>P</kbd> Ping Reminder</div>
+                    <div class="legend-item"><kbd>Alt</kbd> + <kbd>Q</kbd> Smart Search</div>
+                </div>
+                <div class="legend-col">
+                    <h3>Canvas</h3>
+                    <div class="legend-item"><kbd>C</kbd> Connect Mode</div>
+                    <div class="legend-item"><kbd>N</kbd> Add Sticky Note</div>
+                    <div class="legend-item"><kbd>+</kbd> / <kbd>-</kbd> Zoom In/Out</div>
+                    <div class="legend-item"><kbd>0</kbd> Reset Zoom</div>
+                </div>
+            </div>
+            <div class="legend-footer text-mono">↑ ↑ ↓ ↓ ← → ← → B A</div>
         </div>
     </div>
 
