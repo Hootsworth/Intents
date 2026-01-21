@@ -408,9 +408,10 @@
                 border: 1px solid rgba(255,255,255,0.1); 
                 background: #1e1e1e; 
                 box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
-                padding: 15px 20px;
-                width: 400px;
+                padding: 15px 23px;
+                width: 460px;
                 min-height: 60px;
+                border-radius: 28px;
                 transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); /* Smooth expansion */
                 overflow: hidden;
                 display: flex;
@@ -418,7 +419,22 @@
                 justify-content: center;
             ">
                 ${contextHtml}
-                <div id="httAIInputWrapper" style="display: flex; align-items: center; gap: 10px; width: 100%; transition: opacity 0.3s ease;">
+                <div id="httAIInputWrapper" style="display: flex; align-items: center; gap: 12px; width: 100%; transition: opacity 0.3s ease;">
+                    <button id="httMemoryToggle" class="htt-memory-btn" title="Recall Context (last hour)" style="
+                        background: rgba(255,255,255,0.03); 
+                        border: 1px solid rgba(255,255,255,0.1); 
+                        color: rgba(255,255,255,0.4); 
+                        border-radius: 14px; 
+                        padding: 10px; 
+                        cursor: pointer; 
+                        display: flex;
+                        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                        flex-shrink: 0;
+                    ">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+                        </svg>
+                    </button>
                     <input type="text" class="htt-ping-input" id="httAIInput" placeholder="Ask..." autocomplete="off" style="font-size: 1.1em; letter-spacing: 0.02em; width: 100%;">
                 </div>
                 <div id="httAIResponseContent" style="display: none; opacity: 0; transition: opacity 0.5s ease 0.2s;">
@@ -446,6 +462,26 @@
             if (e.target === overlay) close();
         });
 
+        const memoryToggle = overlay.querySelector('#httMemoryToggle');
+        let memoryActive = false;
+
+        memoryToggle.addEventListener('click', () => {
+            memoryActive = !memoryActive;
+            if (memoryActive) {
+                memoryToggle.style.color = '#10a37f';
+                memoryToggle.style.borderColor = 'rgba(16, 163, 127, 0.4)';
+                memoryToggle.style.background = 'rgba(16, 163, 127, 0.1)';
+                memoryToggle.style.boxShadow = '0 0 15px rgba(16, 163, 127, 0.2)';
+                input.placeholder = "Ask about your recent history...";
+            } else {
+                memoryToggle.style.color = 'rgba(255,255,255,0.4)';
+                memoryToggle.style.borderColor = 'rgba(255,255,255,0.1)';
+                memoryToggle.style.background = 'rgba(255,255,255,0.03)';
+                memoryToggle.style.boxShadow = 'none';
+                input.placeholder = "Ask...";
+            }
+        });
+
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Escape') close();
             if (e.key === 'Enter' && input.value.trim()) {
@@ -459,13 +495,11 @@
                 input.classList.add('htt-thinking');
                 input.value = 'Thinking...';
 
-                // 2. Prepare for Morph
-                // We don't shrink yet, just wait for text
-
                 chrome.runtime.sendMessage({
                     action: 'askAI',
                     prompt: prompt,
-                    context: context
+                    context: context,
+                    includeHistory: memoryActive
                 }, (response) => {
                     if (response && response.answer) {
                         morphToAnswer(response.answer);
@@ -490,11 +524,43 @@
                 if (contextEl) contextEl.style.display = 'none';
 
                 // Prepare Content
-                const formatted = escapeHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                // Prepare Content
+                // Format Bold and Links
+                let formatted = escapeHtml(text).replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+                // Special handling for [Jump back to: Title](URL)
+                const linkMatch = formatted.match(/\[Jump back to: (.*?)\]\((.*?)\)/);
+                let referralBtn = '';
+                if (linkMatch) {
+                    const title = linkMatch[1];
+                    const url = linkMatch[2];
+                    formatted = formatted.replace(linkMatch[0], ''); // Remove from text
+                    referralBtn = `
+                        <div style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px;">
+                            <button id="httReferralBtn" class="htt-referral-link" style="
+                                display: flex; align-items: center; gap: 10px; 
+                                width: 100%; padding: 12px 16px; 
+                                background: rgba(16, 163, 127, 0.1); 
+                                border: 1px solid rgba(16, 163, 127, 0.2); 
+                                border-radius: 12px; color: #10a37f; 
+                                font-size: 0.95em; font-weight: 600; 
+                                cursor: pointer; transition: all 0.2s ease;
+                            ">
+                                <span style="font-size: 1.2em;">↩️</span>
+                                <div style="text-align: left;">
+                                    <div style="font-size: 0.75em; opacity: 0.7; text-transform: uppercase;">Jump back to</div>
+                                    <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 280px;">${title}</div>
+                                </div>
+                            </button>
+                        </div>
+                    `;
+                }
+
                 responseContent.innerHTML = `
                     <div class="htt-fp-header" style="text-align: left; padding-left: 0; color: #10a37f; margin-bottom: 12px; font-size: 0.8em; letter-spacing: 0.1em; text-transform: uppercase; font-family: monospace;">Answer</div>
                     <div class="htt-fp-text typewriter-cursor" id="htt-typewriter" style="font-size: 1.05em; line-height: 1.7; text-align: left; padding: 0; margin-bottom: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"></div>
-                    <div style="text-align: right;">
+                    ${referralBtn}
+                    <div style="text-align: right; margin-top: 15px;">
                         <button id="httAIClose" class="close-btn-mac">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
                                 <path d="M18 6L6 18M6 6l12 12"/>
@@ -553,6 +619,12 @@
                 });
 
                 responseContent.querySelector('#httAIClose').addEventListener('click', close);
+                const refBtn = responseContent.querySelector('#httReferralBtn');
+                if (refBtn) {
+                    refBtn.addEventListener('click', () => {
+                        window.location.href = linkMatch[2];
+                    });
+                }
             }, 300);
         }
     }
@@ -1457,5 +1529,26 @@
             return { extract: '', url: '' };
         }
     }
+
+    // Proactive Semantic Snippet Extraction
+    function initSemanticSnippet() {
+        // Wait for page to be semi-stable
+        setTimeout(() => {
+            const metaDesc = document.querySelector('meta[name="description"]')?.content;
+            const h1 = document.querySelector('h1')?.textContent;
+            const firstP = document.querySelector('p')?.textContent;
+
+            const snippet = [metaDesc, h1, firstP]
+                .filter(x => x && x.trim().length > 10)
+                .join(' | ')
+                .substring(0, 250);
+
+            if (snippet) {
+                chrome.runtime.sendMessage({ action: 'updateSnippet', snippet: snippet });
+            }
+        }, 1500);
+    }
+
+    initSemanticSnippet();
 
 })();

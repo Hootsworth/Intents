@@ -51,7 +51,7 @@ if (window.__INTENT_MODE_LOADED__) {
     const INTENTS = {
         read: {
             name: 'Read',
-            icon: '📖',
+            icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>',
             maxWidth: '720px',
             fontSize: '20px',
             lineHeight: '1.8',
@@ -61,7 +61,7 @@ if (window.__INTENT_MODE_LOADED__) {
         },
         learn: {
             name: 'Learn',
-            icon: '📚',
+            icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m16 6 4 14"/><path d="M12 6v14"/><path d="M8 8v12"/><path d="M4 4v16"/><path d="M4 4h16"/></svg>',
             maxWidth: '700px',
             fontSize: '19px',
             lineHeight: '1.75',
@@ -71,7 +71,7 @@ if (window.__INTENT_MODE_LOADED__) {
         },
         fix: {
             name: 'Fix',
-            icon: '🔧',
+            icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>',
             maxWidth: '800px',
             fontSize: '18px',
             lineHeight: '1.7',
@@ -81,7 +81,7 @@ if (window.__INTENT_MODE_LOADED__) {
         },
         study: {
             name: 'Study',
-            icon: '📝',
+            icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13.5V4a2 2 0 0 1 2-2h8.5L20 7.5V20a2 2 0 0 1-2 2h-5.5"/><path d="M14 2v6h6"/><path d="M10.42 12.61a2.1 2.1 0 1 1 2.97 2.97L7.95 21 4 22l1-3.95 5.42-5.44Z"/></svg>',
             maxWidth: '680px',
             fontSize: '18px',
             lineHeight: '1.75',
@@ -91,7 +91,7 @@ if (window.__INTENT_MODE_LOADED__) {
         },
         reflect: {
             name: 'Reflect',
-            icon: '🪞',
+            icon: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m14 18-3-3 3-3"/><path d="M10 18H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2h-4"/><path d="m20 20-3-3"/></svg>',
             maxWidth: '600px',
             fontSize: '21px',
             lineHeight: '1.9',
@@ -595,7 +595,16 @@ if (window.__INTENT_MODE_LOADED__) {
                 </div>
                 <div class="intent-topbar-right">
                     <button type="button" class="intent-btn intent-btn-ai" id="intentSummarize" title="AI Summarize (TL;DR)">
-                        <span class="ai-stars">✨</span> Summarize
+                        <span class="ai-stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"/></svg></span> Summarize
+                    </button>
+                    <button type="button" class="intent-btn intent-btn-icon" id="intentBionic" title="Bionic Reading Mode">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>
+                    </button>
+                    <button type="button" class="intent-btn intent-btn-icon" id="intentAudio" title="Read Aloud">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+                    </button>
+                    <button type="button" class="intent-btn intent-btn-ai intent-btn-icon" id="intentFocusSpot" title="AI Focus Spotlight">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
                     </button>
                     <button type="button" class="intent-btn intent-btn-icon" id="intentToggleLinks" title="Disable Links">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
@@ -669,6 +678,28 @@ if (window.__INTENT_MODE_LOADED__) {
                             <span>Dyslexia-Friendly Mode</span>
                         </button>
                         <span class="intent-dyslexia-hint">OpenDyslexic font + wider spacing</span>
+                    </div>
+                    <div class="intent-setting-group intent-vocab-toggle">
+                        <button class="intent-vocab-btn" id="intentVocabToggle">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                <path d="M8 7h8M8 11h6"/>
+                            </svg>
+                            <span>Vocabulary Simplifier</span>
+                        </button>
+                        <span class="intent-vocab-hint">AI highlights complex words with simpler alternatives</span>
+                    </div>
+                    <div class="intent-setting-group intent-concept-toggle">
+                        <button class="intent-concept-btn" id="intentConceptToggle">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <line x1="12" y1="16" x2="12" y2="12"/>
+                                <line x1="12" y1="8" x2="12.01" y2="8"/>
+                            </svg>
+                            <span>Concept Cheat Sheet</span>
+                        </button>
+                        <span class="intent-concept-hint">AI explains acronyms & technical concepts on hover</span>
                     </div>
                 </div>
             </div>
@@ -826,15 +857,19 @@ if (window.__INTENT_MODE_LOADED__) {
                 const container = document.getElementById('intentModeContainer');
 
                 // Remove all theme classes
-                container.classList.remove('intent-theme-light', 'intent-theme-sepia');
+                container.classList.remove('intent-theme-light', 'intent-theme-sepia', 'intent-theme-dark');
 
                 // Apply selected theme
                 if (theme === 'light') container.classList.add('intent-theme-light');
                 if (theme === 'sepia') container.classList.add('intent-theme-sepia');
+                if (theme === 'dark') container.classList.add('intent-theme-dark');
 
                 // Update active state
                 document.querySelectorAll('.intent-theme-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
+
+                // Save to storage
+                chrome.storage.local.set({ intentTheme: theme });
             });
         });
 
@@ -895,6 +930,418 @@ if (window.__INTENT_MODE_LOADED__) {
                 btn.classList.remove('active');
             }
         });
+
+        // === BIONIC READING MODE ===
+        let bionicEnabled = false;
+        document.getElementById('intentBionic')?.addEventListener('click', () => {
+            const content = document.getElementById('intentContent');
+            const btn = document.getElementById('intentBionic');
+            if (!content) return;
+
+            bionicEnabled = !bionicEnabled;
+
+            if (bionicEnabled) {
+                // Apply bionic reading
+                const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
+                const textNodes = [];
+                while (walker.nextNode()) textNodes.push(walker.currentNode);
+
+                textNodes.forEach(node => {
+                    if (node.nodeValue.trim().length === 0) return;
+                    const parent = node.parentNode;
+                    if (parent.classList?.contains('bionic-word')) return;
+
+                    const words = node.nodeValue.split(/(\s+)/);
+                    const fragment = document.createDocumentFragment();
+
+                    words.forEach(word => {
+                        if (/^\s+$/.test(word)) {
+                            fragment.appendChild(document.createTextNode(word));
+                        } else if (word.length > 0) {
+                            const span = document.createElement('span');
+                            span.className = 'bionic-word';
+                            const boldLen = Math.ceil(word.length * 0.4);
+                            span.innerHTML = `<strong>${word.slice(0, boldLen)}</strong>${word.slice(boldLen)}`;
+                            fragment.appendChild(span);
+                        }
+                    });
+
+                    parent.replaceChild(fragment, node);
+                });
+
+                btn.classList.add('active');
+                btn.style.background = 'rgba(255,255,255,0.15)';
+            } else {
+                // Remove bionic (reload content)
+                location.reload();
+            }
+        });
+
+        // === AUDIO NARRATION ===
+        let speechInstance = null;
+        let isPlaying = false;
+        document.getElementById('intentAudio')?.addEventListener('click', () => {
+            const content = document.getElementById('intentContent');
+            const btn = document.getElementById('intentAudio');
+            if (!content) return;
+
+            if (isPlaying) {
+                // Stop
+                window.speechSynthesis.cancel();
+                isPlaying = false;
+                btn.classList.remove('active');
+                btn.style.background = '';
+                return;
+            }
+
+            // Start narration
+            const text = content.innerText;
+            speechInstance = new SpeechSynthesisUtterance(text);
+            speechInstance.rate = 0.9;
+            speechInstance.pitch = 1;
+
+            // Use a nice voice if available
+            const voices = window.speechSynthesis.getVoices();
+            const preferredVoice = voices.find(v => v.name.includes('Google') || v.name.includes('Natural')) || voices[0];
+            if (preferredVoice) speechInstance.voice = preferredVoice;
+
+            speechInstance.onend = () => {
+                isPlaying = false;
+                btn.classList.remove('active');
+                btn.style.background = '';
+            };
+
+            window.speechSynthesis.speak(speechInstance);
+            isPlaying = true;
+            btn.classList.add('active');
+            btn.style.background = 'rgba(255,255,255,0.15)';
+        });
+
+        // === AI FOCUS SPOTLIGHT ===
+        document.getElementById('intentFocusSpot')?.addEventListener('click', async () => {
+            const content = document.getElementById('intentContent');
+            const btn = document.getElementById('intentFocusSpot');
+            if (!content || btn.classList.contains('intent-btn-loading')) return;
+
+            btn.classList.add('intent-btn-loading');
+
+            // Remove existing spotlight
+            content.querySelectorAll('.focus-spotlight').forEach(el => el.classList.remove('focus-spotlight'));
+
+            try {
+                // Get more context - up to 15 paragraphs
+                const paragraphs = Array.from(content.querySelectorAll('p')).filter(p => p.textContent.trim().length > 40);
+                if (paragraphs.length === 0) return;
+
+                const paragraphTexts = paragraphs.slice(0, 15).map((p, i) => `[${i}] ${p.textContent.substring(0, 250)}...`).join('\n');
+
+                const response = await new Promise((resolve) => {
+                    chrome.runtime.sendMessage({
+                        action: 'askAI',
+                        prompt: `You are an expert editor. Below are paragraphs from an article. 
+                        Identify the paragraph number [X] that contains the most CRITICAL, ESSENTIAL, or IMPORTANT core argument of the text.
+                        Respond with ONLY the number in brackets, e.g., "[3]".`,
+                        context: paragraphTexts
+                    }, resolve);
+                });
+
+                if (response?.answer) {
+                    const match = response.answer.match(/\[(\d+)\]/) || response.answer.match(/(\d+)/);
+                    if (match) {
+                        const index = parseInt(match[1]);
+                        if (paragraphs[index]) {
+                            paragraphs[index].classList.add('focus-spotlight');
+                            paragraphs[index].scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    }
+                }
+            } catch (err) {
+                console.error('Focus Spotlight error:', err);
+            } finally {
+                btn.classList.remove('intent-btn-loading');
+            }
+        });
+
+        // === VOCABULARY SIMPLIFIER ===
+        let vocabSimplifierEnabled = false;
+        let vocabSimplifierApplied = false;
+        const vocabCache = new Map();
+
+        // === CONCEPT CHEAT SHEET ===
+        let conceptSimplifierEnabled = false;
+        let conceptSimplifierApplied = false;
+        const conceptCache = new Map();
+
+        // Load saved preferences
+        chrome.storage.local.get(['vocabSimplifierEnabled', 'conceptSimplifierEnabled', 'intentTheme'], (result) => {
+            vocabSimplifierEnabled = result.vocabSimplifierEnabled || false;
+            conceptSimplifierEnabled = result.conceptSimplifierEnabled || false;
+            const savedTheme = result.intentTheme || 'dark';
+
+            if (vocabSimplifierEnabled) {
+                document.getElementById('intentVocabToggle')?.classList.add('active');
+                applyVocabSimplifier();
+            }
+            if (conceptSimplifierEnabled) {
+                document.getElementById('intentConceptToggle')?.classList.add('active');
+                applyConceptSimplifier();
+            }
+
+            // Apply saved theme
+            if (savedTheme !== 'dark') {
+                const container = document.getElementById('intentModeContainer');
+                container?.classList.remove('intent-theme-light', 'intent-theme-sepia', 'intent-theme-dark');
+                container?.classList.add(`intent-theme-${savedTheme}`);
+
+                // Update active button state
+                document.querySelectorAll('.intent-theme-btn').forEach(btn => {
+                    if (btn.dataset.theme === savedTheme) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }
+        });
+
+        // Toggle handlers
+        document.getElementById('intentVocabToggle')?.addEventListener('click', () => {
+            vocabSimplifierEnabled = !vocabSimplifierEnabled;
+            chrome.storage.local.set({ vocabSimplifierEnabled });
+            if (vocabSimplifierEnabled) {
+                document.getElementById('intentVocabToggle').classList.add('active');
+                applyVocabSimplifier();
+            } else location.reload();
+        });
+
+        document.getElementById('intentConceptToggle')?.addEventListener('click', () => {
+            conceptSimplifierEnabled = !conceptSimplifierEnabled;
+            chrome.storage.local.set({ conceptSimplifierEnabled });
+            if (conceptSimplifierEnabled) {
+                document.getElementById('intentConceptToggle').classList.add('active');
+                applyConceptSimplifier();
+            } else location.reload();
+        });
+
+        function applyVocabSimplifier() {
+            if (vocabSimplifierApplied) return;
+            vocabSimplifierApplied = true;
+
+            const content = document.getElementById('intentContent');
+            if (!content) return;
+
+            const commonWords = new Set(['president', 'government', 'information', 'everything', 'something', 'different', 'important', 'throughout', 'the', 'be', 'to', 'of', 'and', 'a', 'in', 'that', 'have', 'for', 'not', 'on', 'with', 'he', 'as', 'you', 'do', 'at', 'this', 'but', 'his', 'by', 'from', 'they', 'we', 'say', 'her', 'she', 'or', 'an', 'will', 'my', 'one', 'all', 'would', 'there', 'their', 'what', 'so', 'up', 'out', 'if', 'about', 'who', 'get', 'which', 'go', 'me', 'when', 'make', 'can', 'like', 'time', 'no', 'just', 'him', 'know', 'take', 'people', 'into', 'year', 'your', 'good', 'some', 'could', 'them', 'see', 'other', 'than', 'then', 'now', 'look', 'only', 'come', 'its', 'over', 'think', 'also', 'back', 'after', 'use', 'two', 'how', 'our', 'work', 'first', 'well', 'way', 'even', 'new', 'want', 'because', 'any', 'these', 'give', 'day', 'most', 'us']);
+
+            const countSyllables = (word) => {
+                word = word.toLowerCase().replace(/[^a-z]/g, '');
+                if (word.length <= 3) return 1;
+                word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+                word = word.replace(/^y/, '');
+                const syllables = word.match(/[aeiouy]{1,2}/g);
+                return syllables ? syllables.length : 1;
+            };
+
+            const isComplex = (word) => {
+                const clean = word.toLowerCase();
+                if (clean.length < 8) return false;
+                if (commonWords.has(clean)) return false;
+                return countSyllables(clean) >= 3;
+            };
+
+            const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
+            const complexWordsFound = new Set();
+            const currentSessionSimplifications = {};
+
+            while (walker.nextNode()) {
+                const node = walker.currentNode;
+                if (node.parentNode.closest('.vocab-word, .concept-word, .bionic-word, pre, code')) continue;
+
+                const words = node.nodeValue.match(/\b[a-zA-Z]{8,}\b/g) || [];
+                words.forEach(word => {
+                    const clean = word.toLowerCase();
+                    if (isComplex(clean)) {
+                        if (vocabCache.has(clean)) {
+                            const cached = vocabCache.get(clean);
+                            if (cached !== 'SKIP') currentSessionSimplifications[clean] = cached;
+                        } else {
+                            complexWordsFound.add(word);
+                        }
+                    }
+                });
+            }
+
+            const wordsToAsk = Array.from(complexWordsFound).slice(0, 15);
+
+            const processDOM = (simplifications) => {
+                const innerWalker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
+                const nodesToProcess = [];
+                while (innerWalker.nextNode()) nodesToProcess.push(innerWalker.currentNode);
+
+                const sortedWords = Object.keys(simplifications).sort((a, b) => b.length - a.length);
+                if (sortedWords.length === 0) return;
+
+                nodesToProcess.forEach(node => {
+                    if (node.parentNode.closest('.vocab-word, .concept-word, .bionic-word, pre, code')) return;
+                    let text = node.nodeValue;
+                    let hasMatch = false;
+                    for (const word of sortedWords) {
+                        if (new RegExp(`\\b${word}\\b`, 'gi').test(text)) {
+                            hasMatch = true;
+                            break;
+                        }
+                    }
+
+                    if (hasMatch) {
+                        const span = document.createElement('span');
+                        let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        for (const word of sortedWords) {
+                            const regex = new RegExp(`\\b(${word})\\b`, 'gi');
+                            html = html.replace(regex, (match) => {
+                                const simple = simplifications[word.toLowerCase()];
+                                return `<span class="vocab-word">${match}<span class="vocab-tooltip"><span class="vocab-simple">${simple}</span> <span class="vocab-original">(${match})</span></span></span>`;
+                            });
+                        }
+                        span.innerHTML = html;
+                        node.parentNode.replaceChild(span, node);
+                    }
+                });
+            };
+
+            if (wordsToAsk.length === 0) {
+                if (Object.keys(currentSessionSimplifications).length > 0) processDOM(currentSessionSimplifications);
+                return;
+            }
+
+            chrome.runtime.sendMessage({
+                action: 'askAI',
+                prompt: `You are a vocabulary simplifier. For each word provided:
+                1. If the word is already simple or common (like "president"), respond with "SKIP".
+                2. If it is complex, provide ONE much simpler synonym.
+                
+                Format: "complex:simple" or "complex:SKIP", one per line.
+                Words: ${wordsToAsk.join(', ')}`,
+                context: 'Objective: Simplify vocabulary only when necessary to save mental energy.'
+            }, (response) => {
+                if (!response?.answer) return;
+
+                response.answer.split('\n').forEach(line => {
+                    const parts = line.split(':');
+                    if (parts.length >= 2) {
+                        const complex = parts[0].trim().toLowerCase();
+                        const simple = parts[1].trim();
+                        if (simple.toUpperCase() === 'SKIP') {
+                            vocabCache.set(complex, 'SKIP');
+                        } else if (complex && simple) {
+                            vocabCache.set(complex, simple);
+                            currentSessionSimplifications[complex] = simple;
+                        }
+                    }
+                });
+
+                processDOM(currentSessionSimplifications);
+            });
+        }
+
+        function applyConceptSimplifier() {
+            if (conceptSimplifierApplied) return;
+            conceptSimplifierApplied = true;
+
+            const content = document.getElementById('intentContent');
+            if (!content) return;
+
+            // Pattern for acronyms (caps/numbers) or specific terms we want to check
+            const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
+            const conceptsFound = new Set();
+            const currentSessionConcepts = {};
+
+            while (walker.nextNode()) {
+                const node = walker.currentNode;
+                if (node.parentNode.closest('.vocab-word, .concept-word, .bionic-word, pre, code')) continue;
+
+                // Look for: Acronyms (NASA, SEO), Mixed case with numbers (SaaS, Web3), or potential jargon ( capitalized words or short all-caps)
+                const words = node.nodeValue.match(/\b([A-Z]{2,}|[A-Z][a-z]+[A-Z][a-z]+|[A-Z][a-z]+[0-9]+)\b/g) || [];
+                words.forEach(word => {
+                    if (word.length > 10) return; // Skip very long names that aren't likely concepts
+                    if (conceptCache.has(word)) {
+                        const cached = conceptCache.get(word);
+                        if (cached !== 'SKIP') currentSessionConcepts[word] = cached;
+                    } else {
+                        conceptsFound.add(word);
+                    }
+                });
+            }
+
+            const termsToAsk = Array.from(conceptsFound).slice(0, 10);
+
+            const processConceptDOM = (explanations) => {
+                const innerWalker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null, false);
+                const nodesToProcess = [];
+                while (innerWalker.nextNode()) nodesToProcess.push(innerWalker.currentNode);
+
+                const sortedTerms = Object.keys(explanations).sort((a, b) => b.length - a.length);
+                if (sortedTerms.length === 0) return;
+
+                nodesToProcess.forEach(node => {
+                    if (node.parentNode.closest('.vocab-word, .concept-word, .bionic-word, pre, code')) return;
+                    let text = node.nodeValue;
+                    let hasMatch = false;
+                    for (const term of sortedTerms) {
+                        if (new RegExp(`\\b${term}\\b`).test(text)) {
+                            hasMatch = true;
+                            break;
+                        }
+                    }
+
+                    if (hasMatch) {
+                        const span = document.createElement('span');
+                        let html = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                        for (const term of sortedTerms) {
+                            const regex = new RegExp(`\\b(${term})\\b`, 'g');
+                            html = html.replace(regex, (match) => {
+                                const explanation = explanations[match];
+                                return `<span class="concept-word">${match}<span class="concept-tooltip"><span class="concept-label">Concept</span><span class="concept-text">${explanation}</span></span></span>`;
+                            });
+                        }
+                        span.innerHTML = html;
+                        node.parentNode.replaceChild(span, node);
+                    }
+                });
+            };
+
+            if (termsToAsk.length === 0) {
+                if (Object.keys(currentSessionConcepts).length > 0) processConceptDOM(currentSessionConcepts);
+                return;
+            }
+
+            chrome.runtime.sendMessage({
+                action: 'askAI',
+                prompt: `You are a technical concept explainer. For each term/acronym provided:
+                1. If it's a common word that doesn't need expansion/explanation, respond with "SKIP".
+                2. If it's an acronym or technical concept, provide a 5-8 word explanation of what it stands for or means.
+                
+                Format: "term:explanation" or "term:SKIP", one per line.
+                Terms: ${termsToAsk.join(', ')}`,
+                context: 'Objective: Help readers quickly understand technical terms and acronyms without leaving the page.'
+            }, (response) => {
+                if (!response?.answer) return;
+
+                response.answer.split('\n').forEach(line => {
+                    const parts = line.split(':');
+                    if (parts.length >= 2) {
+                        const term = parts[0].trim();
+                        const explanation = parts[1].trim();
+                        if (explanation.toUpperCase() === 'SKIP') {
+                            conceptCache.set(term, 'SKIP');
+                        } else if (term && explanation) {
+                            conceptCache.set(term, explanation);
+                            currentSessionConcepts[term] = explanation;
+                        }
+                    }
+                });
+
+                processConceptDOM(currentSessionConcepts);
+            });
+        }
 
         // Reading Progress Memory - save scroll position
         // Note: We listen on window because the body/window scrolls, not the reader element
@@ -1456,38 +1903,101 @@ if (window.__INTENT_MODE_LOADED__) {
         const content = document.getElementById('intentContent');
         if (!content || (btn && btn.disabled)) return;
 
+        // Check if we already have a summary
+        const existing = document.querySelector('.intent-ai-summary');
+        if (existing) {
+            existing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            return;
+        }
+
         if (btn) {
             btn.disabled = true;
-            btn.innerHTML = '<span class="ai-stars loading">✨</span> Thinking...';
+            btn.classList.add('thinking');
+            btn.innerHTML = '<span class="ai-stars loading"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg></span> Thinking...';
         }
 
         try {
-            // Simulation of AI processing
-            await new Promise(r => setTimeout(r, 1500));
+            // Get content text (limit to avoid token issues)
+            const textToSummarize = content.innerText.substring(0, 4000);
+            const title = document.title;
+
+            // Request from Background AI
+            const response = await new Promise((resolve) => {
+                chrome.runtime.sendMessage({
+                    action: 'askAI',
+                    prompt: `Summarize this article. 
+                    First, provide a "Explain Like I'm Five" (ELI5) summary in one sentence. 
+                    Then, provide 3 key TL;DR bullet points. 
+                    Format your response exactly like this:
+                    ELI5: [Your one sentence]
+                    TLDR:
+                    - [Point 1]
+                    - [Point 2]
+                    - [Point 3]`,
+                    context: `Article Title: ${title}\nContent: ${textToSummarize}`
+                }, resolve);
+            });
+
+            if (response.error) {
+                showNotification(response.error);
+                if (btn) btn.innerHTML = '✨ Error';
+                return;
+            }
+
+            const answer = response.answer;
+
+            // Parse custom format
+            const eli5Match = answer.match(/ELI5:\s*(.*)/i);
+            const tldrMatch = answer.match(/TLDR:\s*([\s\S]*)/i);
+
+            const eli5Text = eli5Match ? eli5Match[1].trim() : "Unable to generate ELI5.";
+            const tldrText = tldrMatch ? tldrMatch[1].trim() : "";
+
+            const tldrPoints = tldrText
+                .split('\n')
+                .map(p => p.replace(/^-\s*/, '').trim())
+                .filter(p => p.length > 0)
+                .slice(0, 3);
 
             const summaryDiv = document.createElement('div');
             summaryDiv.className = 'intent-ai-summary';
             summaryDiv.innerHTML = `
-                <div class="ai-summary-header">
-                    <span class="ai-stars">✨</span>
-                    <span class="ai-label">AI SUMMARY (TL;DR)</span>
-                    <button class="ai-summary-close" id="closeAISummary">&times;</button>
-                </div>
-                <div class="ai-summary-content">
-                    <p><strong>Perspective:</strong> This article exploring ${document.title.split('-')[0].trim()} offers key insights into modern trends.</p>
-                    <ul class="ai-points">
-                        <li>Focuses on the integration of minimalist design with powerful productivity features.</li>
-                        <li>Highlights the importance of user-centric workflows and cognitive focus.</li>
-                        <li>Proposes a forward-looking approach to information organization and spatial thinking.</li>
-                    </ul>
-                </div>
-                <div class="ai-summary-footer">
-                    <button class="ai-deep-btn" id="aiDeepSearch">Deep Research with AI</button>
+                <div class="ai-summary-inner">
+                    <div class="ai-summary-header">
+                        <div class="ai-label-group">
+                            <span class="ai-stars"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg></span>
+                            <span class="ai-label">AI Insights</span>
+                        </div>
+                        <button class="ai-summary-close" id="closeAISummary" title="Remove Insights">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                    <div class="ai-summary-content">
+                        <section class="ai-summary-section">
+                            <div class="ai-section-title">Explain Like I'm 5</div>
+                            <p class="ai-eli5-text">"${eli5Text}"</p>
+                        </section>
+                        <section class="ai-summary-section">
+                            <div class="ai-section-title">TL;DR Summary</div>
+                            <ul class="ai-tldr-list">
+                                ${tldrPoints.length > 0
+                    ? tldrPoints.map(p => `<li class="ai-tldr-item">${p}</li>`).join('')
+                    : `<li class="ai-tldr-item">${answer.substring(0, 200)}...</li>`}
+                            </ul>
+                        </section>
+                    </div>
+                    <div class="ai-summary-footer">
+                        <button class="ai-footer-btn" id="aiResearchBtn">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36 6.36-2.12z"/></svg>
+                            Deep Research
+                        </button>
+                        <button class="ai-footer-btn" id="aiCopySummary">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                            Copy Insights
+                        </button>
+                    </div>
                 </div>
             `;
-
-            // Existing summary cleanup
-            document.querySelector('.intent-ai-summary')?.remove();
 
             const articleHeader = content.parentElement.querySelector('.intent-header');
             if (articleHeader) {
@@ -1496,13 +2006,201 @@ if (window.__INTENT_MODE_LOADED__) {
                 content.prepend(summaryDiv);
             }
 
-            document.getElementById('closeAISummary').onclick = () => summaryDiv.remove();
-            document.getElementById('aiDeepSearch').onclick = () => {
-                const query = `Provide a deep analysis and detailed summary of: ${window.location.href}`;
+            // === ULTRA-PREMIUM ANIMATION SYSTEM ===
+            const animateText = (element, text, baseDelay = 0) => {
+                element.innerHTML = '';
+                element.style.opacity = '1';
+
+                const words = text.split(' ');
+                words.forEach((word, wordIndex) => {
+                    const wordSpan = document.createElement('span');
+                    wordSpan.style.cssText = 'display: inline-block; white-space: pre;';
+
+                    [...word].forEach((char, charIndex) => {
+                        const charSpan = document.createElement('span');
+                        charSpan.textContent = char;
+                        charSpan.style.cssText = `
+                            display: inline-block;
+                            opacity: 0;
+                            transform: translateY(8px) scale(0.9);
+                            filter: blur(4px);
+                            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        `;
+                        wordSpan.appendChild(charSpan);
+
+                        const delay = baseDelay + (wordIndex * 60) + (charIndex * 25);
+                        setTimeout(() => {
+                            charSpan.style.opacity = '1';
+                            charSpan.style.transform = 'translateY(0) scale(1)';
+                            charSpan.style.filter = 'blur(0)';
+                        }, delay);
+                    });
+
+                    // Add space after word
+                    const space = document.createElement('span');
+                    space.innerHTML = '&nbsp;';
+                    space.style.display = 'inline-block';
+                    wordSpan.appendChild(space);
+
+                    element.appendChild(wordSpan);
+                });
+            };
+
+            const animateBullet = (element, text, delay = 0) => {
+                const arrow = element.querySelector('::before') || null;
+                element.textContent = '';
+                element.style.opacity = '1';
+
+                // Animate arrow first
+                const arrowSpan = document.createElement('span');
+                arrowSpan.textContent = '→ ';
+                arrowSpan.style.cssText = `
+                    position: absolute;
+                    left: 0;
+                    opacity: 0;
+                    transform: translateX(-10px);
+                    transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+                    color: rgba(255,255,255,0.7);
+                    font-weight: 700;
+                `;
+                element.style.position = 'relative';
+                element.style.paddingLeft = '20px';
+                element.insertBefore(arrowSpan, element.firstChild);
+
+                setTimeout(() => {
+                    arrowSpan.style.opacity = '1';
+                    arrowSpan.style.transform = 'translateX(0)';
+                }, delay);
+
+                // Text content
+                const textSpan = document.createElement('span');
+                textSpan.style.cssText = `
+                    opacity: 0;
+                    display: inline;
+                    transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+                `;
+                textSpan.textContent = text;
+                element.appendChild(textSpan);
+
+                setTimeout(() => {
+                    textSpan.style.opacity = '1';
+                }, delay + 150);
+            };
+
+            // Start animation sequence
+            requestAnimationFrame(() => {
+                // Header fade in
+                const header = summaryDiv.querySelector('.ai-summary-header');
+                if (header) {
+                    header.style.cssText = 'opacity: 0; transform: translateY(-10px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);';
+                    setTimeout(() => {
+                        header.style.opacity = '1';
+                        header.style.transform = 'translateY(0)';
+                    }, 100);
+                }
+
+                // Section titles with elegant fade
+                const sectionTitles = summaryDiv.querySelectorAll('.ai-section-title');
+                sectionTitles.forEach((title, i) => {
+                    title.style.cssText = 'opacity: 0; transform: translateX(-20px); transition: all 0.7s cubic-bezier(0.16, 1, 0.3, 1);';
+                    setTimeout(() => {
+                        title.style.opacity = '1';
+                        title.style.transform = 'translateX(0)';
+                    }, 300 + i * 800);
+                });
+
+                // ELI5 text - character by character
+                const eli5 = summaryDiv.querySelector('.ai-eli5-text');
+                if (eli5) {
+                    const originalText = eli5.textContent;
+                    eli5.style.borderLeft = '2px solid transparent';
+                    eli5.style.transition = 'border-color 0.5s ease';
+
+                    setTimeout(() => {
+                        eli5.style.borderLeftColor = 'rgba(255,255,255,0.15)';
+                    }, 400);
+
+                    animateText(eli5, originalText, 500);
+                }
+
+                // TLDR items - staggered smooth fade
+                const tldrItems = summaryDiv.querySelectorAll('.ai-tldr-item');
+                tldrItems.forEach((item, i) => {
+                    const originalText = item.textContent;
+                    item.innerHTML = '';
+                    item.style.cssText = 'opacity: 0; transform: translateY(12px); transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1); position: relative; padding-left: 20px;';
+
+                    setTimeout(() => {
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateY(0)';
+
+                        // Arrow
+                        const arrow = document.createElement('span');
+                        arrow.textContent = '→';
+                        arrow.style.cssText = 'position: absolute; left: 0; opacity: 0; transform: translateX(-5px); transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); color: rgba(255,255,255,0.5); font-weight: 600;';
+                        item.appendChild(arrow);
+
+                        setTimeout(() => {
+                            arrow.style.opacity = '1';
+                            arrow.style.transform = 'translateX(0)';
+                        }, 100);
+
+                        // Text
+                        const textNode = document.createElement('span');
+                        textNode.textContent = originalText;
+                        textNode.style.cssText = 'opacity: 0; transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);';
+                        item.appendChild(textNode);
+
+                        setTimeout(() => {
+                            textNode.style.opacity = '1';
+                        }, 200);
+
+                    }, 1200 + i * 300);
+                });
+
+                // Footer - gentle rise
+                const footer = summaryDiv.querySelector('.ai-summary-footer');
+                if (footer) {
+                    footer.style.cssText = 'opacity: 0; transform: translateY(15px); transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);';
+                    setTimeout(() => {
+                        footer.style.opacity = '1';
+                        footer.style.transform = 'translateY(0)';
+                    }, 2200);
+                }
+
+                // Summary card glow pulse
+                summaryDiv.style.boxShadow = '0 0 0 rgba(255,255,255,0)';
+                summaryDiv.style.transition = 'box-shadow 1.5s cubic-bezier(0.16, 1, 0.3, 1)';
+                setTimeout(() => {
+                    summaryDiv.style.boxShadow = '0 0 60px rgba(255,255,255,0.03), 0 20px 40px rgba(0,0,0,0.3)';
+                }, 500);
+            });
+
+            // Scroll to summary
+            setTimeout(() => {
+                summaryDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 300);
+
+            // Actions
+            document.getElementById('closeAISummary').onclick = () => {
+                summaryDiv.style.opacity = '0';
+                summaryDiv.style.transform = 'translateY(-10px)';
+                setTimeout(() => summaryDiv.remove(), 400);
+            };
+
+            document.getElementById('aiResearchBtn').onclick = () => {
+                const query = `Provide a deep analysis of: ${window.location.href}`;
                 window.open(`https://www.perplexity.ai/search?q=${encodeURIComponent(query)}`, '_blank');
             };
 
-            if (btn) btn.innerHTML = '✨ Summarized';
+            document.getElementById('aiCopySummary').onclick = (e) => {
+                const text = `ELI5: ${eli5Text}\nTLDR:\n${tldrPoints.map(p => `- ${p}`).join('\n')}`;
+                navigator.clipboard.writeText(text);
+                e.target.textContent = 'Copied!';
+                setTimeout(() => e.target.textContent = 'Copy Insights', 2000);
+            };
+
+            if (btn) btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="margin-right: 4px;"><path d="M20 6L9 17l-5-5"/></svg> Summarized';
         } catch (err) {
             if (btn) btn.innerHTML = '✨ Error';
             console.error('AI Summary Error:', err);
@@ -1510,7 +2208,8 @@ if (window.__INTENT_MODE_LOADED__) {
             setTimeout(() => {
                 if (btn) {
                     btn.disabled = false;
-                    btn.innerHTML = '<span class="ai-stars">✨</span> Summarize';
+                    btn.classList.remove('thinking');
+                    btn.innerHTML = '<span class="ai-stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"/></svg></span> Summarize';
                 }
             }, 3000);
         }

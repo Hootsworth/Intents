@@ -201,7 +201,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     }
 
     if (request.action === 'askAI') {
-        handleAIRequest(request.prompt, request.context, sendResponse);
+        const context = request.context || '';
+
+        if (request.includeHistory) {
+            chrome.storage.local.get(['footsteps'], (result) => {
+                const footsteps = result.footsteps || [];
+                // Increase to 25 as requested, within the last hour
+                const oneHourAgo = Date.now() - (60 * 60 * 1000);
+
+                const historyList = footsteps
+                    .filter(f => f.timestamp > oneHourAgo)
+                    .slice(0, 25)
+                    .map((f, i) => `${i + 1}. [${f.title}] from ${f.domain}. Snippet: ${f.snippet || 'No intro available'}. URL: ${f.url}`)
+                    .join('\n');
+
+                const rankingContext = `[USER RECENT BROWSING HISTORY (Last 25 Sites)]:\n${historyList}\n\n[TASK]: Rank these websites based on their relevance to the user's query. If a specific site is highly likely to contain the answer, prioritize its URL.`;
+
+                const enhancedContext = context
+                    ? `${context}\n\n${rankingContext}`
+                    : rankingContext;
+
+                handleAIRequest(request.prompt, enhancedContext, sendResponse);
+            });
+        } else {
+            handleAIRequest(request.prompt, context, sendResponse);
+        }
         return true;
     }
 
@@ -368,6 +392,8 @@ async function handleAIRequest(prompt, context, sendResponse) {
             messages.push({ role: "system", content: `Context: "${context}"` });
         }
 
+        messages.push({ role: "system", content: "CRITICAL: You are an augmented-memory assistant. Use the 'USER RECENT BROWSING HISTORY' provided. Your goal is to RANK these sites based on the user's question and identify the most likely source. If you find a relevant page, state your answer and then strictly provide the 'Jump back' link at the end using this format: [Jump back to: Page Title](URL)." });
+
         messages.push({ role: "user", content: prompt });
 
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -487,6 +513,18 @@ async function updateFootstepTitle(url, title) {
     }
 }
 
+// Update footstep with semantic snippet
+async function updateFootstepSnippet(url, snippet) {
+    const result = await chrome.storage.local.get(['footsteps']);
+    let footsteps = result.footsteps || [];
+
+    const footstep = footsteps.find(f => f.url === url);
+    if (footstep && snippet) {
+        footstep.snippet = snippet.substring(0, 200); // Keep it small
+        await chrome.storage.local.set({ footsteps });
+    }
+}
+
 // Extract domain from URL
 function extractDomain(url) {
     try {
@@ -528,5 +566,31 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ success: true });
         return true;
     }
+
+    if (request.action === 'updateSnippet') {
+        updateFootstepSnippet(sender.tab.url, request.snippet);
+        return true;
+    }
 });
 
+
+// ============================================
+// OFFLINE ZEN MODE - Redirect to calm game
+// ============================================
+
+chrome.webNavigation.onErrorOccurred.addListener(async (details) => {
+    // Only handle main frame errors
+    if (details.frameId !== 0) return;
+
+    // Check for internet disconnected error
+    if (details.error === 'net::ERR_INTERNET_DISCONNECTED') {
+        const settings = await chrome.storage.local.get(['offlineGame']);
+
+        if (settings.offlineGame) {
+            // Redirect to our custom offline page
+            chrome.tabs.update(details.tabId, {
+                url: chrome.runtime.getURL('offline.html')
+            });
+        }
+    }
+});

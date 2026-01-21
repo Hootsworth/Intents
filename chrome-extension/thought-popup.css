@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Hold That Thought - Stoic Monochrome Design
  * Minimal, friendly, MacOS-inspired
  */
@@ -18,8 +18,8 @@
     --stoic-border: rgba(255, 255, 255, 0.08);
     --stoic-border-focus: rgba(255, 255, 255, 0.15);
     --stoic-blur: blur(24px);
-    --stoic-radius: 16px;
-    --stoic-radius-sm: 8px;
+    --stoic-radius: 28px;
+    --stoic-radius-sm: 14px;
     --stoic-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --stoic-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -1358,4 +1358,20 @@
     color: rgba(255, 255, 255, 0.85);
     opacity: 0;
     transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* AI Ask Bar Referral Link Button */
+.htt-referral-link {
+    transition: all 0.2s ease !important;
+}
+
+.htt-referral-link:hover {
+    background: rgba(16, 163, 127, 0.2) !important;
+    border-color: rgba(16, 163, 127, 0.4) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 163, 127, 0.15);
+}
+
+.htt-referral-link:active {
+    transform: translateY(0) scale(0.98);
 }

@@ -122,14 +122,16 @@ const state = {
         themeAccent: 'default', // 'default', 'ocean', 'forest', 'sunset', 'midnight', 'lavender', or custom hex
         showQuickLinks: true,
         newTabResults: false,
-        showAITaskbar: true,
+
         forceDarkMode: false,
         showGreeting: true,
         showFocusGoal: true,
         showDailyStats: true,
         customBackground: 'none', // Curated background ID or 'none'
         enableSounds: false, // UI sounds (off by default)
-        reduceMotion: false  // Reduce animations (opt-in)
+        reduceMotion: false,  // Reduce animations (opt-in)
+        showTimeWatermark: false, // Opt-in Time Watermark
+        offlineGame: false // Offline Zen Mode
     },
     quickLinks: [],
     stats: {
@@ -184,6 +186,17 @@ function loadSettings() {
         });
     }
 
+    // Time Watermark
+    const showTimeWatermarkEl = document.getElementById('showTimeWatermark');
+    if (showTimeWatermarkEl) {
+        showTimeWatermarkEl.checked = state.settings.showTimeWatermark;
+        showTimeWatermarkEl.addEventListener('change', (e) => {
+            state.settings.showTimeWatermark = e.target.checked;
+            document.querySelector('.watermark-container')?.classList.toggle('hidden', !e.target.checked);
+            saveSettings();
+        });
+    }
+
     // New Tab Results
     const newTabResultsEl = document.getElementById('newTabResults');
     if (newTabResultsEl) {
@@ -194,20 +207,35 @@ function loadSettings() {
         });
     }
 
-    // AI Taskbar
-    const aiTaskbarCheckbox = document.getElementById('showAITaskbar');
-    if (aiTaskbarCheckbox) {
-        aiTaskbarCheckbox.checked = state.settings.showAITaskbar;
-        aiTaskbarCheckbox.addEventListener('change', (e) => {
-            state.settings.showAITaskbar = e.target.checked;
-            saveSettings();
-        });
-    }
+
 
     // Force Dark Mode
     const forceDarkCheckbox = document.getElementById('forceDarkMode');
     if (forceDarkCheckbox) {
         forceDarkCheckbox.checked = state.settings.forceDarkMode;
+        forceDarkCheckbox.addEventListener('change', (e) => {
+            state.settings.forceDarkMode = e.target.checked;
+            saveSettings();
+        });
+    }
+
+    // Offline Game
+    const offlineGameEl = document.getElementById('offlineGame');
+    if (offlineGameEl) {
+        offlineGameEl.checked = state.settings.offlineGame;
+        offlineGameEl.addEventListener('change', (e) => {
+            state.settings.offlineGame = e.target.checked;
+            saveSettings();
+        });
+    }
+
+    // Test Offline Game
+    const testOfflineGameBtn = document.getElementById('testOfflineGame');
+    if (testOfflineGameBtn) {
+        testOfflineGameBtn.addEventListener('click', () => {
+            window.open(chrome.runtime.getURL('offline.html'), '_blank');
+            playSound('pop');
+        });
     }
 
 
@@ -233,12 +261,12 @@ function loadSettings() {
         });
     }
 
-    const aiTaskbar = document.getElementById('aiTaskbar');
-    if (aiTaskbar) aiTaskbar.style.display = state.settings.showAITaskbar ? 'flex' : 'none';
+
 
     // Apply initial visibility
     document.getElementById('greetingSection')?.classList.toggle('hidden', !state.settings.showGreeting);
     document.getElementById('focusGoalWidget')?.classList.toggle('hidden', !state.settings.showFocusGoal);
+    document.querySelector('.watermark-container')?.classList.toggle('hidden', !state.settings.showTimeWatermark);
 
     // Style buttons visibility
     document.querySelectorAll('.style-btn').forEach(btn => {
@@ -318,7 +346,8 @@ function saveSettings() {
 
     // Sync critical settings to extension storage for content scripts
     chrome.storage.local.set({
-        forceDarkMode: state.settings.forceDarkMode
+        forceDarkMode: state.settings.forceDarkMode,
+        offlineGame: state.settings.offlineGame
     });
 }
 
@@ -1698,6 +1727,11 @@ function createEchoCard(item) {
     card.dataset.url = item.url;
 
     card.innerHTML = `
+        <button class="echo-delete" title="Remove from Echoes" data-url="${item.url}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <path d="M18 6L6 18M6 6l12 12" />
+            </svg>
+        </button>
         <span class="echo-site">${item.hostname || 'Article'}</span>
         <div class="echo-title">${escapeHtml(item.title || 'Untitled')}</div>
         <div class="echo-progress-container">
@@ -1713,6 +1747,17 @@ function createEchoCard(item) {
         openShelfArticle(item);
         playSound('click');
     });
+
+    // Handle delete
+    const deleteBtn = card.querySelector('.echo-delete');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            removeShelfItem(item.url);
+            playSound('pop');
+        });
+    }
 
     return card;
 }
@@ -1731,7 +1776,9 @@ function removeShelfItem(url) {
     chrome.storage.local.get(['readingShelf'], (result) => {
         const shelf = result.readingShelf || {};
         delete shelf[key];
-        chrome.storage.local.set({ readingShelf: shelf });
+        chrome.storage.local.set({ readingShelf: shelf }, () => {
+            initReadingShelf(); // Refresh UI
+        });
     });
 }
 
