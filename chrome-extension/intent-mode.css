@@ -859,6 +859,50 @@
     letter-spacing: -0.01em;
 }
 
+.intent-settings-tabs {
+    display: flex;
+    padding: 0 20px;
+    gap: 20px;
+    border-bottom: 1px solid var(--intent-border);
+}
+
+.intent-settings-tab {
+    padding: 12px 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--intent-text-muted);
+    cursor: pointer;
+    position: relative;
+    transition: color 0.2s;
+}
+
+.intent-settings-tab:hover {
+    color: var(--intent-text);
+}
+
+.intent-settings-tab.active {
+    color: var(--intent-text);
+}
+
+.intent-settings-tab.active::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--intent-accent);
+    border-radius: 100px;
+}
+
+.intent-settings-section {
+    display: none;
+}
+
+.intent-settings-section.active {
+    display: block;
+}
+
 .intent-settings-body {
     padding: 20px;
     display: flex;
@@ -1348,4 +1392,49 @@
     margin-bottom: 12px;
     line-height: 1.6;
     color: var(--intent-text);
+}
+
+/* ==================== Golden Thread ==================== */
+.golden-thread-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 50;
+    overflow: hidden;
+}
+
+.golden-thread {
+    position: absolute;
+    left: calc(50% - var(--intent-max-width, 680px) / 2 - 30px);
+    width: 2px;
+    height: 100%;
+    background: linear-gradient(to bottom,
+            transparent,
+            var(--intent-accent-soft),
+            var(--intent-accent-soft),
+            transparent);
+    opacity: 0.3;
+    transition: left 0.3s ease;
+}
+
+.golden-thread-seed {
+    position: absolute;
+    left: -4px;
+    top: 50%;
+    width: 10px;
+    height: 10px;
+    background: var(--intent-accent);
+    border-radius: 50%;
+    box-shadow: 0 0 15px var(--intent-accent);
+    transform: translateY(-50%);
+    transition: top 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (max-width: 1200px) {
+    .golden-thread {
+        left: 20px;
+    }
 }

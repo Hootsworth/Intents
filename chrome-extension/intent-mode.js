@@ -628,78 +628,102 @@ if (window.__INTENT_MODE_LOADED__) {
             <!-- Typography Settings Panel -->
             <div class="intent-settings-panel" id="intentSettingsPanel">
                 <div class="intent-settings-header">
-                    <span>Reading Preferences</span>
+                    <span>Preferences</span>
                     <button type="button" class="close-btn-mac intent-settings-close-mac" id="intentSettingsClose" style="width: 16px; height: 16px;">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
                             <path d="M18 6L6 18M6 6l12 12"/>
                         </svg>
                     </button>
                 </div>
+                
+                <div class="intent-settings-tabs">
+                    <div class="intent-settings-tab active" data-section="reading">Reading</div>
+                    <div class="intent-settings-tab" data-section="accessibility">Accessibility</div>
+                </div>
+
                 <div class="intent-settings-body">
-                    <div class="intent-setting-group">
-                        <label>Theme</label>
-                        <div class="intent-theme-options">
-                            <button class="intent-theme-btn active" data-theme="dark" title="Dark">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-                            </button>
-                            <button class="intent-theme-btn" data-theme="light" title="Light">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-                            </button>
-                            <button class="intent-theme-btn" data-theme="sepia" title="Sepia">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
-                            </button>
+                    <!-- Reading Section -->
+                    <div class="intent-settings-section active" id="section-reading">
+                        <div class="intent-setting-group">
+                            <label>Theme</label>
+                            <div class="intent-theme-options">
+                                <button class="intent-theme-btn active" data-theme="dark" title="Dark">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+                                </button>
+                                <button class="intent-theme-btn" data-theme="light" title="Light">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+                                </button>
+                                <button class="intent-theme-btn" data-theme="sepia" title="Sepia">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="intent-setting-group">
+                            <label>Font</label>
+                            <select id="intentFontSelect" class="intent-select">
+                                <option value="system">System (Default)</option>
+                                <option value="serif">Serif (Georgia)</option>
+                                <option value="mono">Monospace</option>
+                                <option value="dyslexic">OpenDyslexic</option>
+                            </select>
+                        </div>
+                        <div class="intent-setting-group">
+                            <label>Line Height</label>
+                            <input type="range" id="intentLineHeight" class="intent-slider" min="1.4" max="2.4" step="0.1" value="${intent.lineHeight}">
+                            <span class="intent-slider-value" id="intentLineHeightValue">${intent.lineHeight}</span>
+                        </div>
+                        <div class="intent-setting-group">
+                            <label>Letter Spacing</label>
+                            <input type="range" id="intentLetterSpacing" class="intent-slider" min="0" max="0.1" step="0.01" value="0.01">
+                            <span class="intent-slider-value" id="intentLetterSpacingValue">0.01em</span>
                         </div>
                     </div>
-                    <div class="intent-setting-group">
-                        <label>Font</label>
-                        <select id="intentFontSelect" class="intent-select">
-                            <option value="system">System (Default)</option>
-                            <option value="serif">Serif (Georgia)</option>
-                            <option value="mono">Monospace</option>
-                            <option value="dyslexic">OpenDyslexic</option>
-                        </select>
-                    </div>
-                    <div class="intent-setting-group">
-                        <label>Line Height</label>
-                        <input type="range" id="intentLineHeight" class="intent-slider" min="1.4" max="2.4" step="0.1" value="${intent.lineHeight}">
-                        <span class="intent-slider-value" id="intentLineHeightValue">${intent.lineHeight}</span>
-                    </div>
-                    <div class="intent-setting-group">
-                        <label>Letter Spacing</label>
-                        <input type="range" id="intentLetterSpacing" class="intent-slider" min="0" max="0.1" step="0.01" value="0.01">
-                        <span class="intent-slider-value" id="intentLetterSpacingValue">0.01em</span>
-                    </div>
-                    <div class="intent-setting-group intent-dyslexia-toggle">
-                        <button class="intent-dyslexia-btn" id="intentDyslexiaToggle">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <path d="M12 6v6l4 2"/>
-                            </svg>
-                            <span>Dyslexia-Friendly Mode</span>
-                        </button>
-                        <span class="intent-dyslexia-hint">OpenDyslexic font + wider spacing</span>
-                    </div>
-                    <div class="intent-setting-group intent-vocab-toggle">
-                        <button class="intent-vocab-btn" id="intentVocabToggle">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
-                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
-                                <path d="M8 7h8M8 11h6"/>
-                            </svg>
-                            <span>Vocabulary Simplifier</span>
-                        </button>
-                        <span class="intent-vocab-hint">AI highlights complex words with simpler alternatives</span>
-                    </div>
-                    <div class="intent-setting-group intent-concept-toggle">
-                        <button class="intent-concept-btn" id="intentConceptToggle">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="10"/>
-                                <line x1="12" y1="16" x2="12" y2="12"/>
-                                <line x1="12" y1="8" x2="12.01" y2="8"/>
-                            </svg>
-                            <span>Concept Cheat Sheet</span>
-                        </button>
-                        <span class="intent-concept-hint">AI explains acronyms & technical concepts on hover</span>
+
+                    <!-- Accessibility Section -->
+                    <div class="intent-settings-section" id="section-accessibility">
+                        <div class="intent-setting-group intent-golden-thread-toggle">
+                            <button class="intent-golden-btn" id="intentGoldenToggle">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 21a9 9 0 0 0 9-9c0-1.49-1.45-3.6-3-5a12.19 12.19 0 0 0-6-3 12.19 12.19 0 0 0-6 3c-1.55 1.4-3 3.51-3 5a9 9 0 0 0 9 9Z"/>
+                                    <path d="M12 13V7"/>
+                                    <circle cx="12" cy="15" r="1"/>
+                                </svg>
+                                <span>Golden Thread Reading Aid</span>
+                            </button>
+                            <span class="intent-golden-hint">Subtle margin anchor tracks your reading line (ADHD-friendly)</span>
+                        </div>
+                        <div class="intent-setting-group intent-dyslexia-toggle" style="margin-top: 18px;">
+                            <button class="intent-dyslexia-btn" id="intentDyslexiaToggle">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <path d="M12 6v6l4 2"/>
+                                </svg>
+                                <span>Dyslexia-Friendly Mode</span>
+                            </button>
+                            <span class="intent-dyslexia-hint">OpenDyslexic font + wider spacing</span>
+                        </div>
+                        <div class="intent-setting-group intent-vocab-toggle" style="margin-top: 18px;">
+                            <button class="intent-vocab-btn" id="intentVocabToggle">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                                    <path d="M8 7h8M8 11h6"/>
+                                </svg>
+                                <span>Vocabulary Simplifier</span>
+                            </button>
+                            <span class="intent-vocab-hint">AI highlights complex words with simpler alternatives</span>
+                        </div>
+                        <div class="intent-setting-group intent-concept-toggle" style="margin-top: 18px;">
+                            <button class="intent-concept-btn" id="intentConceptToggle">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <line x1="12" y1="16" x2="12" y2="12"/>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"/>
+                                </svg>
+                                <span>Concept Cheat Sheet</span>
+                            </button>
+                            <span class="intent-concept-hint">AI explains acronyms & technical concepts on hover</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -848,6 +872,17 @@ if (window.__INTENT_MODE_LOADED__) {
         });
         document.getElementById('intentSettingsClose')?.addEventListener('click', () => {
             document.getElementById('intentSettingsPanel')?.classList.remove('open');
+        });
+
+        // Tab switching
+        document.querySelectorAll('.intent-settings-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const section = tab.dataset.section;
+                document.querySelectorAll('.intent-settings-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.intent-settings-section').forEach(s => s.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(`section-${section}`)?.classList.add('active');
+            });
         });
 
         // Theme buttons
@@ -1082,10 +1117,14 @@ if (window.__INTENT_MODE_LOADED__) {
         let conceptSimplifierApplied = false;
         const conceptCache = new Map();
 
+        // === GOLDEN THREAD ===
+        let goldenThreadEnabled = false;
+
         // Load saved preferences
-        chrome.storage.local.get(['vocabSimplifierEnabled', 'conceptSimplifierEnabled', 'intentTheme'], (result) => {
+        chrome.storage.local.get(['vocabSimplifierEnabled', 'conceptSimplifierEnabled', 'intentTheme', 'goldenThreadEnabled'], (result) => {
             vocabSimplifierEnabled = result.vocabSimplifierEnabled || false;
             conceptSimplifierEnabled = result.conceptSimplifierEnabled || false;
+            goldenThreadEnabled = result.goldenThreadEnabled !== undefined ? result.goldenThreadEnabled : true; // Default enabled
             const savedTheme = result.intentTheme || 'dark';
 
             if (vocabSimplifierEnabled) {
@@ -1095,6 +1134,10 @@ if (window.__INTENT_MODE_LOADED__) {
             if (conceptSimplifierEnabled) {
                 document.getElementById('intentConceptToggle')?.classList.add('active');
                 applyConceptSimplifier();
+            }
+            if (goldenThreadEnabled) {
+                document.getElementById('intentGoldenToggle')?.classList.add('active');
+                initGoldenThread();
             }
 
             // Apply saved theme
@@ -1137,6 +1180,79 @@ if (window.__INTENT_MODE_LOADED__) {
                 applyConceptSimplifier();
             } else location.reload();
         });
+
+        document.getElementById('intentGoldenToggle')?.addEventListener('click', () => {
+            goldenThreadEnabled = !goldenThreadEnabled;
+            chrome.storage.local.set({ goldenThreadEnabled });
+            if (goldenThreadEnabled) {
+                document.getElementById('intentGoldenToggle').classList.add('active');
+                initGoldenThread();
+            } else {
+                document.getElementById('intentGoldenToggle').classList.remove('active');
+                document.querySelector('.golden-thread-container')?.remove();
+                window.removeEventListener('scroll', updateGoldenThread);
+            }
+        });
+
+        function initGoldenThread() {
+            if (document.querySelector('.golden-thread-container')) return;
+
+            const container = document.createElement('div');
+            container.className = 'golden-thread-container';
+            container.innerHTML = `
+                <div class="golden-thread">
+                    <div class="golden-thread-seed"></div>
+                </div>
+            `;
+            document.getElementById('intentModeContainer')?.appendChild(container);
+
+            window.addEventListener('scroll', updateGoldenThread, { passive: true });
+            updateGoldenThread();
+        }
+
+        function updateGoldenThread() {
+            if (!goldenThreadEnabled) return;
+
+            const seed = document.querySelector('.golden-thread-seed');
+            const thread = document.querySelector('.golden-thread');
+            const container = document.getElementById('intentModeContainer');
+            if (!seed || !thread || !container) return;
+
+            // Updated thread position to match modern layout
+            const maxWidth = container.style.getPropertyValue('--intent-max-width') || '680px';
+            thread.style.left = `calc(50% - ${maxWidth} / 2 - 40px)`;
+
+            // Find current paragraph under center of viewport
+            const centerY = window.innerHeight / 2;
+            const content = document.getElementById('intentContent');
+            if (!content) return;
+
+            const paragraphs = Array.from(content.querySelectorAll('p, h1, h2, h3, h4, li')).filter(el => {
+                const rect = el.getBoundingClientRect();
+                return rect.top < centerY + 100 && rect.bottom > centerY - 100;
+            });
+
+            if (paragraphs.length > 0) {
+                // Find paragraph closest to center
+                let closest = paragraphs[0];
+                let minDistance = Math.abs((closest.getBoundingClientRect().top + closest.getBoundingClientRect().bottom) / 2 - centerY);
+
+                paragraphs.forEach(p => {
+                    const rect = p.getBoundingClientRect();
+                    const distance = Math.abs((rect.top + rect.bottom) / 2 - centerY);
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closest = p;
+                    }
+                });
+
+                const targetRect = closest.getBoundingClientRect();
+                const targetTop = targetRect.top + (targetRect.height / 2);
+
+                // Smoothly position seed relative to viewport center, but anchored to line
+                seed.style.top = `${targetTop}px`;
+            }
+        }
 
         function applyVocabSimplifier() {
             if (vocabSimplifierApplied) return;
