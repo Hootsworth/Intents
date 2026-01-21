@@ -10,10 +10,8 @@
     background: var(--intent-bg, #0a0a0b) !important;
     min-height: 100vh;
     overflow-x: hidden;
-}
 
-.intent-mode-container {
-    /* Stoic MacOS Palette */
+    /* Stoic MacOS Palette - Default (Dark) */
     --intent-bg: #0f0f10;
     --intent-surface: rgba(255, 255, 255, 0.03);
     --intent-border: rgba(255, 255, 255, 0.08);
@@ -23,6 +21,11 @@
     --intent-accent-soft: rgba(255, 255, 255, 0.08);
     --intent-code-bg: rgba(255, 255, 255, 0.04);
     --intent-progress: rgba(255, 255, 255, 0.4);
+    --intent-shadow: 0 40px 120px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    --intent-glass-bg: rgba(15, 15, 16, 0.7);
+}
+
+.intent-mode-container {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     color: var(--intent-text);
     background: var(--intent-bg);
@@ -34,7 +37,7 @@
 }
 
 /* ==================== Themes ==================== */
-.intent-mode-container.intent-theme-dark {
+.intent-theme-dark {
     --intent-bg: #0f0f10;
     --intent-surface: rgba(255, 255, 255, 0.03);
     --intent-border: rgba(255, 255, 255, 0.08);
@@ -44,9 +47,11 @@
     --intent-accent-soft: rgba(255, 255, 255, 0.08);
     --intent-code-bg: rgba(255, 255, 255, 0.04);
     --intent-progress: rgba(255, 255, 255, 0.4);
+    --intent-shadow: 0 40px 120px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    --intent-glass-bg: rgba(15, 15, 16, 0.7);
 }
 
-.intent-mode-container.intent-theme-light {
+.intent-theme-light {
     --intent-bg: #ffffff;
     --intent-surface: rgba(0, 0, 0, 0.05);
     --intent-border: rgba(0, 0, 0, 0.1);
@@ -56,9 +61,11 @@
     --intent-accent-soft: rgba(0, 0, 0, 0.08);
     --intent-code-bg: rgba(0, 0, 0, 0.04);
     --intent-progress: rgba(0, 0, 0, 0.3);
+    --intent-shadow: 0 40px 120px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(0, 0, 0, 0.05);
+    --intent-glass-bg: rgba(255, 255, 255, 0.85);
 }
 
-.intent-mode-container.intent-theme-sepia {
+.intent-theme-sepia {
     --intent-bg: #f4ecd8;
     --intent-surface: rgba(93, 66, 38, 0.07);
     --intent-border: rgba(93, 66, 38, 0.12);
@@ -68,6 +75,8 @@
     --intent-accent-soft: rgba(93, 66, 38, 0.1);
     --intent-code-bg: rgba(93, 66, 38, 0.05);
     --intent-progress: rgba(93, 66, 38, 0.4);
+    --intent-shadow: 0 40px 120px rgba(93, 66, 38, 0.15), 0 0 0 1px rgba(93, 66, 38, 0.05);
+    --intent-glass-bg: rgba(244, 236, 216, 0.9);
 }
 
 .intent-theme-light .intent-topbar,
@@ -123,15 +132,15 @@
 }
 
 /* Ensure text visibility */
-.intent-mode-container * {
+.intent-mode-active * {
     border-color: var(--intent-border);
 }
 
-.intent-mode-container p,
-.intent-mode-container li,
-.intent-mode-container span,
-.intent-mode-container time,
-.intent-mode-container div {
+.intent-mode-active p,
+.intent-mode-active li,
+.intent-mode-active span,
+.intent-mode-active time,
+.intent-mode-active div {
     color: inherit;
 }
 
@@ -552,12 +561,12 @@
     transform: translate(-50%, -40%) scale(0.95);
     width: 440px;
     max-width: 90vw;
-    background: var(--intent-bg);
+    background: var(--intent-glass-bg);
     backdrop-filter: blur(50px) saturate(190%);
     -webkit-backdrop-filter: blur(50px) saturate(190%);
     border: 1px solid var(--intent-border);
     border-radius: 28px;
-    box-shadow: 0 40px 120px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.05);
+    box-shadow: var(--intent-shadow);
     z-index: 2147483647 !important;
     display: flex;
     flex-direction: column;
@@ -748,7 +757,7 @@
     font-size: 11px;
     font-weight: 500;
     cursor: pointer;
-    box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.4);
+    box-shadow: var(--intent-shadow);
     transition: all 0.15s ease;
     white-space: nowrap;
 }

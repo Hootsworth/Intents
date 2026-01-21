@@ -856,13 +856,23 @@ if (window.__INTENT_MODE_LOADED__) {
                 const theme = btn.dataset.theme;
                 const container = document.getElementById('intentModeContainer');
 
-                // Remove all theme classes
+                // Remove all theme classes from both container and body
                 container.classList.remove('intent-theme-light', 'intent-theme-sepia', 'intent-theme-dark');
+                document.body.classList.remove('intent-theme-light', 'intent-theme-sepia', 'intent-theme-dark');
 
                 // Apply selected theme
-                if (theme === 'light') container.classList.add('intent-theme-light');
-                if (theme === 'sepia') container.classList.add('intent-theme-sepia');
-                if (theme === 'dark') container.classList.add('intent-theme-dark');
+                if (theme === 'light') {
+                    container.classList.add('intent-theme-light');
+                    document.body.classList.add('intent-theme-light');
+                }
+                if (theme === 'sepia') {
+                    container.classList.add('intent-theme-sepia');
+                    document.body.classList.add('intent-theme-sepia');
+                }
+                if (theme === 'dark') {
+                    container.classList.add('intent-theme-dark');
+                    document.body.classList.add('intent-theme-dark');
+                }
 
                 // Update active state
                 document.querySelectorAll('.intent-theme-btn').forEach(b => b.classList.remove('active'));
@@ -1090,8 +1100,13 @@ if (window.__INTENT_MODE_LOADED__) {
             // Apply saved theme
             if (savedTheme !== 'dark') {
                 const container = document.getElementById('intentModeContainer');
-                container?.classList.remove('intent-theme-light', 'intent-theme-sepia', 'intent-theme-dark');
-                container?.classList.add(`intent-theme-${savedTheme}`);
+
+                // Reset classes
+                const targets = [container, document.body].filter(Boolean);
+                targets.forEach(el => {
+                    el.classList.remove('intent-theme-light', 'intent-theme-sepia', 'intent-theme-dark');
+                    el.classList.add(`intent-theme-${savedTheme}`);
+                });
 
                 // Update active button state
                 document.querySelectorAll('.intent-theme-btn').forEach(btn => {
