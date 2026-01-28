@@ -168,6 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDataSovereignty();
     initSpotlight();
     initSystemAwareness();
+    initAIKeysSettings();
 
     // Check for Intents Search URL parameter (from Omnibox "go" keyword)
     const urlParams = new URLSearchParams(window.location.search);
@@ -1095,6 +1096,33 @@ function initEventListeners() {
         });
     });
 
+    // AI Keys Management
+    document.getElementById('saveSearchKey')?.addEventListener('click', () => {
+        const key = document.getElementById('intentsSearchKey').value.trim();
+        if (key.startsWith('sk-')) {
+            chrome.runtime.sendMessage({ action: 'saveIntentsSearchKey', key: key }, (res) => {
+                playSound('success');
+                alert('Search AI Key saved successfully.');
+            });
+        } else {
+            playSound('error');
+            alert('Please enter a valid OpenAI API key starting with sk-');
+        }
+    });
+
+    document.getElementById('saveGeneralKey')?.addEventListener('click', () => {
+        const key = document.getElementById('generalAIKey').value.trim();
+        if (key.startsWith('sk-')) {
+            chrome.runtime.sendMessage({ action: 'saveAIKey', key: key }, (res) => {
+                playSound('success');
+                alert('General AI Key saved successfully.');
+            });
+        } else {
+            playSound('error');
+            alert('Please enter a valid OpenAI API key starting with sk-');
+        }
+    });
+
     // Custom Background Picker
     document.querySelectorAll('.bg-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1103,8 +1131,24 @@ function initEventListeners() {
             btn.classList.add('active');
             saveSettings();
             applyBackground();
+            playSound('switch');
         });
     });
+
+    // Initialise AI keys in settings modal
+    function initAIKeysSettings() {
+        chrome.storage.local.get(['openaiKey', 'intentsSearchKey'], (result) => {
+            const generalKeyInput = document.getElementById('generalAIKey');
+            const searchKeyInput = document.getElementById('intentsSearchKey');
+
+            if (generalKeyInput && result.openaiKey) {
+                generalKeyInput.value = result.openaiKey;
+            }
+            if (searchKeyInput && result.intentsSearchKey) {
+                searchKeyInput.value = result.intentsSearchKey;
+            }
+        });
+    }
 
     // Intent Toggles
     const intentBtns = document.querySelectorAll('.intent-btn');
@@ -1331,6 +1375,37 @@ async function showInlineSearchResults(query) {
 
         if (aiResult.success) {
             renderAIResult(aiResult, query);
+        } else if (aiResult.reason === 'no_key') {
+            body.innerHTML = `
+                <div class="intents-no-key-state">
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 12px; opacity: 0.5;">
+                        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3-3.5 3.5z"/>
+                    </svg>
+                    <h3>Search AI Key Required</h3>
+                    <p>To use GPT-5 Nano research, please add your API key in <strong>Settings > AI Intelligence</strong>.</p>
+                    <button class="consent-btn primary" id="openSettingsFromSearch" style="margin-top: 15px;">Open Settings</button>
+                    <div style="margin-top: 20px; font-size: 0.8em; opacity: 0.6;">Falling back to Wikipedia in 5s...</div>
+                </div>
+            `;
+
+            document.getElementById('openSettingsFromSearch')?.addEventListener('click', () => {
+                modal.classList.remove('active');
+                document.getElementById('settingsModal').classList.add('active');
+            });
+
+            // Auto-fallback after 5 seconds if no key
+            setTimeout(async () => {
+                if (body.querySelector('.intents-no-key-state')) {
+                    body.innerHTML = '<div class="intents-search-loading"><div class="search-loading-spinner"></div><span>Searching Wikipedia...</span></div>';
+                    const fallbackResults = await fetchFallbackResults(query);
+                    if (fallbackResults.length === 0) {
+                        body.innerHTML = '';
+                        fallback.style.display = 'block';
+                    } else {
+                        renderFallbackResults(fallbackResults);
+                    }
+                }
+            }, 5000);
         } else {
             // Fallback to Wikipedia + StackOverflow
             body.innerHTML = `

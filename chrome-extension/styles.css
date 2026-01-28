@@ -28,46 +28,81 @@
     /* Apple Red */
 
     --border-color: rgba(255, 255, 255, 0.1);
-    /* Global Stoic border */
-    --border-width: 1px;
-    --border-radius: 20px;
-    /* MacOS Sequoia value */
 
-    --shadow-brutal: 0 10px 40px rgba(0, 0, 0, 0.3);
-    --shadow-brutal-sm: 0 4px 12px rgba(0, 0, 0, 0.15);
-    --shadow-brutal-hover: 0 15px 60px rgba(0, 0, 0, 0.4);
+    /* AI Search States */
+    --intents-no-key-bg: rgba(255, 255, 255, 0.05);
+}
 
-    /* Aurora Glassmorphism System */
-    --bg-glass: rgba(12, 12, 14, 0.92);
-    --bg-glass-bright: rgba(255, 255, 255, 0.1);
-    --blur-strength: 32px;
-    --border-glass: rgba(255, 255, 255, 0.12);
-    --glass-shimmer: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0.05) 100%);
-    /* Noise texture for frosted glass */
-    --glass-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+.intents-no-key-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    text-align: center;
+    min-height: 300px;
+}
 
-    /* Theme transition timing */
-    --theme-transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+.intents-no-key-state h3 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
 
-    /* Typography */
-    --font-mono: 'SF Mono', 'Space Mono', monospace;
-    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
-    --font-display: var(--font-sans);
+.intents-no-key-state p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    max-width: 320px;
+    line-height: 1.5;
+}
 
-    /* Spacing */
-    --space-xs: 0.25rem;
-    --space-sm: 0.5rem;
-    --space-md: 1rem;
-    --space-lg: 1.5rem;
-    --space-xl: 2rem;
-    --space-2xl: 3.5rem;
-    --space-3xl: 5rem;
+/* Global Stoic border */
+--border-width: 1px;
+--border-radius: 20px;
+/* MacOS Sequoia value */
 
-    /* Transitions */
-    --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
-    --transition-normal: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-    --transition-slow: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    --ease-comfort: cubic-bezier(0.16, 1, 0.3, 1);
+--shadow-brutal: 0 10px 40px rgba(0, 0, 0, 0.3);
+--shadow-brutal-sm: 0 4px 12px rgba(0, 0, 0, 0.15);
+--shadow-brutal-hover: 0 15px 60px rgba(0, 0, 0, 0.4);
+
+/* Aurora Glassmorphism System */
+--bg-glass: rgba(12, 12, 14, 0.92);
+--bg-glass-bright: rgba(255, 255, 255, 0.1);
+--blur-strength: 32px;
+--border-glass: rgba(255, 255, 255, 0.12);
+--glass-shimmer: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 50%, rgba(255, 255, 255, 0.05) 100%);
+/* Noise texture for frosted glass */
+--glass-noise: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+
+/* Theme transition timing */
+--theme-transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+
+/* Typography */
+--font-mono: 'SF Mono',
+'Space Mono',
+monospace;
+--font-sans: 'Inter',
+-apple-system,
+BlinkMacSystemFont,
+'SF Pro Text',
+sans-serif;
+--font-display: var(--font-sans);
+
+/* Spacing */
+--space-xs: 0.25rem;
+--space-sm: 0.5rem;
+--space-md: 1rem;
+--space-lg: 1.5rem;
+--space-xl: 2rem;
+--space-2xl: 3.5rem;
+--space-3xl: 5rem;
+
+/* Transitions */
+--transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+--transition-normal: 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+--transition-slow: 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+--ease-comfort: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .hidden {
@@ -289,6 +324,40 @@ button {
 input,
 select {
     font-family: inherit;
+}
+
+/* API Key Input Styling */
+.api-key-input-wrapper {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 2px;
+}
+
+.api-key-input-wrapper .setting-input {
+    flex: 1;
+    font-family: var(--font-mono) !important;
+    font-size: 0.85rem;
+}
+
+.key-save-btn {
+    padding: 8px 16px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.2s var(--ease-comfort);
+}
+
+.key-save-btn:hover {
+    background: var(--accent-primary);
+    color: #000;
+    border-color: var(--accent-primary);
+}
+
+.key-save-btn:active {
+    transform: scale(0.95);
 }
 
 /* Style Options in Settings */

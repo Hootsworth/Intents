@@ -256,6 +256,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 
+    if (request.action === 'saveIntentsSearchKey') {
+        chrome.storage.local.set({ intentsSearchKey: request.key }, () => {
+            sendResponse({ success: true });
+        });
+        return true;
+    }
+
     if (request.action === 'intentsSearchAI') {
         handleIntentsSearchAI(request.query, sendResponse);
         return true;
@@ -470,8 +477,8 @@ async function handleAIRequest(prompt, context, sendResponse) {
 
 async function handleIntentsSearchAI(query, sendResponse) {
     try {
-        const result = await chrome.storage.local.get(['openaiKey']);
-        if (!result.openaiKey) {
+        const result = await chrome.storage.local.get(['intentsSearchKey']);
+        if (!result.intentsSearchKey) {
             sendResponse({ error: 'No API Key' });
             return;
         }
@@ -480,7 +487,7 @@ async function handleIntentsSearchAI(query, sendResponse) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${result.openaiKey}`
+                'Authorization': `Bearer ${result.intentsSearchKey}`
             },
             body: JSON.stringify({
                 model: 'gpt-5-nano',
