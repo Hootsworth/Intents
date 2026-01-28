@@ -99,6 +99,43 @@
                 </div>
             </div>
 
+            <!-- Intents Search Modal (Omnibox USP) -->
+            <div class="intents-search-modal" id="intentsSearchModal">
+                <div class="intents-search-container">
+                    <div class="intents-search-header">
+                        <h2 class="intents-search-title">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="m21 21-4.35-4.35"></path>
+                            </svg>
+                            <span id="intentsSearchQuery">Intents Search</span>
+                        </h2>
+                        <button class="close-btn-mac" id="closeIntentsSearch">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round">
+                                <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    <div class="intents-search-body" id="intentsSearchBody">
+                        <!-- AI summary and results injected here -->
+                    </div>
+                    <div class="intents-search-fallback" id="intentsSearchFallback" style="display: none;">
+                        <p>No results found.</p>
+                        <a href="#" id="intentsGoogleFallback" class="fallback-link">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                                <polyline points="15 3 21 3 21 9"></polyline>
+                                <line x1="10" y1="14" x2="21" y2="3"></line>
+                            </svg>
+                            Search with Google
+                        </a>
+                    </div>
+                </div>
+            </div>
+
 
         </main>
 
@@ -111,6 +148,25 @@
 
         <!-- Release Notes Button (Corner) -->
         <button class="version-badge" id="versionBtn" title="Release Notes">v5.5.0</button>
+
+        <!-- System Awareness Widget -->
+        <div class="system-widget glass-panel" id="systemWidget" title="System Awareness & Resource Load">
+            <div class="system-icon">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                    <line x1="8" y1="21" x2="16" y2="21"></line>
+                    <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+            </div>
+            <div class="system-load-details">
+                <div class="load-bar-container">
+                    <div class="load-bar" id="cpuBar"></div>
+                </div>
+                <div class="load-bar-container">
+                    <div class="load-bar" id="memBar"></div>
+                </div>
+            </div>
+        </div>
 
         <!-- Deep Focus Timer -->
         <div class="focus-widget glass-panel" id="focusWidget">

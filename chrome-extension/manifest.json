@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Intents New Tab",
-  "version": "5.8.1",
+  "version": "6.0.0",
   "description": "Replace your new tab page with Intents - a minimal, distraction-free search experience with innovative features",
   "permissions": [
     "contextMenus",
@@ -11,7 +11,12 @@
     "alarms",
     "notifications",
     "webNavigation",
-    "tabs"
+    "tabs",
+    "sidePanel",
+    "history",
+    "tabGroups",
+    "system.cpu",
+    "system.memory"
   ],
   "host_permissions": [
     "https://api.duckduckgo.com/*",
@@ -73,5 +78,11 @@
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
     "128": "icons/icon128.png"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "omnibox": {
+    "keyword": "go"
   }
 }

@@ -487,7 +487,8 @@
     font-weight: 700;
     line-height: 1.2;
     margin: 0 0 16px;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
+    /* Slightly tighter for modern feel */
     color: var(--intent-text);
 }
 
@@ -515,7 +516,7 @@
     font-weight: 600;
     margin: 2em 0 0.75em;
     line-height: 1.3;
-    letter-spacing: -0.01em;
+    letter-spacing: -0.02em;
     scroll-margin-top: 80px;
 }
 
@@ -752,8 +753,12 @@
     filter: brightness(1.1);
 }
 
-.intent-htt-save:active {
-    transform: translateY(0);
+.intent-htt-save:active,
+.intent-htt-cancel:active,
+.intent-btn:active,
+.intent-btn-icon:active {
+    transform: translateY(0) scale(0.96);
+    /* Tactile feedback */
 }
 
 .intent-htt-tooltip-btn {

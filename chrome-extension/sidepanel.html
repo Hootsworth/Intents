@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intents Side Panel</title>
+    <link rel="stylesheet" href="sidepanel.css">
+</head>
+
+<body class="side-panel-body">
+    <div class="glass-container">
+        <header class="panel-header">
+            <h1 class="panel-title">INTENTS</h1>
+            <div class="tab-controls">
+                <button class="tab-btn active" data-tab="thoughts">Thoughts</button>
+                <button class="tab-btn" data-tab="trail">Trail</button>
+            </div>
+        </header>
+
+        <main class="panel-content">
+            <div id="thoughts-tab" class="tab-pane active">
+                <div class="search-wrapper">
+                    <input type="text" id="thought-search" placeholder="Search thoughts...">
+                </div>
+                <div id="thoughts-list" class="item-list">
+                    <!-- Thoughts will be injected here -->
+                </div>
+            </div>
+
+            <div id="trail-tab" class="tab-pane">
+                <div id="trail-list" class="item-list">
+                    <!-- Footsteps will be injected here -->
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="sidepanel.js"></script>
+</body>
+
+</html>

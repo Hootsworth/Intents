@@ -7,6 +7,13 @@
 function createContextMenus() {
     // Clear existing menus first
     chrome.contextMenus.removeAll(() => {
+        // Side Panel
+        chrome.contextMenus.create({
+            id: 'open-side-panel',
+            title: '📂 Open Research Side Panel',
+            contexts: ['all']
+        });
+
         // Hold That Thought menu (for selected text)
         chrome.contextMenus.create({
             id: 'hold-that-thought',
@@ -46,6 +53,12 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     // Skip chrome:// and other restricted pages
     if (!tab.url || tab.url.startsWith('chrome://') || tab.url.startsWith('chrome-extension://')) {
+        return;
+    }
+
+    // Handle Side Panel
+    if (info.menuItemId === 'open-side-panel') {
+        chrome.sidePanel.open({ tabId: tab.id });
         return;
     }
 
@@ -243,6 +256,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 
+    if (request.action === 'intentsSearchAI') {
+        handleIntentsSearchAI(request.query, sendResponse);
+        return true;
+    }
+
     if (request.action === 'openInIntentMode') {
         // Open the URL in a new tab and activate Intent Mode
         chrome.tabs.create({ url: request.url }, async (tab) => {
@@ -274,6 +292,33 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             };
             chrome.tabs.onUpdated.addListener(onUpdated);
         });
+        sendResponse({ success: true });
+        return true;
+    }
+
+    // Footsteps actions
+    if (request.action === 'getFootsteps') {
+        getFootsteps().then(footsteps => {
+            sendResponse({ footsteps });
+        });
+        return true;
+    }
+
+    if (request.action === 'clearFootsteps') {
+        clearFootsteps().then(() => {
+            sendResponse({ success: true });
+        });
+        return true;
+    }
+
+    if (request.action === 'navigateToFootstep') {
+        chrome.tabs.update({ url: request.url });
+        sendResponse({ success: true });
+        return true;
+    }
+
+    if (request.action === 'updateSnippet') {
+        updateFootstepSnippet(sender.tab.url, request.snippet);
         sendResponse({ success: true });
         return true;
     }
@@ -403,7 +448,7 @@ async function handleAIRequest(prompt, context, sendResponse) {
                 'Authorization': `Bearer ${result.openaiKey}`
             },
             body: JSON.stringify({
-                model: 'gpt-3.5-turbo',
+                model: 'gpt-5-nano',
                 messages: messages,
                 max_tokens: 150,
                 temperature: 0.7
@@ -420,6 +465,57 @@ async function handleAIRequest(prompt, context, sendResponse) {
         }
     } catch (error) {
         sendResponse({ error: 'Network error or invalid key' });
+    }
+}
+
+async function handleIntentsSearchAI(query, sendResponse) {
+    try {
+        const result = await chrome.storage.local.get(['openaiKey']);
+        if (!result.openaiKey) {
+            sendResponse({ error: 'No API Key' });
+            return;
+        }
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${result.openaiKey}`
+            },
+            body: JSON.stringify({
+                model: 'gpt-5-nano',
+                messages: [
+                    {
+                        role: 'system',
+                        content: `You are a research assistant. When the user asks a question:
+1. Provide a clear, concise summary (max 150 words)
+2. Suggest 2-3 relevant links the user should visit for more info
+3. Format your response STRICTLY as JSON: {"summary": "...", "links": [{"title": "...", "url": "..."}, ...]}`
+                    },
+                    { role: 'user', content: query }
+                ],
+                max_tokens: 600,
+                temperature: 0.7
+            })
+        });
+
+        const data = await response.json();
+        if (data.error) {
+            sendResponse({ error: data.error.message });
+        } else {
+            const content = data.choices[0].message.content.trim();
+            try {
+                // Try to clean potential markdown backticks
+                const jsonStr = content.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+                const parsed = JSON.parse(jsonStr);
+                sendResponse({ success: true, summary: parsed.summary, links: parsed.links || [] });
+            } catch (e) {
+                // Return as plain text if JSON fails
+                sendResponse({ success: true, summary: content, links: [] });
+            }
+        }
+    } catch (error) {
+        sendResponse({ error: 'Connection failed' });
     }
 }
 
@@ -545,33 +641,7 @@ async function clearFootsteps() {
     await chrome.storage.local.set({ footsteps: [] });
 }
 
-// Handle footsteps message actions
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.action === 'getFootsteps') {
-        getFootsteps().then(footsteps => {
-            sendResponse({ footsteps });
-        });
-        return true;
-    }
 
-    if (request.action === 'clearFootsteps') {
-        clearFootsteps().then(() => {
-            sendResponse({ success: true });
-        });
-        return true;
-    }
-
-    if (request.action === 'navigateToFootstep') {
-        chrome.tabs.update({ url: request.url });
-        sendResponse({ success: true });
-        return true;
-    }
-
-    if (request.action === 'updateSnippet') {
-        updateFootstepSnippet(sender.tab.url, request.snippet);
-        return true;
-    }
-});
 
 
 // ============================================
@@ -594,3 +664,63 @@ chrome.webNavigation.onErrorOccurred.addListener(async (details) => {
         }
     }
 });
+
+// ============================================
+// OMNIBOX - Quick Search for Thoughts/Trail
+// ============================================
+
+chrome.omnibox.onInputChanged.addListener(async (text, suggest) => {
+    const thoughts = await getThoughts();
+    const footsteps = await getFootsteps();
+
+    const suggestions = [];
+
+    // Filter thoughts
+    const filteredThoughts = (thoughts || []).filter(t =>
+        t && t.text && t.text.toLowerCase().includes(text.toLowerCase())
+    ).slice(0, 4);
+
+    filteredThoughts.forEach(t => {
+        const textSnippet = (t.text || '').substring(0, 30).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        suggestions.push({
+            content: `thought:${t.id}`,
+            description: `<dim>💭 Thought:</dim> <match>${textSnippet}...</match> ${t.tag ? `[<url>${t.tag}</url>]` : ''}`
+        });
+    });
+
+    // Filter footsteps
+    const filteredSteps = (footsteps || []).filter(f =>
+        f && f.title && f.title.toLowerCase().includes(text.toLowerCase())
+    ).slice(0, 4);
+
+    filteredSteps.forEach(f => {
+        const titleSnippet = (f.title || '').substring(0, 40).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        suggestions.push({
+            content: f.url,
+            description: `<dim>👣 Trail:</dim> <match>${titleSnippet}</match> — <url>${f.domain}</url>`
+        });
+    });
+
+    suggest(suggestions);
+});
+
+chrome.omnibox.onInputEntered.addListener(async (text) => {
+    // Get the current active tab
+    const [currentTab] = await chrome.tabs.query({ active: true, currentWindow: true });
+
+    if (text.startsWith('thought:')) {
+        const thoughtId = text.replace('thought:', '');
+        chrome.tabs.update(currentTab.id, { url: `index.html?thought=${thoughtId}` });
+    } else if (text.startsWith('http')) {
+        chrome.tabs.update(currentTab.id, { url: text });
+    } else {
+        // Open Intents Search in same tab
+        chrome.tabs.update(currentTab.id, { url: `index.html?intentsSearch=${encodeURIComponent(text)}` });
+    }
+});
+
+// Enable side panel on action click
+chrome.sidePanel
+    .setPanelBehavior({ openPanelOnActionClick: true })
+    .catch((error) => console.error(error));
+

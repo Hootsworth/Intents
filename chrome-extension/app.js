@@ -167,6 +167,15 @@ document.addEventListener('DOMContentLoaded', () => {
     initShortcutLegend();
     initDataSovereignty();
     initSpotlight();
+    initSystemAwareness();
+
+    // Check for Intents Search URL parameter (from Omnibox "go" keyword)
+    const urlParams = new URLSearchParams(window.location.search);
+    const intentsSearchQuery = urlParams.get('intentsSearch');
+    if (intentsSearchQuery) {
+        // Show one-time consent or trigger search immediately if already consented
+        triggerIntentsSearch(intentsSearchQuery);
+    }
 });
 
 function loadSettings() {
@@ -905,6 +914,23 @@ function initEventListeners() {
     // Main search form
     document.getElementById('searchForm')?.addEventListener('submit', handleSearch);
 
+    // Close Intents Search modal
+    document.getElementById('closeIntentsSearch')?.addEventListener('click', () => {
+        const modal = document.getElementById('intentsSearchModal');
+        if (modal) {
+            modal.classList.remove('active');
+        }
+        playSound('click');
+    });
+
+    // Click outside Intents Search modal to close
+    document.getElementById('intentsSearchModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'intentsSearchModal') {
+            e.target.classList.remove('active');
+            playSound('click');
+        }
+    });
+
     // Settings modal
     const settingsModal = document.getElementById('settingsModal');
     settingsToggle?.addEventListener('click', () => {
@@ -1137,7 +1163,7 @@ function initEventListeners() {
     });
 }
 
-// Handle search - Google only
+// Handle search - Google redirect (normal behavior)
 function handleSearch(e) {
     e.preventDefault();
 
@@ -1145,7 +1171,8 @@ function handleSearch(e) {
     if (!query) return;
 
     playSound('whoosh');
-    // AI Omnibox handling
+
+    // AI Omnibox handling (/ai prefix)
     if (query.startsWith('/ai ')) {
         const aiQuery = query.substring(4).trim();
         const aiUrl = `https://www.perplexity.ai/search?q=${encodeURIComponent(aiQuery)}`;
@@ -1163,13 +1190,327 @@ function handleSearch(e) {
 
     // Save to recent searches
     saveRecentSearch(query);
+    incrementSearchCount();
 
-    // Search with Google
+    // Redirect to Google
     const url = GOOGLE_SEARCH_URL + encodeURIComponent(query);
     document.body.classList.add('page-exit-active');
     setTimeout(() => {
         window.location.href = url;
     }, 300);
+}
+
+// Intents Search - Triggered via Omnibox "go" keyword
+async function triggerIntentsSearch(query) {
+    const CONSENT_KEY = 'intents-search-consent';
+    const hasConsent = localStorage.getItem(CONSENT_KEY) === 'true';
+
+    // Populate search input with query for visibility
+    const searchInput = document.getElementById('searchInput');
+    if (searchInput) {
+        searchInput.value = query;
+    }
+
+    if (!hasConsent) {
+        // Show one-time consent dialog
+        showIntentsSearchConsent(query);
+    } else {
+        // User already consented, trigger search immediately
+        showInlineSearchResults(query);
+    }
+}
+
+function showIntentsSearchConsent(query) {
+    // Create consent modal
+    const modal = document.createElement('div');
+    modal.className = 'intents-consent-modal';
+    modal.innerHTML = `
+        <div class="consent-container">
+            <div class="consent-header">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <path d="m21 21-4.35-4.35"></path>
+                </svg>
+                <h2>Intents Search</h2>
+            </div>
+            <p class="consent-text">
+                You activated <strong>Intents Search</strong> via the address bar.<br><br>
+                This feature fetches results from <strong>Wikipedia</strong> and <strong>StackOverflow</strong> to show instant answers inline—without leaving this page.
+            </p>
+            <div class="consent-actions">
+                <button class="consent-btn primary" id="intentsConsentYes">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    Enable &amp; Search
+                </button>
+                <button class="consent-btn secondary" id="intentsConsentNo">Use Google Instead</button>
+            </div>
+            <label class="consent-remember">
+                <input type="checkbox" id="intentsRemember" checked>
+                <span>Remember my choice</span>
+            </label>
+        </div>
+    `;
+    document.body.appendChild(modal);
+
+    // Animate in
+    requestAnimationFrame(() => modal.classList.add('active'));
+
+    // Handlers
+    document.getElementById('intentsConsentYes').addEventListener('click', () => {
+        const remember = document.getElementById('intentsRemember').checked;
+        if (remember) {
+            localStorage.setItem('intents-search-consent', 'true');
+        }
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+        showInlineSearchResults(query);
+    });
+
+    document.getElementById('intentsConsentNo').addEventListener('click', () => {
+        modal.classList.remove('active');
+        setTimeout(() => modal.remove(), 300);
+        // Redirect to Google
+        window.location.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    });
+}
+
+// Intents USP: AI-first search with fallback to Wikipedia/StackOverflow
+async function showInlineSearchResults(query) {
+    const modal = document.getElementById('intentsSearchModal');
+    const body = document.getElementById('intentsSearchBody');
+    const fallback = document.getElementById('intentsSearchFallback');
+    const titleLabel = document.getElementById('intentsSearchQuery');
+    const fallbackLink = document.getElementById('intentsGoogleFallback');
+
+    if (!modal || !body) return;
+
+    // Update title and show modal
+    titleLabel.textContent = `"${query}"`;
+    fallbackLink.href = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+    modal.classList.add('active');
+    fallback.style.display = 'none';
+
+    // Animated loading messages
+    const loadingMessages = [
+        'Asking AI...',
+        'Thinking deeply...',
+        'Gathering insights...',
+        'Almost there...',
+        'Analyzing sources...',
+        'Connecting the dots...'
+    ];
+    let msgIndex = 0;
+
+    // Show loading state
+    body.innerHTML = `
+        <div class="intents-search-loading">
+            <div class="search-loading-spinner"></div>
+            <span class="loading-message">${loadingMessages[0]}</span>
+        </div>
+    `;
+
+    // Cycle messages every 2 seconds
+    const loadingInterval = setInterval(() => {
+        msgIndex = (msgIndex + 1) % loadingMessages.length;
+        const msgEl = body.querySelector('.loading-message');
+        if (msgEl) {
+            msgEl.style.opacity = '0';
+            setTimeout(() => {
+                msgEl.textContent = loadingMessages[msgIndex];
+                msgEl.style.opacity = '1';
+            }, 200);
+        }
+    }, 2000);
+
+    try {
+        // Try AI first
+        const aiResult = await fetchAISearchResult(query);
+        clearInterval(loadingInterval);
+
+        if (aiResult.success) {
+            renderAIResult(aiResult, query);
+        } else {
+            // Fallback to Wikipedia + StackOverflow
+            body.innerHTML = `
+                <div class="intents-search-loading">
+                    <div class="search-loading-spinner"></div>
+                    <span>Searching knowledge sources...</span>
+                </div>
+            `;
+            const fallbackResults = await fetchFallbackResults(query);
+
+            if (fallbackResults.length === 0) {
+                body.innerHTML = '';
+                fallback.style.display = 'block';
+            } else {
+                renderFallbackResults(fallbackResults);
+            }
+        }
+    } catch (error) {
+        clearInterval(loadingInterval);
+        console.error('Intents Search error:', error);
+        body.innerHTML = '';
+        fallback.style.display = 'block';
+    }
+}
+
+async function fetchAISearchResult(query) {
+    try {
+        // Use background script to perform the AI request (more reliable)
+        const response = await new Promise(resolve => {
+            chrome.runtime.sendMessage({
+                action: 'intentsSearchAI',
+                query: query
+            }, (res) => {
+                if (chrome.runtime.lastError) {
+                    console.error('[Intents Search] Runtime error:', chrome.runtime.lastError);
+                    resolve({ error: 'Background script connection failed' });
+                } else {
+                    resolve(res);
+                }
+            });
+        });
+
+        if (!response) {
+            console.error('[Intents Search] Received null response');
+            return { success: false, reason: 'no_response' };
+        }
+
+        if (response.error) {
+            if (response.error === 'No API Key') {
+                return { success: false, reason: 'no_key' };
+            }
+            return { success: false, reason: 'api_error', message: response.error };
+        }
+
+        return {
+            success: true,
+            summary: response.summary,
+            links: response.links || []
+        };
+    } catch (error) {
+        console.error('AI search background request error:', error);
+        return { success: false, reason: 'network_error' };
+    }
+}
+
+function renderAIResult(result, query) {
+    const body = document.getElementById('intentsSearchBody');
+    if (!body) return;
+
+    let linksHTML = '';
+    if (result.links && result.links.length > 0) {
+        linksHTML = `
+            <div class="intents-links-section">
+                <div class="intents-links-title">Suggested Resources</div>
+                ${result.links.map(link => `
+                    <div class="intents-link-card" onclick="window.open('${escapeAttr(link.url)}', '_blank')">
+                        <div class="intents-link-title">${escapeHtml(link.title)}</div>
+                        <div class="intents-link-url">${escapeHtml(link.url)}</div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    body.innerHTML = `
+        <div class="intents-ai-summary">
+            <div class="intents-ai-label">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path>
+                    <path d="M12 6v6l4 2"></path>
+                </svg>
+                AI Summary
+            </div>
+            <div class="intents-ai-content">${escapeHtml(result.summary).replace(/\n/g, '<br>')}</div>
+            <div class="intents-ai-footer">Powered by ChatGPT</div>
+        </div>
+        ${linksHTML}
+    `;
+}
+
+async function fetchFallbackResults(query) {
+    const results = [];
+    const encodedQuery = encodeURIComponent(query);
+
+    // Fetch from Wikipedia using search API (handles questions, not just article titles)
+    try {
+        const wikiSearchUrl = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodedQuery}&format=json&origin=*&srlimit=1`;
+        const wikiResponse = await fetch(wikiSearchUrl);
+        if (wikiResponse.ok) {
+            const wikiData = await wikiResponse.json();
+            if (wikiData.query?.search?.length > 0) {
+                const firstResult = wikiData.query.search[0];
+                // Strip HTML tags from snippet
+                const cleanSnippet = firstResult.snippet.replace(/<[^>]*>/g, '');
+                results.push({
+                    source: 'wikipedia',
+                    title: firstResult.title,
+                    snippet: cleanSnippet,
+                    url: `https://en.wikipedia.org/wiki/${encodeURIComponent(firstResult.title.replace(/ /g, '_'))}`
+                });
+            }
+        }
+    } catch (e) { console.log('Wikipedia fetch error', e); }
+
+    // Fetch from StackExchange
+    try {
+        const seResponse = await fetch(`https://api.stackexchange.com/2.3/search/advanced?order=desc&sort=relevance&q=${encodedQuery}&site=stackoverflow&pagesize=2`);
+        if (seResponse.ok) {
+            const seData = await seResponse.json();
+            if (seData.items && seData.items.length > 0) {
+                seData.items.slice(0, 2).forEach(item => {
+                    results.push({
+                        source: 'stackexchange',
+                        title: item.title,
+                        snippet: '',
+                        url: item.link
+                    });
+                });
+            }
+        }
+    } catch (e) { console.log('StackExchange fetch error', e); }
+
+    return results;
+}
+
+function renderFallbackResults(results) {
+    const body = document.getElementById('intentsSearchBody');
+    if (!body) return;
+
+    body.innerHTML = `
+        <div class="intents-ai-summary" style="background: rgba(156, 163, 175, 0.08); border-color: rgba(156, 163, 175, 0.2);">
+            <div class="intents-ai-label" style="color: var(--text-secondary);">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4M12 8h.01"></path>
+                </svg>
+                No AI Key — Showing Web Results
+            </div>
+        </div>
+        <div class="intents-links-section">
+            ${results.map(r => `
+                <div class="intents-link-card" onclick="window.open('${escapeAttr(r.url)}', '_blank')">
+                    <div class="intents-link-title">
+                        ${r.source === 'wikipedia' ? '📚' : '💻'} ${escapeHtml(r.title)}
+                    </div>
+                    <div class="intents-link-url">${new URL(r.url).hostname}</div>
+                </div>
+            `).join('')}
+        </div>
+    `;
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
+
+function escapeAttr(text) {
+    return (text || '').replace(/'/g, "\\'").replace(/"/g, '&quot;');
 }
 
 // Quick Calculator - evaluate math expressions
@@ -2650,4 +2991,56 @@ function initSpotlight() {
             }
         });
     });
+}
+// ===== SYSTEM AWARENESS =====
+function initSystemAwareness() {
+    const cpuBar = document.getElementById('cpuBar');
+    const memBar = document.getElementById('memBar');
+    const widget = document.getElementById('systemWidget');
+
+    if (!cpuBar || !memBar || !widget) return;
+
+    function updateSystemStatus() {
+        // CPU Usage
+        if (chrome.system && chrome.system.cpu) {
+            try {
+                chrome.system.cpu.getInfo((info) => {
+                    if (!info || !info.processors) return;
+
+                    let usage = 0;
+                    info.processors.forEach(cpu => {
+                        const total = cpu.usage.kernel + cpu.usage.user + cpu.usage.idle;
+                        if (total > 0) {
+                            const used = cpu.usage.kernel + cpu.usage.user;
+                            usage += (used / total) * 100;
+                        }
+                    });
+                    usage = usage / info.processors.length;
+
+                    cpuBar.style.width = `${Math.min(100, Math.max(0, usage))}%`;
+                    if (usage > 80) cpuBar.classList.add('heavy');
+                    else cpuBar.classList.remove('heavy');
+                });
+            } catch (e) { console.log('CPU Error', e); }
+        }
+
+        // Memory Usage
+        if (chrome.system && chrome.system.memory) {
+            try {
+                chrome.system.memory.getInfo((info) => {
+                    if (!info || !info.capacity) return;
+
+                    const used = info.capacity - info.availableCapacity;
+                    const usage = (used / info.capacity) * 100;
+
+                    memBar.style.width = `${Math.min(100, Math.max(0, usage))}%`;
+                    if (usage > 85) memBar.classList.add('heavy');
+                    else memBar.classList.remove('heavy');
+                });
+            } catch (e) { console.log('Memory Error', e); }
+        }
+    }
+
+    updateSystemStatus();
+    setInterval(updateSystemStatus, 3000);
 }

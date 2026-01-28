@@ -221,7 +221,8 @@
     font-size: 13px;
     font-weight: 600;
     color: var(--stoic-text-secondary);
-    letter-spacing: 0.02em;
+    letter-spacing: 0.01em;
+    /* Refined spacing */
 }
 
 .htt-close {
@@ -486,8 +487,12 @@
     animation: successGlow 1s ease-in-out infinite;
 }
 
-.htt-save:active {
-    opacity: 0.8;
+.htt-save:active,
+.htt-cancel:active,
+.htt-ping-btn:active,
+.htt-close:active {
+    transform: scale(0.95);
+    opacity: 0.85;
 }
 
 /* ============================================
