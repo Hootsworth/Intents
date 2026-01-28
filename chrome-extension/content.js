@@ -348,15 +348,15 @@
         overlay.className = 'htt-ping-overlay';
 
         overlay.innerHTML = `
-            <div class="htt-ping-bar" style="border-left: 4px solid #10a37f; padding: 20px; max-width: 400px;">
-                <div style="font-weight: bold; margin-bottom: 10px; font-size: 1.1em;">Setup Quick AI</div>
-                <div style="font-size: 0.9em; opacity: 0.8; margin-bottom: 15px;">Please enter your OpenAI API Key to continue. It will be stored securely on your device.</div>
+            <div class="htt-ping-bar htt-key-modal">
+                <div class="htt-key-header">Setup Quick AI</div>
+                <div class="htt-key-sub">Please enter your OpenAI API Key to continue. It will be stored securely on your device.</div>
                 
-                <input type="password" id="httKeyInput" class="htt-ping-input" placeholder="sk-..." style="margin-bottom: 15px; font-family: monospace;">
+                <input type="password" id="httKeyInput" class="htt-ping-input htt-key-input" placeholder="sk-...">
                 
-                <div style="display: flex; justify-content: flex-end; gap: 10px;">
-                    <button id="httKeyCancel" style="padding: 6px 12px; background: transparent; border: 1px solid rgba(255,255,255,0.2); color: white; border-radius: 4px; cursor: pointer;">Cancel</button>
-                    <button id="httKeySave" style="padding: 6px 12px; background: #10a37f; border: none; color: white; border-radius: 4px; cursor: pointer; font-weight: bold;">Save & Continue</button>
+                <div class="htt-key-footer">
+                    <button id="httKeyCancel" class="htt-ping-btn">Cancel</button>
+                    <button id="httKeySave" class="htt-ping-btn active">Save & Continue</button>
                 </div>
             </div>
         `;
@@ -399,45 +399,22 @@
         overlay.className = 'htt-ping-overlay';
 
         // Context: Minimal, muted (Hidden during morph usually, but we keep structure)
-        const contextHtml = context ? `<div id="httAIContext" style="font-size: 0.85em; opacity: 0.6; margin-bottom: 12px; font-style: italic; border-left: 2px solid rgba(255,255,255,0.2); padding-left: 10px; max-height: 60px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; transition: opacity 0.3s ease;">${escapeHtml(context)}</div>` : '';
+        const contextHtml = context ? `<div id="httAIContext" class="htt-ai-context">${escapeHtml(context)}</div>` : '';
 
         // UI: Minimal, Dark, Intentional
         // The container that will morph
         overlay.innerHTML = `
-            <div id="httAIContainer" class="htt-ping-bar" style="
-                border: 1px solid rgba(255,255,255,0.1); 
-                background: #1e1e1e; 
-                box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
-                padding: 15px 23px;
-                width: 460px;
-                min-height: 60px;
-                border-radius: 28px;
-                transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1); /* Smooth expansion */
-                overflow: hidden;
-                display: flex;
-                flex-direction: column;
-                justify-content: center;
-            ">
+            <div id="httAIContainer" class="htt-ping-bar htt-ai-container">
                 ${contextHtml}
-                <div id="httAIInputWrapper" style="display: flex; align-items: center; gap: 12px; width: 100%; transition: opacity 0.3s ease;">
-                    <button id="httMemoryToggle" class="htt-memory-btn" title="Recall Context (last hour)" style="
-                        background: rgba(255,255,255,0.03); 
-                        border: 1px solid rgba(255,255,255,0.1); 
-                        color: rgba(255,255,255,0.4); 
-                        border-radius: 14px; 
-                        padding: 10px; 
-                        cursor: pointer; 
-                        display: flex;
-                        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-                        flex-shrink: 0;
-                    ">
+                <div id="httAIInputWrapper" class="htt-ai-wrapper">
+                    <button id="httMemoryToggle" class="htt-memory-btn" title="Recall Context (last hour)">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
                         </svg>
                     </button>
-                    <input type="text" class="htt-ping-input" id="httAIInput" placeholder="Ask..." autocomplete="off" style="font-size: 1.1em; letter-spacing: 0.02em; width: 100%;">
+                    <input type="text" class="htt-ping-input" id="httAIInput" placeholder="Ask..." autocomplete="off">
                 </div>
-                <div id="httAIResponseContent" style="display: none; opacity: 0; transition: opacity 0.5s ease 0.2s;">
+                <div id="httAIResponseContent" class="htt-ai-response">
                     <!-- Response injected here -->
                 </div>
             </div>
