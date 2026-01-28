@@ -7,19 +7,19 @@
    Design Tokens
    ============================================ */
 :root {
-    --stoic-bg: rgba(30, 30, 30, 0.65);
-    --stoic-bg-solid: #1e1e20;
-    --stoic-surface: rgba(255, 255, 255, 0.03);
-    --stoic-hover: rgba(255, 255, 255, 0.06);
-    --stoic-active: rgba(255, 255, 255, 0.08);
+    --stoic-bg: rgba(20, 20, 22, 0.94);
+    --stoic-bg-solid: #141416;
+    --stoic-surface: rgba(255, 255, 255, 0.05);
+    --stoic-hover: rgba(255, 255, 255, 0.08);
+    --stoic-active: rgba(255, 255, 255, 0.12);
     --stoic-text: #ffffff;
-    --stoic-text-secondary: rgba(255, 255, 255, 0.7);
-    --stoic-text-muted: rgba(255, 255, 255, 0.4);
-    --stoic-border: rgba(255, 255, 255, 0.08);
-    --stoic-border-focus: rgba(255, 255, 255, 0.15);
-    --stoic-blur: blur(24px);
-    --stoic-radius: 28px;
-    --stoic-radius-sm: 14px;
+    --stoic-text-secondary: rgba(255, 255, 255, 0.8);
+    --stoic-text-muted: rgba(255, 255, 255, 0.45);
+    --stoic-border: rgba(255, 255, 255, 0.1);
+    --stoic-border-focus: rgba(255, 255, 255, 0.2);
+    --stoic-blur: blur(40px);
+    --stoic-radius: 24px;
+    --stoic-radius-sm: 12px;
     --stoic-font: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
     --stoic-ease: cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -816,7 +816,7 @@
     backdrop-filter: var(--stoic-blur);
     -webkit-backdrop-filter: var(--stoic-blur);
     border: 1px solid var(--stoic-border);
-    border-radius: 20px;
+    border-radius: var(--stoic-radius);
     box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.5);
     z-index: 2147483647;
     animation: stoicFloatIn 0.4s var(--stoic-ease);
@@ -940,11 +940,11 @@
     bottom: 16px;
     width: 300px;
     max-width: calc(100vw - 32px);
-    background: rgba(30, 30, 32, 0.92);
-    backdrop-filter: blur(60px) saturate(200%);
-    -webkit-backdrop-filter: blur(60px) saturate(200%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    border-radius: 14px;
+    background: var(--stoic-bg);
+    backdrop-filter: var(--stoic-blur) saturate(200%);
+    -webkit-backdrop-filter: var(--stoic-blur) saturate(200%);
+    border: 1px solid var(--stoic-border);
+    border-radius: var(--stoic-radius);
     box-shadow:
         0 0 0 0.5px rgba(255, 255, 255, 0.05),
         0 20px 60px -10px rgba(0, 0, 0, 0.5);
@@ -1344,11 +1344,11 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.9);
-    background: rgba(28, 28, 30, 0.85);
-    backdrop-filter: blur(40px) saturate(190%);
-    -webkit-backdrop-filter: blur(40px) saturate(190%);
-    border: 0.5px solid rgba(255, 255, 255, 0.12);
-    border-radius: 12px;
+    background: var(--stoic-bg);
+    backdrop-filter: var(--stoic-blur) saturate(190%);
+    -webkit-backdrop-filter: var(--stoic-blur) saturate(190%);
+    border: 1px solid var(--stoic-border);
+    border-radius: var(--stoic-radius);
     padding: 0;
     max-width: 520px;
     width: 90%;
