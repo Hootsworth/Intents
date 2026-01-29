@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initDataSovereignty();
     initSpotlight();
     initSystemAwareness();
-    initAIKeysSettings();
+    initAIConfig();
 
     // Check for Intents Search URL parameter (from Omnibox "go" keyword)
     const urlParams = new URLSearchParams(window.location.search);
@@ -1096,33 +1096,6 @@ function initEventListeners() {
         });
     });
 
-    // AI Keys Management
-    document.getElementById('saveSearchKey')?.addEventListener('click', () => {
-        const key = document.getElementById('intentsSearchKey').value.trim();
-        if (key.startsWith('sk-')) {
-            chrome.runtime.sendMessage({ action: 'saveIntentsSearchKey', key: key }, (res) => {
-                playSound('success');
-                alert('Search AI Key saved successfully.');
-            });
-        } else {
-            playSound('error');
-            alert('Please enter a valid OpenAI API key starting with sk-');
-        }
-    });
-
-    document.getElementById('saveGeneralKey')?.addEventListener('click', () => {
-        const key = document.getElementById('generalAIKey').value.trim();
-        if (key.startsWith('sk-')) {
-            chrome.runtime.sendMessage({ action: 'saveAIKey', key: key }, (res) => {
-                playSound('success');
-                alert('General AI Key saved successfully.');
-            });
-        } else {
-            playSound('error');
-            alert('Please enter a valid OpenAI API key starting with sk-');
-        }
-    });
-
     // Custom Background Picker
     document.querySelectorAll('.bg-btn').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -1131,24 +1104,8 @@ function initEventListeners() {
             btn.classList.add('active');
             saveSettings();
             applyBackground();
-            playSound('switch');
         });
     });
-
-    // Initialise AI keys in settings modal
-    function initAIKeysSettings() {
-        chrome.storage.local.get(['openaiKey', 'intentsSearchKey'], (result) => {
-            const generalKeyInput = document.getElementById('generalAIKey');
-            const searchKeyInput = document.getElementById('intentsSearchKey');
-
-            if (generalKeyInput && result.openaiKey) {
-                generalKeyInput.value = result.openaiKey;
-            }
-            if (searchKeyInput && result.intentsSearchKey) {
-                searchKeyInput.value = result.intentsSearchKey;
-            }
-        });
-    }
 
     // Intent Toggles
     const intentBtns = document.querySelectorAll('.intent-btn');
@@ -1262,6 +1219,10 @@ async function triggerIntentsSearch(query) {
         // User already consented, trigger search immediately
         showInlineSearchResults(query);
     }
+
+    // Clean up URL to avoid re-triggering on refresh
+    const newUrl = window.location.pathname;
+    window.history.replaceState({}, document.title, newUrl);
 }
 
 function showIntentsSearchConsent(query) {
@@ -1338,24 +1299,23 @@ async function showInlineSearchResults(query) {
 
     // Animated loading messages
     const loadingMessages = [
-        'Asking AI...',
-        'Thinking deeply...',
-        'Gathering insights...',
-        'Almost there...',
-        'Analyzing sources...',
-        'Connecting the dots...'
+        'Sourcing intelligence...',
+        'Synthesizing key insights...',
+        'Mapping knowledge connections...',
+        'Refining results...',
+        'Finalizing synthesis...'
     ];
     let msgIndex = 0;
 
     // Show loading state
     body.innerHTML = `
         <div class="intents-search-loading">
-            <div class="search-loading-spinner"></div>
-            <span class="loading-message">${loadingMessages[0]}</span>
+            <div class="search-loading-spinner" style="border-width: 2px; width: 36px; height: 36px; border-top-color: var(--accent-primary); opacity: 0.8;"></div>
+            <span class="loading-message" style="font-family: var(--font-mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.6;">${loadingMessages[0]}</span>
         </div>
     `;
 
-    // Cycle messages every 2 seconds
+    // Cycle messages every 1.5 seconds
     const loadingInterval = setInterval(() => {
         msgIndex = (msgIndex + 1) % loadingMessages.length;
         const msgEl = body.querySelector('.loading-message');
@@ -1363,10 +1323,10 @@ async function showInlineSearchResults(query) {
             msgEl.style.opacity = '0';
             setTimeout(() => {
                 msgEl.textContent = loadingMessages[msgIndex];
-                msgEl.style.opacity = '1';
-            }, 200);
+                msgEl.style.opacity = '0.6';
+            }, 300);
         }
-    }, 2000);
+    }, 1500);
 
     try {
         // Try AI first
@@ -1375,37 +1335,6 @@ async function showInlineSearchResults(query) {
 
         if (aiResult.success) {
             renderAIResult(aiResult, query);
-        } else if (aiResult.reason === 'no_key') {
-            body.innerHTML = `
-                <div class="intents-no-key-state">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="margin-bottom: 12px; opacity: 0.5;">
-                        <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3-3.5 3.5z"/>
-                    </svg>
-                    <h3>Search AI Key Required</h3>
-                    <p>To use GPT-5 Nano research, please add your API key in <strong>Settings > AI Intelligence</strong>.</p>
-                    <button class="consent-btn primary" id="openSettingsFromSearch" style="margin-top: 15px;">Open Settings</button>
-                    <div style="margin-top: 20px; font-size: 0.8em; opacity: 0.6;">Falling back to Wikipedia in 5s...</div>
-                </div>
-            `;
-
-            document.getElementById('openSettingsFromSearch')?.addEventListener('click', () => {
-                modal.classList.remove('active');
-                document.getElementById('settingsModal').classList.add('active');
-            });
-
-            // Auto-fallback after 5 seconds if no key
-            setTimeout(async () => {
-                if (body.querySelector('.intents-no-key-state')) {
-                    body.innerHTML = '<div class="intents-search-loading"><div class="search-loading-spinner"></div><span>Searching Wikipedia...</span></div>';
-                    const fallbackResults = await fetchFallbackResults(query);
-                    if (fallbackResults.length === 0) {
-                        body.innerHTML = '';
-                        fallback.style.display = 'block';
-                    } else {
-                        renderFallbackResults(fallbackResults);
-                    }
-                }
-            }, 5000);
         } else {
             // Fallback to Wikipedia + StackOverflow
             body.innerHTML = `
@@ -1460,10 +1389,10 @@ async function fetchAISearchResult(query) {
             return { success: false, reason: 'api_error', message: response.error };
         }
 
+        // Pass through everything including lyrics data
         return {
             success: true,
-            summary: response.summary,
-            links: response.links || []
+            ...response
         };
     } catch (error) {
         console.error('AI search background request error:', error);
@@ -1471,21 +1400,160 @@ async function fetchAISearchResult(query) {
     }
 }
 
+// ===== LYRICS EASTER EGG =====
+function openLyricsModal(artist, title, lyrics) {
+    const modal = document.getElementById('lyricsModal');
+    const container = document.getElementById('lyricsContainer');
+    const btnKaraoke = document.getElementById('btnStartKaraoke');
+
+    // Set Header
+    document.getElementById('lyricsSongTitle').textContent = title;
+    document.getElementById('lyricsArtistName').textContent = artist;
+
+    // Render Lyrics
+    // Split by newlines, wrap in p.lyric-line
+    const lines = lyrics.split('\n').filter(line => line.trim() !== '');
+    container.innerHTML = lines.map(line => `<p class="lyric-line">${line}</p>`).join('');
+
+    // Reset Controls
+    btnKaraoke.onclick = () => startKaraoke(container);
+    btnKaraoke.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /><line x1="8" y1="22" x2="16" y2="22" /></svg> Start Karaoke`;
+    btnKaraoke.classList.remove('playing');
+
+    modal.classList.add('active');
+
+    // Auto-Close the Background AI Search Modal after 0.5s
+    setTimeout(() => {
+        const searchModal = document.getElementById('intentsSearchModal');
+        if (searchModal) {
+            searchModal.classList.remove('active');
+        }
+    }, 500);
+
+    // Close handler
+    document.getElementById('closeLyrics').onclick = () => {
+        modal.classList.remove('active');
+        stopKaraoke(); // Ensure loop stops
+    };
+}
+
+let karaokeInterval;
+function startKaraoke(container) {
+    const lines = container.querySelectorAll('.lyric-line');
+    const btn = document.getElementById('btnStartKaraoke');
+    if (!lines.length) return;
+
+    if (btn.classList.contains('playing')) return;
+    btn.classList.add('playing');
+    btn.textContent = 'Karaoke Mode Active...';
+
+    let index = 0;
+
+    // Calculate a rough BPM-based interval (Standard pop ~120bpm -> ~2 sec per line?)
+    // Let's make it dynamic or just a fixed engaging speed. 
+    // 2.5s is a good average for readability.
+    const INTERVAL = 2800;
+
+    // Clear any existing
+    if (karaokeInterval) clearInterval(karaokeInterval);
+
+    // Initial highlight
+    highlightLine(lines, index, container);
+    index++;
+
+    karaokeInterval = setInterval(() => {
+        if (index >= lines.length) {
+            clearInterval(karaokeInterval);
+            btn.classList.remove('playing');
+            btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M19.07 4.93L17.66 6.34A6 6 0 0 1 15.5 16.5v2.09c3.02-.68 5.48-3.08 6.22-6.17l-.65-.65z"/><path d="M15.5 5.5v2.09a4 4 0 0 0-1.4 6.96l-1.42 1.42A6 6 0 0 1 15.5 5.5z"/></svg> Replay`;
+            btn.onclick = () => startKaraoke(container);
+            return;
+        }
+        highlightLine(lines, index, container);
+        index++;
+    }, INTERVAL);
+}
+
+function stopKaraoke() {
+    if (karaokeInterval) clearInterval(karaokeInterval);
+}
+
+function highlightLine(lines, index, container) {
+    // Remove active from all (focus focus)
+    lines.forEach(l => l.classList.remove('active'));
+
+    const line = lines[index];
+    line.classList.add('active');
+
+    // Smooth scroll to center
+    line.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/**
+ * Render AI Search Result with staggered reveal and actions
+ */
 function renderAIResult(result, query) {
     const body = document.getElementById('intentsSearchBody');
     if (!body) return;
+
+    // Conditional Third Button (Deep Research vs Karaoke)
+    let thirdButtonHTML = `
+        <button class="ai-action-btn" id="btnDeepResearch" data-url="https://www.perplexity.ai/search?q=${encodeURIComponent(query)}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            Deep Research
+        </button>
+    `;
+
+    // Only show Karaoke if we have valid song info
+    if (result.song_info && result.song_info.artist && result.song_info.title) {
+        thirdButtonHTML = `
+            <button class="ai-action-btn" id="btnKaraoke">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" /><path d="M19 10v2a7 7 0 0 1-14 0v-2" /><line x1="12" y1="19" x2="12" y2="22" /><line x1="8" y1="22" x2="16" y2="22" /></svg>
+                Karaoke 🎤
+            </button>
+        `;
+    }
+
+    // Build Actions Row
+    const actionsHTML = `
+        <div class="intents-ai-actions">
+            <button class="ai-action-btn primary" id="btnResearchMode" title="Open first link in deep research mode">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+                Read Mode
+            </button>
+            <button class="ai-action-btn" id="btnSaveThought">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Save
+            </button>
+            ${thirdButtonHTML}
+            <button class="ai-action-btn" id="btnCopyAI">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>
+                Copy
+            </button>
+        </div>
+    `;
 
     let linksHTML = '';
     if (result.links && result.links.length > 0) {
         linksHTML = `
             <div class="intents-links-section">
-                <div class="intents-links-title">Suggested Resources</div>
-                ${result.links.map(link => `
-                    <div class="intents-link-card" onclick="window.open('${escapeAttr(link.url)}', '_blank')">
-                        <div class="intents-link-title">${escapeHtml(link.title)}</div>
-                        <div class="intents-link-url">${escapeHtml(link.url)}</div>
-                    </div>
-                `).join('')}
+                <div class="intents-links-title">Deepen your knowledge</div>
+                <div class="links-list">
+                    ${result.links.map(link => {
+            const domain = new URL(link.url).hostname;
+            const favicon = `https://www.google.com/s2/favicons?sz=64&domain=${domain}`;
+            return `
+                        <div class="intents-link-card" data-url="${escapeAttr(link.url)}">
+                            <div class="intents-link-icon">
+                                <img src="${favicon}" alt="" class="favicon-img">
+                            </div>
+                            <div class="intents-link-info">
+                                <div class="intents-link-title">${escapeHtml(link.title)}</div>
+                                <div class="intents-link-url">${escapeHtml(domain)}</div>
+                            </div>
+                        </div>
+                    `}).join('')}
+                </div>
             </div>
         `;
     }
@@ -1493,17 +1561,126 @@ function renderAIResult(result, query) {
     body.innerHTML = `
         <div class="intents-ai-summary">
             <div class="intents-ai-label">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"></path>
-                    <path d="M12 6v6l4 2"></path>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                 </svg>
-                AI Summary
+                Knowledge Synthesis
             </div>
-            <div class="intents-ai-content">${escapeHtml(result.summary).replace(/\n/g, '<br>')}</div>
-            <div class="intents-ai-footer">Powered by ChatGPT</div>
+            <div class="intents-ai-content" id="aiContentReveal"></div>
+            ${actionsHTML}
         </div>
         ${linksHTML}
     `;
+
+    // Trigger reveal animation
+    const contentEl = document.getElementById('aiContentReveal');
+    if (contentEl) {
+        revealTextStaggered(contentEl, result.summary);
+    }
+
+    // Attach listeners
+    document.getElementById('btnSaveThought')?.addEventListener('click', () => {
+        saveAIThought(query, result.summary);
+    });
+
+    document.getElementById('btnCopyAI')?.addEventListener('click', (e) => {
+        navigator.clipboard.writeText(result.summary);
+        e.target.closest('button').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Copied';
+        setTimeout(() => {
+            e.target.closest('button').innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> Copy';
+        }, 2000);
+    });
+
+    document.getElementById('btnResearchMode')?.addEventListener('click', () => {
+        if (result.links && result.links.length > 0) {
+            window.open(result.links[0].url, '_blank');
+        }
+    });
+
+    // Handlers for dynamic content
+    document.getElementById('btnDeepResearch')?.addEventListener('click', (e) => {
+        window.open(e.currentTarget.dataset.url, '_blank');
+    });
+
+    body.querySelectorAll('.intents-link-card').forEach(card => {
+        card.addEventListener('click', () => {
+            window.open(card.dataset.url, '_blank');
+        });
+    });
+
+    body.querySelectorAll('.favicon-img').forEach(img => {
+        img.addEventListener('error', () => {
+            img.src = 'https://www.google.com/s2/favicons?sz=64&domain=google.com';
+        });
+    });
+
+    // Karaoke Listener
+    if (result.song_info) {
+        document.getElementById('btnKaraoke')?.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            const originalText = btn.innerHTML;
+            btn.textContent = 'Loading...';
+
+            chrome.runtime.sendMessage({
+                action: 'fetchLyrics',
+                artist: result.song_info.artist,
+                title: result.song_info.title
+            }, (res) => {
+                if (res && res.success) {
+                    openLyricsModal(result.song_info.artist, result.song_info.title, res.lyrics);
+                    btn.innerHTML = originalText;
+                } else {
+                    console.error('Lyrics Fetch Error:', res ? res.error : 'Unknown error');
+                    btn.textContent = res && res.error ? 'Not Found' : 'Error';
+                    setTimeout(() => btn.innerHTML = originalText, 2000);
+                }
+            });
+        });
+    }
+}
+
+/**
+ * Word-by-word reveal for premium feel
+ */
+function revealTextStaggered(container, text) {
+    const words = text.split(/\s+/);
+    container.innerHTML = '';
+
+    words.forEach((word, i) => {
+        if (!word) return;
+        const span = document.createElement('span');
+        span.className = 'reveal-word';
+        span.textContent = word;
+        container.appendChild(span);
+
+        setTimeout(() => {
+            span.classList.add('revealed');
+        }, i * 8); // Super fast flow (approx 750wpm feel)
+    });
+}
+
+/**
+ * Save AI summary as a thought
+ */
+function saveAIThought(query, summary) {
+    const btn = document.getElementById('btnSaveThought');
+    const thought = {
+        id: Date.now().toString(),
+        text: `Search for "${query}": ${summary}`,
+        timestamp: new Date().toISOString(),
+        tags: ['🔍 AI Search']
+    };
+
+    chrome.storage.local.get(['thoughts'], (result) => {
+        const thoughts = result.thoughts || [];
+        thoughts.unshift(thought);
+        chrome.storage.local.set({ thoughts }, () => {
+            if (btn) {
+                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Saved';
+                btn.classList.add('primary');
+            }
+        });
+    });
 }
 
 async function fetchFallbackResults(query) {
@@ -1567,7 +1744,7 @@ function renderFallbackResults(results) {
         </div>
         <div class="intents-links-section">
             ${results.map(r => `
-                <div class="intents-link-card" onclick="window.open('${escapeAttr(r.url)}', '_blank')">
+                <div class="intents-link-card" data-url="${escapeAttr(r.url)}">
                     <div class="intents-link-title">
                         ${r.source === 'wikipedia' ? '📚' : '💻'} ${escapeHtml(r.title)}
                     </div>
@@ -1576,6 +1753,13 @@ function renderFallbackResults(results) {
             `).join('')}
         </div>
     `;
+
+    // Attach listeners
+    body.querySelectorAll('.intents-link-card').forEach(card => {
+        card.addEventListener('click', () => {
+            window.open(card.dataset.url, '_blank');
+        });
+    });
 }
 
 function escapeHtml(text) {
@@ -2096,6 +2280,7 @@ function initGlobalShortcuts() {
             document.getElementById('releaseModal')?.classList.remove('active');
             document.getElementById('thoughtsPanel')?.classList.remove('active');
             document.getElementById('calcResult')?.classList.remove('visible');
+            document.getElementById('intentsSearchModal')?.classList.remove('active');
             playSound('click');
         }
     });
@@ -3118,4 +3303,74 @@ function initSystemAwareness() {
 
     updateSystemStatus();
     setInterval(updateSystemStatus, 3000);
+}
+
+// ===== AI CONFIGURATION =====
+function initAIConfig() {
+    const providerSelect = document.getElementById('aiProviderSelect');
+    const saveKeyBtns = document.querySelectorAll('.save-key-btn');
+
+    if (!providerSelect) return;
+
+    // Helper: Show/Hide input groups based on selection
+    function updateVisibility(provider) {
+        document.querySelectorAll('.ai-key-group').forEach(group => {
+            group.classList.add('hidden');
+        });
+        const activeGroup = document.getElementById(`keyGroup_${provider}`);
+        if (activeGroup) activeGroup.classList.remove('hidden');
+    }
+
+    // Load initial state
+    chrome.storage.local.get(['aiProvider', 'openaiKey', 'geminiKey', 'grokKey', 'llamaKey'], (result) => {
+        // Set provider
+        const currentProvider = result.aiProvider || 'openai';
+        providerSelect.value = currentProvider;
+        updateVisibility(currentProvider);
+
+        // Update placeholders with masked keys
+        if (result.openaiKey) document.getElementById('openaiKeyInput').placeholder = 'Key saved: ' + result.openaiKey.substring(0, 8) + '...';
+        if (result.geminiKey) document.getElementById('geminiKeyInput').placeholder = 'Key saved: ' + result.geminiKey.substring(0, 8) + '...';
+        if (result.grokKey) document.getElementById('grokKeyInput').placeholder = 'Key saved: ' + result.grokKey.substring(0, 8) + '...';
+        if (result.llamaKey) document.getElementById('llamaKeyInput').placeholder = 'Key saved: ' + result.llamaKey.substring(0, 8) + '...';
+    });
+
+    // Handle Provider Change
+    providerSelect.addEventListener('change', (e) => {
+        const provider = e.target.value;
+        updateVisibility(provider);
+        chrome.storage.local.set({ aiProvider: provider });
+    });
+
+    // Handle Key Saving
+    saveKeyBtns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const provider = e.target.dataset.provider; // openai, gemini, grok, llama
+            const inputId = `${provider}KeyInput`;
+            const input = document.getElementById(inputId);
+            const key = input.value.trim();
+
+            if (!key) return;
+
+            btn.textContent = 'Saving...';
+
+            chrome.runtime.sendMessage({
+                action: 'saveAIProviderKey',
+                provider: provider,
+                key: key
+            }, (response) => {
+                if (response && response.success) {
+                    btn.textContent = 'Saved!';
+                    input.value = '';
+                    input.placeholder = 'Key saved: ' + key.substring(0, 8) + '...';
+                    playSound('success');
+                    setTimeout(() => { btn.textContent = 'Save'; }, 2000);
+                } else {
+                    btn.textContent = 'Error';
+                    playSound('error');
+                    setTimeout(() => { btn.textContent = 'Save'; }, 2000);
+                }
+            });
+        });
+    });
 }

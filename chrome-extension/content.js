@@ -832,12 +832,20 @@
 
                 item.innerHTML = `
                     <span class="footsteps-item-num">${stepNum}</span>
-                    <img class="footsteps-item-favicon" src="${step.favicon}" alt="" onerror="this.style.display='none'">
+                    <img class="footsteps-item-favicon" src="${step.favicon}" alt="">
                     <div class="footsteps-item-info">
                         <span class="footsteps-item-title">${escapeHtml(step.title || step.domain)}</span>
                         <span class="footsteps-item-meta">${escapeHtml(step.domain)} · ${formatRelativeTime(step.timestamp)}</span>
                     </div>
                 `;
+
+                // Handle favicon errors
+                const img = item.querySelector('.footsteps-item-favicon');
+                if (img) {
+                    img.addEventListener('error', () => {
+                        img.style.display = 'none';
+                    });
+                }
 
                 // Click to navigate
                 item.addEventListener('click', () => {

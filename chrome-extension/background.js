@@ -263,8 +263,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 
+    if (request.action === 'organizeTabs') {
+        handleTabShepherd(sendResponse);
+        return true;
+    }
+
     if (request.action === 'intentsSearchAI') {
         handleIntentsSearchAI(request.query, sendResponse);
+        return true;
+    }
+
+    if (request.action === 'fetchLyrics') {
+        fetchLyricsFromOVH(request.artist, request.title, sendResponse);
         return true;
     }
 
@@ -408,8 +418,7 @@ async function mergeThoughts(thoughtIds) {
 
     // Combine tags
     const uniqueTags = [...new Set(toMerge.map(t => t.tag))];
-    const combinedTag = uniqueTags.join(', '); // or just pick the first one? User might prefer multiple. 
-    // Actually, UI only shows one tag bubble usually. Let's use Comma separated.
+    const combinedTag = uniqueTags.join(', ');
 
     const merged = {
         ...newest,
@@ -428,101 +437,248 @@ async function mergeThoughts(thoughtIds) {
     return { success: true };
 }
 
-async function handleAIRequest(prompt, context, sendResponse) {
+// ===== MULTI-PROVIDER AI HANDLER =====
+async function handleIntentsSearchAI(query, sendResponse) {
     try {
-        const result = await chrome.storage.local.get(['openaiKey']);
-        if (!result.openaiKey) {
-            sendResponse({ error: 'OpenAI API Key provided. Go to New Tab > Settings.' });
-            return;
-        }
+        const settings = await chrome.storage.local.get(['aiProvider', 'openaiKey', 'geminiKey', 'grokKey', 'llamaKey']);
+        const provider = settings.aiProvider || 'openai';
 
-        const messages = [
-            { role: "system", content: "You are a helpful, concise AI assistant. Give short, intuitive answers. Do not encourage follow-ups. Keep it under 50 words if possible." }
-        ];
-
-        if (context) {
-            messages.push({ role: "system", content: `Context: "${context}"` });
-        }
-
-        messages.push({ role: "system", content: "CRITICAL: You are an augmented-memory assistant. Use the 'USER RECENT BROWSING HISTORY' provided. Your goal is to RANK these sites based on the user's question and identify the most likely source. If you find a relevant page, state your answer and then strictly provide the 'Jump back' link at the end using this format: [Jump back to: Page Title](URL)." });
-
-        messages.push({ role: "user", content: prompt });
-
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${result.openaiKey}`
-            },
-            body: JSON.stringify({
-                model: 'gpt-5-nano',
-                messages: messages,
-                max_tokens: 150,
-                temperature: 0.7
-            })
-        });
-
-        const data = await response.json();
-
-        if (data.error) {
-            sendResponse({ error: 'OpenAI Error: ' + data.error.message });
-        } else {
-            const answer = data.choices[0].message.content.trim();
-            sendResponse({ answer: answer });
+        switch (provider) {
+            case 'gemini':
+                if (!settings.geminiKey) return sendResponse({ error: 'Gemini API Key missing' });
+                await callGemini(query, settings.geminiKey, sendResponse, SYSTEM_PROMPT);
+                break;
+            case 'grok':
+                if (!settings.grokKey) return sendResponse({ error: 'Grok API Key missing' });
+                await callGrok(query, settings.grokKey, sendResponse, SYSTEM_PROMPT);
+                break;
+            case 'llama':
+                if (!settings.llamaKey) return sendResponse({ error: 'Llama API Key missing' });
+                await callLlama(query, settings.llamaKey, sendResponse, SYSTEM_PROMPT);
+                break;
+            case 'openai':
+            default:
+                if (!settings.openaiKey) return sendResponse({ error: 'OpenAI API Key missing' });
+                await callOpenAI(query, settings.openaiKey, sendResponse, SYSTEM_PROMPT);
+                break;
         }
     } catch (error) {
-        sendResponse({ error: 'Network error or invalid key' });
+        sendResponse({ error: 'AI Request Failed: ' + error.message });
     }
 }
 
-async function handleIntentsSearchAI(query, sendResponse) {
-    try {
-        const result = await chrome.storage.local.get(['intentsSearchKey']);
-        if (!result.intentsSearchKey) {
-            sendResponse({ error: 'No API Key' });
-            return;
-        }
+// --- Universal AI Caller Helper ---
+async function callAI(query, systemPrompt) {
+    const settings = await chrome.storage.local.get(['aiProvider', 'openaiKey', 'geminiKey', 'grokKey', 'llamaKey']);
+    const provider = settings.aiProvider || 'openai';
 
+    return new Promise((resolve) => {
+        const wrapper = (result) => resolve(result); // Wrap sendResponse style
+
+        switch (provider) {
+            case 'gemini':
+                if (!settings.geminiKey) return resolve({ error: 'Gemini API Key missing' });
+                callGemini(query, settings.geminiKey, wrapper, systemPrompt);
+                break;
+            case 'grok':
+                if (!settings.grokKey) return resolve({ error: 'Grok API Key missing' });
+                callGrok(query, settings.grokKey, wrapper, systemPrompt);
+                break;
+            case 'llama':
+                if (!settings.llamaKey) return resolve({ error: 'Llama API Key missing' });
+                callLlama(query, settings.llamaKey, wrapper, systemPrompt);
+                break;
+            case 'openai':
+            default:
+                if (!settings.openaiKey) return resolve({ error: 'OpenAI API Key missing' });
+                callOpenAI(query, settings.openaiKey, wrapper, systemPrompt);
+                break;
+        }
+    });
+}
+
+const SYSTEM_PROMPT = `You are a high-level research assistant.
+1. Provide a comprehensive yet concise synthesis (max 180 words).
+2. Use professional, clear language.
+3. Suggest 3-4 distinct, high-quality resources.
+4. Format response STRICTLY as JSON: {"summary": "...", "links": [{"title": "...", "url": "..."}, ...]}
+5. IF the user is specifically asking for song lyrics, ADD "song_info": {"artist": "Exact Artist", "title": "Exact Title"} to the JSON.`;
+
+// --- OpenAI Handler ---
+async function callOpenAI(query, key, sendResponse, systemPrompt = SYSTEM_PROMPT) {
+    try {
         const response = await fetch('https://api.openai.com/v1/chat/completions', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${result.intentsSearchKey}`
-            },
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
             body: JSON.stringify({
-                model: 'gpt-5-nano',
+                model: 'gpt-4o-mini',
                 messages: [
-                    {
-                        role: 'system',
-                        content: `You are a research assistant. When the user asks a question:
-1. Provide a clear, concise summary (max 150 words)
-2. Suggest 2-3 relevant links the user should visit for more info
-3. Format your response STRICTLY as JSON: {"summary": "...", "links": [{"title": "...", "url": "..."}, ...]}`
-                    },
+                    { role: 'system', content: systemPrompt },
                     { role: 'user', content: query }
                 ],
                 max_tokens: 600,
                 temperature: 0.7
             })
         });
-
         const data = await response.json();
-        if (data.error) {
-            sendResponse({ error: data.error.message });
+        if (data.error) throw new Error(data.error.message);
+        await processAIResponse(data.choices[0].message.content, sendResponse);
+    } catch (e) { sendResponse({ error: e.message }); }
+}
+
+// --- Gemini Handler (Google AI Studio) ---
+async function callGemini(query, key, sendResponse, systemPrompt = SYSTEM_PROMPT) {
+    try {
+        // Maps to gemini-1.5-flash (User requested "Gemini 2.5 Flash")
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${key}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{
+                        text: `${systemPrompt}\nUser Query: ${query}`
+                    }] // System instructions are often better as part of the prompt in REST API
+                }]
+            })
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+
+        const content = data.candidates[0].content.parts[0].text;
+        await processAIResponse(content, sendResponse);
+    } catch (e) { sendResponse({ error: e.message }); }
+}
+
+// --- Grok Handler (xAI via OpenAI-compatible endpoint) ---
+async function callGrok(query, key, sendResponse, systemPrompt = SYSTEM_PROMPT) {
+    try {
+        // Maps to grok-beta (User requested "Grok 4.1")
+        const response = await fetch('https://api.x.ai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+            body: JSON.stringify({
+                model: 'grok-beta',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: query }
+                ],
+                max_tokens: 600,
+                temperature: 0.7
+            })
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        await processAIResponse(data.choices[0].message.content, sendResponse);
+    } catch (e) { sendResponse({ error: e.message }); }
+}
+
+// --- Llama Handler (via Groq) ---
+async function callLlama(query, key, sendResponse, systemPrompt = SYSTEM_PROMPT) {
+    try {
+        // Maps to llama-3.1-70b-versatile (User requested "Llama 4 Maverick")
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+            body: JSON.stringify({
+                model: 'llama-3.1-70b-versatile',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: query }
+                ],
+                max_tokens: 600,
+                temperature: 0.7
+            })
+        });
+        const data = await response.json();
+        if (data.error) throw new Error(data.error.message);
+        await processAIResponse(data.choices[0].message.content, sendResponse);
+    } catch (e) { sendResponse({ error: e.message }); }
+}
+
+
+// --- Helper: Parse JSON Response & Handle Intent ---
+async function processAIResponse(content, sendResponse) {
+    let finalSummary = content;
+    let finalLinks = [];
+    let songInfo = null;
+    let navAction = null;
+    let navUrl = null;
+
+    try {
+        // Robust extraction: Find the first '{' and the last '}'
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+            const parsed = JSON.parse(jsonMatch[0]);
+
+            if (parsed.summary) finalSummary = parsed.summary;
+            if (Array.isArray(parsed.links)) finalLinks = parsed.links;
+            if (parsed.song_info) songInfo = parsed.song_info;
+            // Navigation fields
+            if (parsed.action) navAction = parsed.action;
+            if (parsed.url) navUrl = parsed.url;
+            if (parsed.query) finalSummary = parsed.query; // If generic search, use query as summary (hacky but works for return text)
         } else {
-            const content = data.choices[0].message.content.trim();
-            try {
-                // Try to clean potential markdown backticks
-                const jsonStr = content.replace(/^```json\n?/, '').replace(/\n?```$/, '');
-                const parsed = JSON.parse(jsonStr);
-                sendResponse({ success: true, summary: parsed.summary, links: parsed.links || [] });
-            } catch (e) {
-                // Return as plain text if JSON fails
-                sendResponse({ success: true, summary: content, links: [] });
+            // Logic to strip markdown if no JSON found, just in case
+            finalSummary = content.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+        }
+    } catch (e) {
+        // Fallback: use raw content as summary
+        console.warn('Intents: JSON parse failed, utilizing raw output', e);
+        finalSummary = content.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+    }
+
+    sendResponse({
+        success: true,
+        summary: finalSummary,
+        links: finalLinks,
+        song_info: songInfo,
+        action: navAction,
+        url: navUrl
+    });
+}
+
+
+
+// --- Fetch Lyrics ---
+async function fetchLyricsFromOVH(artist, title, sendResponse) {
+    try {
+        // Switch to Lrclib.net (more reliable)
+        // Endpoint: https://lrclib.net/api/get?artist_name=...&track_name=...
+        const lyricsUrl = `https://lrclib.net/api/get?artist_name=${encodeURIComponent(artist)}&track_name=${encodeURIComponent(title)}`;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        try {
+            const response = await fetch(lyricsUrl, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const text = await response.text();
+                console.warn('Lyrics fetch non-200:', response.status, text);
+                sendResponse({ success: false, error: `API Error: ${response.status}` });
+                return;
+            }
+
+            const data = await response.json();
+            // Lrclib returns 'plainLyrics' or 'syncedLyrics'
+            if (data.plainLyrics) {
+                sendResponse({ success: true, lyrics: data.plainLyrics });
+            } else {
+                sendResponse({ success: false, error: 'Lyrics not found in database.' });
+            }
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (fetchError.name === 'AbortError') {
+                sendResponse({ success: false, error: 'Request timed out' });
+            } else {
+                throw fetchError;
             }
         }
-    } catch (error) {
-        sendResponse({ error: 'Connection failed' });
+    } catch (e) {
+        console.error('Lyrics fetch failed:', e);
+        sendResponse({ success: false, error: 'Network/Parsing error' });
     }
 }
 
@@ -567,6 +723,34 @@ chrome.webNavigation.onCommitted.addListener(async (details) => {
         });
     } catch (e) {
         console.log('Footsteps: Could not get tab info', e);
+    }
+});
+
+// Scrape page context on completion for smarter history
+chrome.webNavigation.onCompleted.addListener(async (details) => {
+    if (details.frameId !== 0) return;
+    if (details.url.startsWith('chrome') || details.url.startsWith('about')) return;
+
+    try {
+        const [result] = await chrome.scripting.executeScript({
+            target: { tabId: details.tabId },
+            func: () => {
+                const title = document.title;
+                const desc = document.querySelector('meta[name="description"]')?.content;
+                const h1 = document.querySelector('h1')?.innerText;
+                // Combine into a clean one-liner
+                const parts = [title];
+                if (desc) parts.push(desc);
+                else if (h1) parts.push(h1);
+                return parts.join(' - ').substring(0, 300); // 300 char limit
+            }
+        });
+
+        if (result && result.result) {
+            updateFootstepSnippet(details.url, result.result);
+        }
+    } catch (e) {
+        // Ignore script errors
     }
 });
 
@@ -722,12 +906,190 @@ chrome.omnibox.onInputEntered.addListener(async (text) => {
         chrome.tabs.update(currentTab.id, { url: text });
     } else {
         // Open Intents Search in same tab
-        chrome.tabs.update(currentTab.id, { url: `index.html?intentsSearch=${encodeURIComponent(text)}` });
+        // NEW: Check for Natural Language Navigation (Context Aware)
+        // Heuristic: Check if user is asking to "go", "take me", "history", "last site"
+        const lowerText = text.toLowerCase();
+        const navTriggers = ['go to', 'take me', 'bring me', 'back to', 'last site', 'was in', 'closed', 'history', 'yesterday', 'earlier'];
+
+        const isNavRequest = navTriggers.some(trigger => lowerText.includes(trigger));
+
+        if (isNavRequest) {
+            // Context Aware Navigation
+            await handleOmniboxNav(text, currentTab.id);
+        } else {
+            // Standard Search
+            chrome.tabs.update(currentTab.id, { url: `index.html?intentsSearch=${encodeURIComponent(text)}` });
+        }
     }
 });
+
+async function handleOmniboxNav(query, tabId) {
+    const footsteps = await getFootsteps();
+    const historyContext = footsteps.slice(0, 15).map((f, i) =>
+        `${i + 1}. [${f.title}] (${f.url}) - Context: ${f.snippet || 'Visited recently'}`
+    ).join('\n');
+
+    const NAV_SYSTEM_PROMPT = `You are a browser navigation assistant. 
+1. Analyze the USER QUERY and the BROWSING HISTORY.
+2. If the user wants to go to a specific website from history, return the URL.
+3. If the user wants to search, return the query.
+4. JSON Output STRICTLY: {"action": "navigate", "url": "..."} OR {"action": "search", "query": "..."}`;
+
+    const prompt = `[HISTORY]:\n${historyContext}\n\n[USER QUERY]: ${query}`;
+
+    // Show loading state (optional, or just wait)
+
+    // Call AI
+    const result = await callAI(prompt, NAV_SYSTEM_PROMPT);
+
+    if (result && result.success && result.action === 'navigate' && result.url) {
+        chrome.tabs.create({ url: result.url });
+    } else {
+        // Fallback to search
+        const searchQuery = (result && result.success && result.action === 'search' && result.summary)
+            ? result.summary
+            : query; // fallback to original query
+
+        chrome.tabs.update(tabId, { url: `index.html?intentsSearch=${encodeURIComponent(searchQuery)}` });
+    }
+}
 
 // Enable side panel on action click
 chrome.sidePanel
     .setPanelBehavior({ openPanelOnActionClick: true })
     .catch((error) => console.error(error));
+
+
+// ============================================
+// TAB SHEPHERD - AI Tab Organizer
+// ============================================
+
+async function handleTabShepherd(sendResponse) {
+    try {
+        const tabs = await chrome.tabs.query({ currentWindow: true });
+
+        // Filter out irrelevant tabs
+        const validTabs = tabs.filter(t =>
+            !t.url.startsWith('chrome://') &&
+            !t.url.startsWith('chrome-extension://') &&
+            t.title
+        ).map(t => ({
+            id: t.id,
+            title: t.title,
+            url: t.url
+        }));
+
+        if (validTabs.length < 3) {
+            return sendResponse({ success: false, error: 'Not enough tabs to organize (need 3+).' });
+        }
+
+        const tabsList = validTabs.map(t => `ID: ${t.id} | Title: ${t.title} | URL: ${t.url}`).join('\n');
+
+        const systemPrompt = `You are an expert browser tab organizer.
+1. Group these tabs into logical, thematic clusters (e.g., 'Research', 'Social', 'Development', 'News').
+2. Return a JSON object with a 'groups' array.
+3. Each item in 'groups' must have: 'title' (string) and 'ids' (array of tab integers).
+4. Ignore tabs that don't fit well.
+5. JSON STRICTLY: {'groups': [{'title': 'Work', 'ids': [101, 102]}]}`;
+
+        const userContent = `[Tabs to Organize]:\n${tabsList}`;
+
+        // Call AI
+        const response = await callShepherdAI(userContent, systemPrompt);
+
+        if (response.groups && Array.isArray(response.groups)) {
+            // Find ungrouped tabs
+            const allTabIds = new Set(validTabs.map(t => t.id));
+            const groupedTabIds = new Set();
+
+            response.groups.forEach(g => {
+                if (g.ids) g.ids.forEach(id => groupedTabIds.add(id));
+            });
+
+            const ungroupedIds = [...allTabIds].filter(id => !groupedTabIds.has(id));
+
+            if (ungroupedIds.length > 0) {
+                response.groups.push({
+                    title: 'Others',
+                    ids: ungroupedIds
+                });
+            }
+
+            await performTabGrouping(response.groups);
+            sendResponse({ success: true, groups: response.groups });
+        } else {
+            sendResponse({ success: false, error: 'AI failed to group tabs.' });
+        }
+
+    } catch (e) {
+        console.error('Tab Shepherd Error:', e);
+        sendResponse({ success: false, error: e.message });
+    }
+}
+
+async function performTabGrouping(groups) {
+    for (const group of groups) {
+        if (!group.ids || group.ids.length === 0) continue;
+        try {
+            const groupId = await chrome.tabs.group({ tabIds: group.ids });
+            await chrome.tabGroups.update(groupId, {
+                title: group.title,
+                collapsed: false
+            });
+        } catch (e) {
+            console.warn('Failed to group tabs:', group.title, e);
+        }
+    }
+}
+
+async function callShepherdAI(query, systemPrompt) {
+    const settings = await chrome.storage.local.get(['aiProvider', 'openaiKey', 'geminiKey', 'grokKey', 'llamaKey']);
+    const provider = settings.aiProvider || 'openai';
+    let content = '';
+
+    if (provider === 'gemini' && settings.geminiKey) {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${settings.geminiKey}`;
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: `${systemPrompt}\n${query}` }] }]
+            })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        content = data.candidates[0].content.parts[0].text;
+    }
+    else {
+        // Default to OpenAI
+        const key = settings.openaiKey;
+        if (!key) throw new Error('OpenAI Key missing');
+
+        const res = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+            body: JSON.stringify({
+                model: 'gpt-4o-mini',
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: query }
+                ],
+                max_tokens: 1000,
+                temperature: 0.3,
+                response_format: { type: 'json_object' }
+            })
+        });
+        const data = await res.json();
+        if (data.error) throw new Error(data.error.message);
+        content = data.choices[0].message.content;
+    }
+
+    try {
+        const clean = content.replace(/^```json\n?/, '').replace(/\n?```$/, '').trim();
+        return JSON.parse(clean);
+    } catch (e) {
+        console.error('JSON Parse Error', content);
+        throw new Error('Invalid JSON from AI');
+    }
+}
 

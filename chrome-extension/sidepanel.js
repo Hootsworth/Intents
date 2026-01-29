@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         trailList.innerHTML = (steps || []).map((s, i) => `
             <div class="item-card trail-item" data-url="${s.url}" style="animation-delay: ${i * 0.05}s">
                 <div class="trail-favicon-wrapper">
-                    <img src="${s.favicon || `https://www.google.com/s2/favicons?domain=${new URL(s.url).hostname}&sz=32`}" class="trail-favicon" onerror="this.src='icons/icon16.png'">
+                    <img src="${s.favicon || `https://www.google.com/s2/favicons?domain=${new URL(s.url).hostname}&sz=32`}" class="trail-favicon">
                 </div>
                 <div class="trail-info">
                     <div class="trail-title">${escapeHtml(s.title || s.domain)}</div>
@@ -57,6 +57,13 @@ document.addEventListener('DOMContentLoaded', () => {
         trailList.querySelectorAll('.trail-item').forEach(item => {
             item.addEventListener('click', () => {
                 chrome.tabs.create({ url: item.dataset.url });
+            });
+        });
+
+        // Add error handler for favicons
+        trailList.querySelectorAll('.trail-favicon').forEach(img => {
+            img.addEventListener('error', () => {
+                img.src = 'icons/icon16.png';
             });
         });
     }
@@ -83,4 +90,56 @@ document.addEventListener('DOMContentLoaded', () => {
             refreshData();
         }
     });
+
+    // Tab Shepherd
+    const organizeBtn = document.getElementById('organize-tabs-btn');
+    const statusDiv = document.getElementById('organize-status');
+
+    if (organizeBtn) {
+        organizeBtn.addEventListener('click', () => {
+            statusDiv.innerHTML = '<span class="loading-spinner"></span> Shepherding your tabs...';
+            organizeBtn.disabled = true;
+            organizeBtn.style.opacity = '0.7';
+
+            chrome.runtime.sendMessage({ action: 'organizeTabs' }, (response) => {
+                organizeBtn.disabled = false;
+                organizeBtn.style.opacity = '1';
+
+                if (response && response.success) {
+                    statusDiv.innerHTML = '✨ Tabs organized successfully!';
+                    setTimeout(() => statusDiv.innerHTML = '', 3000);
+
+                    if (response.groups) {
+                        const list = document.getElementById('grouped-tabs-list');
+                        list.innerHTML = ''; // Clear previous
+
+                        response.groups.forEach((group, index) => {
+                            setTimeout(() => {
+                                const groupEl = document.createElement('div');
+                                groupEl.className = 'grouped-group';
+                                groupEl.style.animation = 'itemReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) both';
+                                groupEl.innerHTML = `
+                                    <div class="group-header">
+                                        <div class="group-color-dot" style="background: ${getRandomColor()}"></div>
+                                        <span>${group.title}</span>
+                                        <span class="group-count">${group.ids.length} tabs</span>
+                                    </div>
+                                `;
+                                list.appendChild(groupEl);
+                                // Optional sound effect per item if sound enabled
+                            }, index * 150); // Staggered delay (150ms)
+                        });
+                    }
+                } else {
+                    statusDiv.innerHTML = '❌ Failed: ' + (response?.error || 'Unknown error');
+                }
+            });
+        });
+    }
+
+    function getRandomColor() {
+        const colors = ['#FF5F6D', '#FFC371', '#FFD700', '#4CD964', '#5AC8FA', '#007AFF', '#A259FF', '#FF3B30'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
 });
+
